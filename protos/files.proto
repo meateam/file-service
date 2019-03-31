@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package files;
+
+service Users {
+    rpc GetFileByID(GetByFileByIDRequest) returns (File) {}
+    rpc CreateFile(CreateFileRequest) returns (File) {}
+    rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
+    rpc UpdateFile(UpdateFileRequest) returns (File) {}
+}
+
+message File {
+    string key = 1;
+    string name = 2;
+    string mimeType = 3;
+    string description = 4;
+    string ownerID = 5;
+    int64 size = 6;
+    repeated FileOrID ancestors = 10; 
+    // FileOrID parent = 10;
+    repeated FileOrID childern = 11; 
+    string createdAt = 15;
+    string updatedAt = 16;
+}
+
+message FileOrID {
+    oneof file {
+        string fileID = 1;
+        File file = 2;
+    }
+}
+
+message GetByFileByIDRequest {
+    strgin id = 1;
+}
+
+message DeleteFileResponse {
+    bool ok = 1;
+    num deleted = 2;
+}
+
