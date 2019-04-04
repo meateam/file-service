@@ -2,7 +2,6 @@ import * as chai from 'chai';
 import mongoose from 'mongoose';
 import { config } from '../config';
 import { IFile } from './file.interface';
-import { fileModel } from './file.model';
 import { FileService } from './file.service';
 
 const expect: Chai.ExpectStatic = chai.expect;
