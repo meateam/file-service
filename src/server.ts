@@ -4,14 +4,14 @@ import * as mongoose from 'mongoose';
 import morgan from 'morgan';
 import * as path from 'path';
 import { config } from './config';
-import * as fs from 'fs';
+// import * as fs from 'fs';
 import * as https from 'https';
 import session from 'express-session';
 import cors from 'cors';
 
-const privateKey = fs.readFileSync('wildcard.key', 'utf8');
-const certificate = fs.readFileSync('wildcard.pem', 'utf8');
-const credentials = { key: privateKey, cert: certificate };
+// const privateKey = fs.readFileSync('wildcard.key', 'utf8');
+// const certificate = fs.readFileSync('wildcard.pem', 'utf8');
+// const credentials = { key: privateKey, cert: certificate };
 
 export class Server {
   public app: express.Application;
@@ -69,7 +69,7 @@ export class Server {
   }
 
   private listen() {
-    const httpsServer = https.createServer(credentials, this.app);
+    const httpsServer = https.createServer(null, this.app);
     // Insures you don't run the server twice
     if (!module.parent) {
       this.listener = httpsServer.listen(config.port, () => {
