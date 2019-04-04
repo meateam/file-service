@@ -1,5 +1,5 @@
-import { FileService } from './files.service';
-import { IFile } from './files.interface';
+import { FileService } from '../src/file/file.service';
+import { IFile } from '../src/file/file.interface';
 
 const PROTO_PATH = `${__dirname}/../../protos/users.proto`;
 const grpc = require('grpc');

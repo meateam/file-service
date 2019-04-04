@@ -1,25 +1,38 @@
-import { IFile } from './files.interface';
-import FilesRepository from './files.repository';
+import { IFile } from './file.interface';
+import FilesRepository from './file.repository';
 import { KeyAlreadyExistsError, FileExistsWithSameName } from '../errors/client.error';
 import { Types } from 'mongoose';
+import { ServerError } from '../errors/application.error';
 
 // This server assumes a user exists if sent
 export class FileService {
 
-  public static async create(partialFile: Partial<File>, fullName: string, ownerID: string, folderID:string = null, isFolder:boolean = false, key: string = null): Promise<IFile> {
+  public static generateKey(): string {
+    const key = Types.ObjectId();
+    return this.hashKey(key.toHexString());
+  }
 
-    let type: string = null;
-    if (!isFolder) {
-      if (!key) {
-        const key = Types.ObjectId();
-      }
-      // Checks that the key is unique
-      if (await this.isKeyNotInUse(key)) {
-        throw new KeyAlreadyExistsError(key);
-      }
-      type = 'Blob';
+  // Trusts that the key is unique and that the users exists.
+  public static async create(
+    partialFile: Partial<File>,
+    fullName: string, ownerID: string,
+    type:string, folderID:string = null,
+    key: string = null
+  ): Promise<IFile> {
+
+    console.log('Hello???');
+
+    const isFolder = (type === 'Folder');
+    let id: any;
+
+    // Create the file id (from key or new one).
+    if (key) { // if key exists reverse it to get the generated id
+      id = this.reverseString(key);
     } else {
-      type = 'Folder';
+      if (!isFolder) {
+        throw new ServerError('No key sent');
+      }
+      id = Types.ObjectId();
     }
 
     let parentID: string = folderID;
@@ -31,13 +44,16 @@ export class FileService {
     if (await this.isFileInFolder(fullName, parentID)) {
       throw new FileExistsWithSameName();
     }
-
     const file: IFile = Object.assign(partialFile, {
       key,
-      fullName,
       type,
+      fullName,
       ownerID,
+      _id: id,
+      parent: parentID
     });
+
+    console.log(file);
 
     return await FilesRepository.create(file);
   }
@@ -60,6 +76,11 @@ export class FileService {
     return FilesRepository.getByKey(key);
   }
 
+  public static async getFolderContent(folderID: string): Promise<IFile[]> {
+    const files = await FilesRepository.find({ parent: folderID });
+    return <IFile[]> files;
+  }
+
   private static async isKeyNotInUse(key: string): Promise<boolean> {
     const fileByKey = await FileService.getByKey(key);
     return fileByKey == null;
@@ -67,7 +88,7 @@ export class FileService {
 
   private static async isFileInFolder(fullName: string, folderId: string): Promise<boolean> {
     const file = await FilesRepository.getFileInFolderByName(folderId, fullName);
-    return file == null;
+    return file != null;
   }
 
   private static async findUserRootFolder(userID: string, createIfNotExist = false): Promise<IFile | null> {
@@ -85,5 +106,12 @@ export class FileService {
       isRootFolder: true,
     };
     return await FilesRepository.create(folder);
+  }
+  // Reversing a given string
+  private static hashKey(id: string): string {
+    return this.reverseString(id);
+  }
+  private static reverseString(str: string): string {
+    return str.split('').reverse().join('');
   }
 }

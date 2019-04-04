@@ -1,6 +1,6 @@
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import { ServerError } from '../errors/application.error';
-import { IFile } from './files.interface';
+import { IFile } from './file.interface';
 
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -8,14 +8,13 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
   {
     key: {
       type: String,
-      required: true,
       unique: true,
     },
-    name: {
+    fullName: {
       type: String,
       required: true,
     },
-    mimeType: {
+    type: {
       type: String,
       required: true,
     },
@@ -29,18 +28,23 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
     },
     size: {
       type: Number,
-      required: true,
+      default: 0,
     },
-    ancestors: {
+    // ancestors: {
+    //   type: [ObjectId],
+    //   ref: 'File',
+    //   default: [],
+    // },
+    // children: {
+    //   type: [ObjectId],
+    //   ref: 'File',
+    //   default: [],
+    // },
+    parent: {
       type: [ObjectId],
       ref: 'File',
       default: [],
-    },
-    children: {
-      type: [ObjectId],
-      ref: 'File',
-      default: [],
-    },
+    }
   },
   {
     timestamps: true,
@@ -48,6 +52,18 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
 
 fileSchema.post('save', (error, doc, next) => {
   next(new ServerError(error.message));
+});
+
+fileSchema.virtual('id').get(() => {
+  return this._id;
+});
+
+fileSchema.virtual('displayName').get(() => {
+  return this.fullName.split('.')[0];
+});
+
+fileSchema.virtual('fullExtension').get(() => {
+  return this.fullName.split('.').splice(1).join('.');
 });
 
 export const fileModel = mongoose.model<IFile & mongoose.Document>('File', fileSchema);

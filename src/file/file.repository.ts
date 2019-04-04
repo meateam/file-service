@@ -1,5 +1,5 @@
-import { IFile } from './files.interface';
-import { fileModel } from './files.model';
+import { IFile } from './file.interface';
+import { fileModel } from './file.model';
 
 const pagination = {
   startIndex: 0,
@@ -52,6 +52,22 @@ export default class FilesRepository {
       .limit((+endIndex) - (+startIndex))
       .exec();
   }
+
+  static find(cond?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
+
+    let findPromise = fileModel.find(cond);
+    if (populate) {
+      findPromise = findPromise.populate(populate);
+    }
+    if (select) {
+      findPromise = findPromise.select(select);
+    }
+
+    return findPromise.exec().then((result) => {
+      return (result ? result.map((mongoObject => mongoObject.toObject())) : result);
+    });
+  }
+
   static getRootFolder(folderName: string): Promise<IFile | null> {
     return fileModel.findOne({ fullName: folderName, isRootFolder: true }).exec();
   }
