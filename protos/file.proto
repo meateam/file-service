@@ -86,12 +86,13 @@ message App {
 }
 
 message File {
-    string key = 1;
-    string fullName = 2;
-    string type = 3;
-    string description = 4;
-    string ownerID = 5;
-    int64 size = 6;
+    string id = 1;
+    string key = 2;
+    string fullName = 3;
+    string type = 4;
+    string description = 5;
+    string ownerID = 6;
+    int64 size = 7;
     FileOrID parent = 10;
     optional string bucket = 11;
     string createdAt = 15;
