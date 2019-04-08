@@ -69,7 +69,7 @@ export default class FilesRepository {
   }
 
   static getRootFolder(folderName: string): Promise<IFile | null> {
-    return fileModel.findOne({ fullName: folderName, isRootFolder: true }).exec();
+    return fileModel.findOne({ displayName: folderName, isRootFolder: true }).exec();
   }
 
   static getFileInFolderByName(parentId: string, fileFullName: string): Promise<IFile | null> {

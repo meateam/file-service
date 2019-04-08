@@ -59,9 +59,12 @@ fileSchema.virtual('id').set(() => {
   return this._id;
 });
 
-fileSchema.virtual('fullName').set(function (name: string) {
+fileSchema.virtual('fullName')
+.set(function (name: string) {
   this.displayName = name.split('.')[0];
   this.fullExtension = name.split('.').splice(1).join('.');
+}) .get(function ()  {
+  return this.displayName + this.fullExtension;
 });
 
 // handleE11000 is called when there is a duplicateKey Error

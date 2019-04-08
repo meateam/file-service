@@ -3,8 +3,11 @@ import FilesRepository from './file.repository';
 import { KeyAlreadyExistsError, FileExistsWithSameName } from '../errors/client.error';
 import { Types } from 'mongoose';
 import { ServerError } from '../errors/application.error';
+import { fileModel } from './file.model';
 
-// This server assumes a user exists if sent
+// This server assumes the following:
+// user is a valid existing user.
+// folderID is an objectID of an existing file of type folder.
 export class FileService {
 
   public static generateKey(): string {
@@ -19,8 +22,6 @@ export class FileService {
     type:string, folderID:string = null,
     key: string = null
   ): Promise<IFile> {
-
-    console.log('Hello???');
 
     const isFolder = (type === 'Folder');
     let id: any;
@@ -53,9 +54,9 @@ export class FileService {
       parent: parentID
     });
 
-    console.log(file);
-
-    return await FilesRepository.create(file);
+    const createdFile = await FilesRepository.create(file);
+    // const tmp = new fileModel(createdFile);
+    return createdFile;
   }
 
   public static async delete(fileId: string): Promise<void> {
@@ -91,7 +92,7 @@ export class FileService {
     return file != null;
   }
 
-  private static async findUserRootFolder(userID: string, createIfNotExist = false): Promise<IFile | null> {
+  public static async findUserRootFolder(userID: string, createIfNotExist = false): Promise<IFile | null> {
     const folder = await FilesRepository.getRootFolder(userID);
     if (!folder && createIfNotExist) {
       return await this.createUserRootFolder(userID);
@@ -108,7 +109,7 @@ export class FileService {
     return await FilesRepository.create(folder);
   }
   // Reversing a given string
-  private static hashKey(id: string): string {
+  public static hashKey(id: string): string {
     return this.reverseString(id);
   }
   private static reverseString(str: string): string {
