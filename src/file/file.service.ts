@@ -1,8 +1,8 @@
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
-import { KeyAlreadyExistsError, FileExistsWithSameName } from '../errors/client.error';
+import { KeyAlreadyExistsError, FileExistsWithSameName } from '../utils/errors/client.error';
 import { Types } from 'mongoose';
-import { ServerError } from '../errors/application.error';
+import { ServerError } from '../utils/errors/application.error';
 
 // This server assumes a user exists if sent
 export class FileService {

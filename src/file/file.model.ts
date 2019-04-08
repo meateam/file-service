@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ServerError } from '../errors/application.error';
+import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
 
 const ObjectId = mongoose.Schema.Types.ObjectId;
