@@ -44,17 +44,20 @@ export class RPC {
   }
 
   private async createFile(call: any, callback: any) {
+    const params = call.request;
+    console.log(params);
     const partialFile: Partial<IFile> = {
-      size: call.size,
+      size: params.size,
+      bucket: params.bucket,
     };
 
     FileService.create(
       partialFile,
-      call.fullName,
-      call.ownerID,
-      call.type,
-      call.parent,
-      call.key)
+      params.fullName,
+      params.ownerID,
+      params.type,
+      params.parent,
+      params.key)
       .then((file) => {
         callback(null, file);
       })
@@ -62,14 +65,14 @@ export class RPC {
   }
 
   private async deleteFile(call: any, callback: any) {
-    const id: string = call.id;
+    const id: string = call.request.id;
     FileService.delete(id)
       .then(() => callback({ ok: true }))
       .catch(err => callback(err));
   }
 
   private async getFileByID(call: any, callback: any) {
-    const id: string = call.id;
+    const id: string = call.request.id;
     FileService.getById(id)
       .then(file => callback(null, file))
       .catch(err => callback(err));
@@ -83,14 +86,14 @@ export class RPC {
   }
 
   private async getFilesByFolder(call: any, callback: any) {
-    const id: string = call.id;
+    const id: string = call.request.id;
     FileService.getById(id)
       .then(files => callback(null, files))
       .catch(err => callback(err));
   }
 
   private async isAllowed(call: any, callback: any) {
-    FileService.isOwner(call.fileID, call.userID)
+    FileService.isOwner(call.request.fileID, call.request.userID)
       .then(res => callback(res))
       .catch(err => callback(err));
   }
