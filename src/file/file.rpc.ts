@@ -45,7 +45,6 @@ export class RPC {
 
   private async createFile(call: any, callback: any) {
     const params = call.request;
-    console.log(params);
     const partialFile: Partial<IFile> = {
       size: params.size,
       bucket: params.bucket,
