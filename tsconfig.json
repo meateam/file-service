@@ -16,6 +16,6 @@
         }
     },
     "include": [
-        "src/**/*"
+        "src/**/*", "unrelevent/files.rpc.ts"
     ]
 }
