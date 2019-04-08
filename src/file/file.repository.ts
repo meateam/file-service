@@ -74,6 +74,7 @@ export default class FilesRepository {
 
   static getFileInFolderByName(parentId: string, fileFullName: string): Promise<IFile | null> {
     const displayName = fileFullName.split('.')[0];
-    return fileModel.findOne({ displayName, parent: parentId }).exec();
+    const fullExtension = fileFullName.split('.').splice(1).join('.');
+    return fileModel.findOne({ displayName, fullExtension, parent: parentId }).exec();
   }
 }
