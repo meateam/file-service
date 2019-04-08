@@ -1,8 +1,8 @@
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
-import { KeyAlreadyExistsError, FileExistsWithSameName } from '../errors/client.error';
+import { KeyAlreadyExistsError, FileExistsWithSameName } from '../utils/errors/client.error';
 import { Types } from 'mongoose';
-import { ServerError } from '../errors/application.error';
+import { ServerError } from '../utils/errors/application.error';
 import { fileModel } from './file.model';
 
 // This server assumes the following:
@@ -17,7 +17,7 @@ export class FileService {
 
   // Trusts that the key is unique and that the users exists.
   public static async create(
-    partialFile: Partial<File>,
+    partialFile: Partial<IFile>,
     fullName: string, ownerID: string,
     type:string, folderID:string = null,
     key: string = null
@@ -54,9 +54,7 @@ export class FileService {
       parent: parentID
     });
 
-    const createdFile = await FilesRepository.create(file);
-    // const tmp = new fileModel(createdFile);
-    return createdFile;
+    return await FilesRepository.create(file);
   }
 
   public static async delete(fileId: string): Promise<void> {
@@ -82,6 +80,16 @@ export class FileService {
     return <IFile[]> files;
   }
 
+  // TODO
+  public static async getFilesByFolder(folderID: string|null, ownerID: string): Promise<any> {
+    return [];
+  }
+
+  public static async isOwner(fileID: string, userID: string): Promise<boolean> {
+    const file = await this.getById(fileID);
+    return file.ownerID === userID;
+  }
+
   private static async isKeyNotInUse(key: string): Promise<boolean> {
     const fileByKey = await FileService.getByKey(key);
     return fileByKey == null;
@@ -102,6 +110,7 @@ export class FileService {
   private static async createUserRootFolder(userID: string): Promise<IFile> {
     const folder: IFile = {
       type: 'Folder',
+      bucket: userID,
       fullName: userID,
       ownerID: userID,
       isRootFolder: true,

@@ -1,6 +1,6 @@
 import express from 'express';
 import * as bodyParser from 'body-parser';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import morgan from 'morgan';
 import * as path from 'path';
 import { config } from './config';
@@ -9,6 +9,7 @@ import * as https from 'https';
 import session from 'express-session';
 import cors from 'cors';
 
+import { RPC } from './file/file.rpc';
 // const privateKey = fs.readFileSync('wildcard.key', 'utf8');
 // const certificate = fs.readFileSync('wildcard.pem', 'utf8');
 // const credentials = { key: privateKey, cert: certificate };
@@ -69,12 +70,13 @@ export class Server {
   }
 
   private listen() {
-    const httpsServer = https.createServer(null, this.app);
+    const rpcPort = '50051';
+    const rpcServer: RPC = new RPC(rpcPort);
+
     // Insures you don't run the server twice
     if (!module.parent) {
-      this.listener = httpsServer.listen(config.port, () => {
-        console.log(`Server running on port :${config.port}`);
-      });
+      console.log('Starting RPC server');
+      rpcServer.server.start();
     }
   }
 

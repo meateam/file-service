@@ -3,8 +3,8 @@ import chaiAsPromised from 'chai-as-promised';
 import mongoose from 'mongoose';
 import { IFile } from './file.interface';
 import { FileService } from './file.service';
-import { ServerError } from '../errors/application.error';
-import { FileExistsWithSameName, KeyAlreadyExistsError } from '../errors/client.error';
+import { ServerError } from '../utils/errors/application.error';
+import { FileExistsWithSameName, KeyAlreadyExistsError } from '../utils/errors/client.error';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -19,7 +19,7 @@ const USER = {
   mail: 'aviron@gmail.com'
 };
 const size = 420;
-const fileService = new FileService();
+const bucket = 'bucket';
 
 describe('File Logic', () => {
 
@@ -68,17 +68,17 @@ describe('File Logic', () => {
 
   describe('#createFile', () => {
     it('should throw an error when key is not sent with file', async () => {
-      await FileService.create({ size }, 'myFolder', USER.id, 'Text')
+      await FileService.create({ size, bucket }, 'myFolder', USER.id, 'Text')
       .should.eventually.be.rejectedWith(ServerError, 'No key sent');
     });
 
     it('should not throw an error if key is not sent with a folder', async () => {
-      await FileService.create({ size }, 'myFolder', USER.id, 'Folder').should.eventually.exist;
+      await FileService.create({ size, bucket }, 'myFolder', USER.id, 'Folder').should.eventually.exist;
     });
 
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
-        { size },
+        { size, bucket },
         'file.txt',
         USER.id,
         'text',
@@ -94,16 +94,16 @@ describe('File Logic', () => {
     });
 
     it('should create a file in a given folder', async () => {
-      const folder: IFile = await FileService.create({ size }, 'myFolder', USER.id, 'Folder');
-      const file: IFile = await FileService.create({ size }, 'tmp', USER.id, 'Text', folder.id, KEY);
+      const folder: IFile = await FileService.create({ size, bucket }, 'myFolder', USER.id, 'Folder');
+      const file: IFile = await FileService.create({ size, bucket }, 'tmp', USER.id, 'Text', folder.id, KEY);
       expect(file.parent.toString()).to.equal(folder.id);
     });
 
     it('should create a file at the root folder', async () => {
-      const file1 = await FileService.create({ size }, 'tmp', USER.id, 'text', null, KEY);
+      const file1 = await FileService.create({ size, bucket }, 'tmp', USER.id, 'text', null, KEY);
       const newKey = FileService.generateKey();
       const file2: IFile = await FileService.create(
-        { size },
+        { size, bucket },
         'file.txt',
         USER.id,
         'text',
@@ -116,16 +116,16 @@ describe('File Logic', () => {
     });
 
     it('should throw an error when KEY already exist', async () => {
-      await FileService.create({ size }, 'tmp', USER.id, 'text', null, KEY);
-      await FileService.create({ size }, 'tmp', USER.id, 'text', null, KEY)
+      await FileService.create({ size, bucket }, 'tmp', USER.id, 'text', null, KEY);
+      await FileService.create({ size, bucket }, 'tmp', USER.id, 'text', null, KEY)
       .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
     });
 
     it('should throw an error when there is a file with the same name in the folder', async () => {
-      const file = await FileService.create({ size }, 'tmp', USER.id, 'text', null, KEY);
+      const file = await FileService.create({ size, bucket }, 'tmp', USER.id, 'text', null, KEY);
       const newKey = FileService.generateKey();
       const newFile = await FileService.create(
-        { size },
+        { size, bucket },
         'tmp',
         USER.id,
         'text',
@@ -146,7 +146,7 @@ describe('File Logic', () => {
     });
     it('gen an existing file', async () => {
       await FileService.create(
-        { size },
+        { size, bucket },
         'file.txt',
         USER.id,
         'text',

@@ -1,9 +1,10 @@
 import { Document } from 'mongoose';
-import { IUser } from '../user.interface';
+import { IUser } from '../utils/user.interface';
 
 export interface IFile {
   id?: string;
   key?: string;
+  bucket?: string;
   displayName?: string;
   fullExtension?: string;
   fullName: string;

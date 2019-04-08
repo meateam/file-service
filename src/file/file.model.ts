@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { ServerError } from '../errors/application.error';
+import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
-import { KeyAlreadyExistsError } from '../errors/client.error';
+import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 
 const ObjectId = mongoose.Schema.Types.ObjectId;
@@ -43,7 +43,11 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
       type: ObjectId,
       ref: 'File',
       default: null,
-    }
+    },
+    bucket: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
