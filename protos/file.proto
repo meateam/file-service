@@ -42,8 +42,9 @@ message CreateFileRequest {
     int64 size = 3;
     string type = 4;
     string ownerID = 5;
-    optional string parent = 6;
-    optional string appID = 7;
+    string bucket = 6;
+    optional string parent = 7;
+    optional string appID = 8;
 }
 
 message DeleteFileRequest {
@@ -60,6 +61,7 @@ message UpdateFileRequest {
     optional string ownerID = 5;
     optional string parent = 6;
     optional string appID = 7;
+    optional string bucket = 11;
 }
 
 message IsAllowedRequest {
