@@ -14,7 +14,7 @@ export class FileService {
 
   // Trusts that the key is unique and that the users exists.
   public static async create(
-    partialFile: Partial<File>,
+    partialFile: Partial<IFile>,
     fullName: string, ownerID: string,
     type:string, folderID:string = null,
     key: string = null
@@ -107,6 +107,7 @@ export class FileService {
   private static async createUserRootFolder(userID: string): Promise<IFile> {
     const folder: IFile = {
       type: 'Folder',
+      bucket: userID,
       fullName: userID,
       ownerID: userID,
       isRootFolder: true,

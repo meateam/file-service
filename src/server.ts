@@ -1,6 +1,6 @@
 import express from 'express';
 import * as bodyParser from 'body-parser';
-import * as mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import morgan from 'morgan';
 import * as path from 'path';
 import { config } from './config';

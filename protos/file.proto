@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package file;
 
-service File {
+service FileService {
     rpc GenerateKey(GenerateKeyRequest) returns (KeyResponse) {}
     rpc GetFileByID(GetByFileByIDRequest) returns (File) {}
     rpc GetFileByKey(GetFileByKeyRequest) returns (File) {}
@@ -33,7 +33,7 @@ message GetFilesByFolderRequest {
 }
 
 message GetFilesByFolderResponse {
-    repeated File = 1;
+    repeated File files = 1;
 }
 
 message CreateFileRequest {
@@ -67,6 +67,10 @@ message IsAllowedRequest {
     string userID = 2;
 }
 
+message IsAllowedResponse {
+    bool allowed = 1;
+}
+
 message User {
     string id = 1;
     string firstName = 2;
@@ -93,9 +97,9 @@ message File {
 }
 
 message FileOrID {
-    oneof file {
+    oneof fileField {
         string fileID = 1;
-        File file = 2;
+        File fileObject = 2;
     }
 }
 

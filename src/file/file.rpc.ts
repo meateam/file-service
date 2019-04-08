@@ -25,7 +25,7 @@ export class RPC {
 
   public constructor(port: string) {
     this.server = new grpc.Server();
-    this.server.addService(file_proto.File.service, {
+    this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
       GetFileByID: this.getFileByID,
       GetFileByKey: this.getFileByKey,
@@ -40,7 +40,7 @@ export class RPC {
 
   private generateKey(call: any, callback: any) {
     const key: string = FileService.generateKey();
-    callback(null, key);
+    callback(null, { key });
   }
 
   private async createFile(call: any, callback: any) {
@@ -64,7 +64,7 @@ export class RPC {
   private async deleteFile(call: any, callback: any) {
     const id: string = call.id;
     FileService.delete(id)
-      .then(() => callback({ ok: true}))
+      .then(() => callback({ ok: true }))
       .catch(err => callback(err));
   }
 
@@ -91,8 +91,8 @@ export class RPC {
 
   private async isAllowed(call: any, callback: any) {
     FileService.isOwner(call.fileID, call.userID)
-      .then( res => callback(res))
-      .catch( err => callback(err));
+      .then(res => callback(res))
+      .catch(err => callback(err));
   }
 
 }

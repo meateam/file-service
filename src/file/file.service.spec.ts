@@ -15,6 +15,7 @@ const USER = {
   mail: 'aviron@gmail.com'
 };
 const size = 420;
+const bucket = 'bucket';
 
 describe('File Logic', () => {
 
@@ -49,7 +50,7 @@ describe('File Logic', () => {
     });
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
-        { size },
+        { size, bucket },
         'file.txt',
         USER.id,
         'txt',
