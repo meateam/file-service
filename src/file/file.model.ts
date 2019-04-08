@@ -30,20 +30,14 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    // ancestors: {
-    //   type: [ObjectId],
-    //   ref: 'File',
-    //   default: [],
-    // },
-    // children: {
-    //   type: [ObjectId],
-    //   ref: 'File',
-    //   default: [],
-    // },
     parent: {
       type: [ObjectId],
       ref: 'File',
       default: [],
+    },
+    bucket: {
+      type: String,
+      required: true,
     }
   },
   {

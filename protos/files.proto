@@ -5,6 +5,8 @@ package file;
 service File {
     rpc GenerateKey(GenerateKeyRequest) returns (KeyResponse) {}
     rpc GetFileByID(GetByFileByIDRequest) returns (File) {}
+    rpc GetFileByKey(GetFileByKeyRequest) returns (File) {}
+    rpc GetFilesByFolder(GetFilesByFolderRequest) returns (GetFilesByFolderResponse) {}
     rpc CreateFile(CreateFileRequest) returns (File) {}
     rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
     rpc UpdateFile(UpdateFileRequest) returns (File) {}
@@ -22,8 +24,20 @@ message GetByFileByIDRequest {
     string id = 1;
 }
 
-message CreateFileRequest {
+message GetFileByKeyRequest {
     string key = 1;
+}
+
+message GetFilesByFolderRequest {
+    string folderID = 1;
+}
+
+message GetFilesByFolderResponse {
+    repeated File = 1;
+}
+
+message CreateFileRequest {
+    optional string key = 1;
     string fullName = 2;
     int64 size = 3;
     string type = 4;
@@ -41,15 +55,17 @@ message DeleteFileResponse {
 }
 
 message UpdateFileRequest {
-
+    optional string fullName = 2;
+    optional int64 size = 3;
+    optional string ownerID = 5;
+    optional string parent = 6;
+    optional string appID = 7;
 }
 
 message IsAllowedRequest {
     string fileID = 1;
     string userID = 2;
 }
-
-
 
 message User {
     string id = 1;
@@ -70,9 +86,8 @@ message File {
     string description = 4;
     string ownerID = 5;
     int64 size = 6;
-    // repeated FileOrID ancestors = 10; 
     FileOrID parent = 10;
-    repeated FileOrID childern = 11; 
+    optional string bucket = 11;
     string createdAt = 15;
     string updatedAt = 16;
 }

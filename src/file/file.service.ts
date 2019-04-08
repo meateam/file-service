@@ -77,6 +77,16 @@ export class FileService {
     return <IFile[]> files;
   }
 
+  // TODO
+  public static async getFilesByFolder(folderID: string|null, ownerID: string): Promise<any> {
+    return [];
+  }
+
+  public static async isOwner(fileID: string, userID: string): Promise<boolean> {
+    const file = await this.getById(fileID);
+    return file.ownerID === userID;
+  }
+
   private static async isKeyNotInUse(key: string): Promise<boolean> {
     const fileByKey = await FileService.getByKey(key);
     return fileByKey == null;
