@@ -41,8 +41,13 @@ describe('File Logic', () => {
   });
 
   describe('#createFile', () => {
+    it('should create a file in root folder if not specified', async () => {
+
+    });
+    it('should create a file in a folder if specified', async () => {
+
+    });
     it('should create a file', async () => {
-      console.log('is Here???');
       const file: IFile = await FileService.create(
         { size },
         'file.txt',

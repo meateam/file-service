@@ -1,13 +1,14 @@
 syntax = "proto3";
 
-package files;
+package file;
 
-service Users {
+service File {
     rpc GenerateKey(GenerateKeyRequest) returns (KeyResponse) {}
     rpc GetFileByID(GetByFileByIDRequest) returns (File) {}
     rpc CreateFile(CreateFileRequest) returns (File) {}
     rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
     rpc UpdateFile(UpdateFileRequest) returns (File) {}
+    rpc IsAllowed(IsAllowedRequest) returns (IsAllowedResponse) {}
 }
 
 message GenerateKeyRequest {
@@ -42,6 +43,13 @@ message DeleteFileResponse {
 message UpdateFileRequest {
 
 }
+
+message IsAllowedRequest {
+    string fileID = 1;
+    string userID = 2;
+}
+
+
 
 message User {
     string id = 1;

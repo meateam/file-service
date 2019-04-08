@@ -20,8 +20,6 @@ export class FileService {
     key: string = null
   ): Promise<IFile> {
 
-    console.log('Hello???');
-
     const isFolder = (type === 'Folder');
     let id: any;
 
@@ -52,8 +50,6 @@ export class FileService {
       _id: id,
       parent: parentID
     });
-
-    console.log(file);
 
     return await FilesRepository.create(file);
   }
