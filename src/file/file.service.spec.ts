@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { IFile } from './file.interface';
 import { FileService } from './file.service';
 import { ServerError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, KeyAlreadyExistsError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -78,13 +78,7 @@ describe('File Logic', () => {
 
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
-        { size, bucket },
-        'file.txt',
-        USER.id,
-        'text',
-        null,
-        KEY,
-      );
+        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.id).to.equal(REVERSE_KEY);
@@ -103,60 +97,80 @@ describe('File Logic', () => {
       const file1 = await FileService.create({ size, bucket }, 'tmp', USER.id, 'text', null, KEY);
       const newKey = FileService.generateKey();
       const file2: IFile = await FileService.create(
-        { size, bucket },
-        'file.txt',
-        USER.id,
-        'text',
-        null,
-        newKey,
-      );
+        { size, bucket }, 'file.txt', USER.id, 'text', null, newKey);
       expect(file1.parent).to.not.be.null;
       expect(file2.parent.toString()).to.equal(file1.parent.toString());
 
     });
 
     it('should throw an error when KEY already exist', async () => {
-      await FileService.create({ size, bucket }, 'tmp', USER.id, 'text', null, KEY);
-      await FileService.create({ size, bucket }, 'tmp', USER.id, 'text', null, KEY)
+      await FileService.create({ size, bucket }, 'tmp1', USER.id, 'text', null, KEY);
+      await FileService.create({ size, bucket }, 'tmp2', USER.id, 'text', null, KEY)
       .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
     });
 
     it('should throw an error when there is a file with the same name in the folder', async () => {
-      const file = await FileService.create({ size, bucket }, 'tmp', USER.id, 'text', null, KEY);
+      const file = await FileService.create({ size, bucket }, 'tmp.txt', USER.id, 'text', null, KEY);
       const newKey = FileService.generateKey();
       const newFile = await FileService.create(
         { size, bucket },
-        'tmp',
+        'tmp.txt',
         USER.id,
         'text',
         file.parent.toString(),
-        newKey);
+        newKey).should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
   });
 
-  describe('getByID', () => {
-    before(async () => {
-
-      // Remove files from DB
-      const removeCollectionPromises = [];
-      for (const i in mongoose.connection.collections) {
-        removeCollectionPromises.push(mongoose.connection.collections[i].remove({}));
-      }
-      await Promise.all(removeCollectionPromises);
+  describe('#getByID', () => {
+    it('should get an error when file does not exist', async () => {
+      await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
     });
-    it('gen an existing file', async () => {
-      await FileService.create(
-        { size, bucket },
-        'file.txt',
-        USER.id,
-        'text',
-        null,
-        KEY,
-      );
+    it('get an existing file', async () => {
+      await FileService.create({ size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
       const file = await FileService.getById(REVERSE_KEY);
       expect(file).to.exist;
       expect(file.id).to.equal(REVERSE_KEY);
       expect(file.displayName).to.equal('file');
+    });
+  });
+
+  describe('#getByKey', () => {
+    it('should get an error when file does not exist', async () => {
+      await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
+    });
+    it('get an existing file', async () => {
+      await FileService.create({ size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+      const file = await FileService.getByKey(KEY);
+      expect(file).to.exist;
+      expect(file.id).to.equal(REVERSE_KEY);
+      expect(file.key).to.equal(KEY);
+      expect(file.displayName).to.equal('file');
+    });
+  });
+
+  describe('getFilesByFolder', () => {
+
+  });
+
+  describe('#isOwner', () => {
+    it('should throw an error if the file does not exist', async () => {
+      await FileService.isOwner(REVERSE_KEY, USER.id).should.eventually.rejectedWith(FileNotFoundError);
+    });
+    it('should return "false" if the user is not an owner of the file', async () => {
+      const file = await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+      const res = await FileService.isOwner(file.id, USER.id.concat('7'));
+      expect(res).to.exist;
+      expect(res).to.be.false;
+
+    });
+    it('should return "true" if the user is the owner of the file', async () => {
+      const file = await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+      const res = await FileService.isOwner(file.id, USER.id);
+      expect(res).to.exist;
+      expect(res).to.be.true;
     });
   });
 });
