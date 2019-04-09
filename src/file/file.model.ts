@@ -10,6 +10,7 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
   {
     key: {
       type: String,
+      sparse: true,
       unique: true,
     },
     displayName: {

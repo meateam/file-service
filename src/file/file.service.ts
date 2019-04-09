@@ -1,6 +1,6 @@
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
-import { KeyAlreadyExistsError, FileExistsWithSameName } from '../utils/errors/client.error';
+import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError } from '../utils/errors/client.error';
 import { Types } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { fileModel } from './file.model';
@@ -67,12 +67,16 @@ export class FileService {
     return FilesRepository.updateById(fileId, file);
   }
 
-  public static getById(fileId: string): Promise<IFile> {
-    return FilesRepository.getById(fileId);
+  public static async getById(fileId: string): Promise<IFile> {
+    const file = await FilesRepository.getById(fileId);
+    if (!file) throw new FileNotFoundError();
+    return file;
   }
 
-  public static getByKey(key: string): Promise<IFile> {
-    return FilesRepository.getByKey(key);
+  public static async getByKey(key: string): Promise<IFile> {
+    const file = await FilesRepository.getByKey(key);
+    if (!file) throw new FileNotFoundError();
+    return file;
   }
 
   public static async getFolderContent(folderID: string): Promise<IFile[]> {
@@ -110,6 +114,7 @@ export class FileService {
   private static async createUserRootFolder(userID: string): Promise<IFile> {
     const folder: IFile = {
       type: 'Folder',
+      key: null,
       bucket: userID,
       fullName: userID,
       ownerID: userID,
