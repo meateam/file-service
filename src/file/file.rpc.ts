@@ -78,7 +78,7 @@ export class RPC {
   }
 
   private async getFileByKey(call: any, callback: any) {
-    const key: string = call.key;
+    const key: string = call.request.key;
     FileService.getByKey(key)
       .then(file => callback(null, file))
       .catch(err => callback(err));
