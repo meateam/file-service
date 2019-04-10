@@ -1,0 +1,6 @@
+repoName: "meateam/file-service"
+runTests: true
+testCommand: "npm run run_tests"
+deployUponTestSuccess: true
+deployCommand:
+deployEnvironment:
