@@ -61,7 +61,8 @@ export class Server {
 
   private async connectDB() {
     // Connect mongoose to our database
-    await mongoose.connect(`mongodb://${config.db.host}:${config.db.port}/${config.db.name}`);
+    const mongoHost = process.env.MONGO_HOST || config.db.host;
+    await mongoose.connect(`mongodb://${mongoHost}:${config.db.port}/${config.db.name}`);
     const db = mongoose.connection;
     db.on('error', console.error.bind(console, 'connection error:'));
     db.once('open', () => {
