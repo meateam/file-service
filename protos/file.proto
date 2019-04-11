@@ -4,6 +4,9 @@ package file;
 
 service FileService {
     rpc GenerateKey(GenerateKeyRequest) returns (KeyResponse) {}
+    rpc UpdateUploadID(UpdateUploadIDRequest) returns (UpdateUploadIDResponse) {}
+    rpc GetUploadByID(GetUploadByIDRequest) returns (GetUploadByIDResponse) {}
+    rpc DeleteUploadByID(DeleteUploadByIDRequest) returns (DeleteUploadByIDResponse) {}
     rpc GetFileByID(GetByFileByIDRequest) returns (File) {}
     rpc GetFileByKey(GetFileByKeyRequest) returns (File) {}
     rpc GetFilesByFolder(GetFilesByFolderRequest) returns (GetFilesByFolderResponse) {}
@@ -14,10 +17,38 @@ service FileService {
 }
 
 message GenerateKeyRequest {
+    string bucket =1;
 }
 
 message KeyResponse {
     string key = 1;
+}
+
+message UpdateUploadIDRequest {
+    string key = 1;
+    string uploadID = 2;
+}
+
+message UpdateUploadIDResponse {
+
+}
+
+message GetUploadByIDRequest {
+    string uploadID = 1;
+}
+
+message GetUploadByIDResponse {
+    string key = 1;
+    string bucket = 2;
+    string uploadID = 3;
+}
+
+message DeleteUploadByIDRequest {
+    string uploadID = 1;
+}
+
+message DeleteUploadByIDResponse {
+
 }
 
 message GetByFileByIDRequest {
