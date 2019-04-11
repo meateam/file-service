@@ -1,0 +1,18 @@
+version: '2.1'
+
+services:
+  file-service:
+    image: file-service
+    build: .
+    environment:
+      NODE_ENV: prod
+    ports:
+      - 5001:50051
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data-volume:/data/db
+volumes:
+  mongo-data-volume:

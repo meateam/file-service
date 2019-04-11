@@ -41,7 +41,7 @@ const prod: Config = {
   server: 'https://seal.blue.com',
   port: 9000,
   db: {
-    host: 'localhost',
+    host: 'mongo',
     port: '27017',
     name: 'prodDB',
   },
