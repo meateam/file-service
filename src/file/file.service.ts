@@ -2,7 +2,7 @@ import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
 import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError } from '../utils/errors/client.error';
 import { Types } from 'mongoose';
-import { ServerError } from '../utils/errors/application.error';
+import { ServerError, ClientError } from '../utils/errors/application.error';
 import { fileModel } from './file.model';
 
 // This server assumes the following:
@@ -19,7 +19,7 @@ export class FileService {
   public static async create(
     partialFile: Partial<IFile>,
     fullName: string, ownerID: string,
-    type:string, folderID:string = null,
+    type: string, folderID: string = null,
     key: string = null
   ): Promise<IFile> {
 
@@ -79,14 +79,27 @@ export class FileService {
     return file;
   }
 
-  public static async getFolderContent(folderID: string): Promise<IFile[]> {
-    const files = await FilesRepository.find({ parent: folderID });
-    return <IFile[]> files;
-  }
+  // public static async getFolderContent(folderID: string): Promise<IFile[]> {
+  //   if (!folderID) { // Search the user's root folder
+  //     if (!ownerID) throw new ClientError('No file or owner id sent');
+  //     const rootFolder = await this.findUserRootFolder(ownerID);
+  //     if (!rootFolder) return [];
+  //     const files = await FilesRepository.find({ parent: rootFolder });
+  //     return files;
+  //   }
+  //   const files = await FilesRepository.find({ parent: folderID });
+  //   return files;
+  // }
 
   // TODO
-  public static async getFilesByFolder(folderID: string|null, ownerID: string): Promise<any> {
-    return [];
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null): Promise<any> {
+    let files;
+    if (!folderID) { // Search the user's root folder
+      if (!ownerID) throw new ClientError('No file or owner id sent');
+      const rootFolder = await this.findUserRootFolder(ownerID);
+      files = await FilesRepository.find({ parent: rootFolder });
+    } else files = await FilesRepository.find({ parent: folderID });
+    return files;
   }
 
   public static async isOwner(fileID: string, userID: string): Promise<boolean> {
