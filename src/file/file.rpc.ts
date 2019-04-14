@@ -27,6 +27,9 @@ export class RPC {
     this.server = new grpc.Server();
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
+      UpdateUploadID: this.updateUploadID,
+      GetUploadByID: this.getUploadByID,
+      DeleteUploadByID: this.deleteUploadByID,
       GetFileByID: this.getFileByID,
       GetFileByKey: this.getFileByKey,
       GetFilesByFolder: this.getFilesByFolder,
@@ -38,10 +41,29 @@ export class RPC {
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
 
+  // ***************************************************************** */
+  // TODO
   private generateKey(call: any, callback: any) {
     const key: string = FileService.generateKey();
     callback(null, { key });
   }
+
+  // TODO
+  private updateUploadID(call: any, callback: any) {
+    callback(null);
+  }
+
+  // TODO
+  private getUploadByID(call: any, callback: any) {
+    callback(null);
+  }
+
+  // TODO
+  private deleteUploadByID(call: any, callback: any) {
+    callback(null);
+  }
+
+  // ***************************************************************** */
 
   private async createFile(call: any, callback: any) {
     const params = call.request;

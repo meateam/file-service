@@ -15,6 +15,11 @@ export class FileService {
     return this.hashKey(key.toHexString());
   }
 
+  // TODO
+  public static updateUploadID(): void {
+    return;
+  }
+
   // Trusts that the key is unique and that the users exists.
   public static async create(
     partialFile: Partial<IFile>,
