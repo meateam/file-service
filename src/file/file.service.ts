@@ -1,18 +1,45 @@
+import { Types } from 'mongoose';
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
-import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError } from '../utils/errors/client.error';
-import { Types } from 'mongoose';
+import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { fileModel } from './file.model';
+import { IUpload } from './upload.interface';
+import { UploadRepository } from './upload.repository';
 
 // This server assumes the following:
 // user is a valid existing user.
 // folderID is an objectID of an existing file of type folder.
 export class FileService {
 
+  // Explanation about upload fields:
+  // uploadID: the id of the created upload. received from the client (updates later)
+  // bucket: also received from the client.
+  // key: the key generated.
   public static generateKey(): string {
-    const key = Types.ObjectId();
-    return this.hashKey(key.toHexString());
+    const objectID = Types.ObjectId();
+    const key = this.hashKey(objectID.toHexString());
+    return key;
+  }
+
+  public static async createUpload(key: string, bucket: string)
+  : Promise<IUpload> {
+    const upload: Partial<IUpload> = { key, bucket };
+    return await UploadRepository.create(upload);
+  }
+
+  public static async updateUpload(uploadID: string, key: string, bucket: string) {
+    return await UploadRepository.updateByKey(key, uploadID, bucket);
+  }
+
+  public static async getUploadById(uploadID: string): Promise<IUpload> {
+    const upload = await UploadRepository.getById(uploadID);
+    if (!upload) throw new UploadNotFoundError();
+    return upload;
+  }
+
+  public static async deleteUpload(fileId: string): Promise<void> {
+    await UploadRepository.deleteById(fileId);
   }
 
   // Trusts that the key is unique and that the users exists.
@@ -79,19 +106,6 @@ export class FileService {
     return file;
   }
 
-  // public static async getFolderContent(folderID: string): Promise<IFile[]> {
-  //   if (!folderID) { // Search the user's root folder
-  //     if (!ownerID) throw new ClientError('No file or owner id sent');
-  //     const rootFolder = await this.findUserRootFolder(ownerID);
-  //     if (!rootFolder) return [];
-  //     const files = await FilesRepository.find({ parent: rootFolder });
-  //     return files;
-  //   }
-  //   const files = await FilesRepository.find({ parent: folderID });
-  //   return files;
-  // }
-
-  // TODO
   public static async getFilesByFolder(folderID: string | null, ownerID: string | null): Promise<any> {
     let files;
     if (!folderID) { // Search the user's root folder
@@ -124,6 +138,7 @@ export class FileService {
     }
     return folder;
   }
+
   private static async createUserRootFolder(userID: string): Promise<IFile> {
     const folder: IFile = {
       type: 'Folder',

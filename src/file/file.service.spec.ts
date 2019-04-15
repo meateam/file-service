@@ -5,8 +5,8 @@ import { IFile } from './file.interface';
 import { FileService } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
-import { FolderNotFoundError } from '../utils/errors/folder';
-import { userInfo } from 'os';
+import { IUpload } from './upload.interface';
+import { uploadModel } from './upload.model';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -22,6 +22,12 @@ const USER = {
 };
 const size = 420;
 const bucket = 'bucket';
+
+const testUpload = {
+  key: KEY,
+  uploadID: 'UPLOAD_ID_TEST',
+  bucket : 'BUCKET_TEST',
+};
 
 describe('File Logic', () => {
 
@@ -65,6 +71,60 @@ describe('File Logic', () => {
       const key = FileService.generateKey();
       expect(key).to.exist;
       expect(key).to.be.a('string');
+    });
+  });
+
+  describe('#createUpload', () => {
+    it('should return a new upload', async () => {
+      const newUpload: IUpload =
+      await FileService.createUpload(testUpload.key, testUpload.bucket).should.eventually.exist;
+      expect(newUpload).to.exist;
+      expect(newUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(newUpload.key).to.be.equal(testUpload.key);
+    });
+
+    // TODO
+    it.skip('should throw an error when key already exist', async () => {
+      uploadModel.on('index', async (err) => { // <-- Wait for model's indexes to finish
+        console.log('on index');
+        const newUpload1: IUpload =
+        await FileService.createUpload(testUpload.key, testUpload.bucket)
+        .should.eventually.exist;
+        const newUpload2: IUpload =
+        await FileService.createUpload(testUpload.key, testUpload.bucket)
+        .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+        console.log(newUpload1);
+        console.log(newUpload2);
+      });
+
+    });
+  });
+
+  describe('#updateUploadID', () => {
+    it('should update upload id', async () => {
+      await FileService.createUpload(testUpload.key, testUpload.bucket);
+      await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
+      const myUpload = await FileService.getUploadById(testUpload.uploadID);
+      expect(myUpload).to.exist;
+      expect(myUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(myUpload.key).to.be.equal(testUpload.key);
+    });
+  });
+
+  describe('#deleteUpload', () => {
+    it('should delete an existing upload', async () => {
+      await FileService.createUpload(testUpload.key, testUpload.bucket);
+      await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
+      const myUpload = await FileService.getUploadById(testUpload.uploadID);
+      expect(myUpload).to.exist;
+      expect(myUpload.uploadID).to.be.equal(testUpload.uploadID);
+      expect(myUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(myUpload.key).to.be.equal(testUpload.key);
+
+      await FileService.deleteUpload(testUpload.uploadID);
+
+      await FileService.getUploadById(testUpload.uploadID)
+      .should.eventually.be.rejectedWith(ClientError, 'Upload not found');
     });
   });
 
