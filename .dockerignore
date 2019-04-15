@@ -1,5 +1,4 @@
 node_modules
-src
 npm-debug.log
 Dockerfile*
 docker-compose*
