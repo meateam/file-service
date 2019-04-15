@@ -3,8 +3,10 @@ import chaiAsPromised from 'chai-as-promised';
 import mongoose from 'mongoose';
 import { IFile } from './file.interface';
 import { FileService } from './file.service';
-import { ServerError } from '../utils/errors/application.error';
+import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
+import { IUpload } from './upload.interface';
+import { uploadModel } from './upload.model';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -20,6 +22,12 @@ const USER = {
 };
 const size = 420;
 const bucket = 'bucket';
+
+const testUpload = {
+  key: KEY,
+  uploadID: 'UPLOAD_ID_TEST',
+  bucket : 'BUCKET_TEST',
+};
 
 describe('File Logic', () => {
 
@@ -63,6 +71,60 @@ describe('File Logic', () => {
       const key = FileService.generateKey();
       expect(key).to.exist;
       expect(key).to.be.a('string');
+    });
+  });
+
+  describe('#createUpload', () => {
+    it('should return a new upload', async () => {
+      const newUpload: IUpload =
+      await FileService.createUpload(testUpload.key, testUpload.bucket).should.eventually.exist;
+      expect(newUpload).to.exist;
+      expect(newUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(newUpload.key).to.be.equal(testUpload.key);
+    });
+
+    // TODO
+    it.skip('should throw an error when key already exist', async () => {
+      uploadModel.on('index', async (err) => { // <-- Wait for model's indexes to finish
+        console.log('on index');
+        const newUpload1: IUpload =
+        await FileService.createUpload(testUpload.key, testUpload.bucket)
+        .should.eventually.exist;
+        const newUpload2: IUpload =
+        await FileService.createUpload(testUpload.key, testUpload.bucket)
+        .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+        console.log(newUpload1);
+        console.log(newUpload2);
+      });
+
+    });
+  });
+
+  describe('#updateUploadID', () => {
+    it('should update upload id', async () => {
+      await FileService.createUpload(testUpload.key, testUpload.bucket);
+      await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
+      const myUpload = await FileService.getUploadById(testUpload.uploadID);
+      expect(myUpload).to.exist;
+      expect(myUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(myUpload.key).to.be.equal(testUpload.key);
+    });
+  });
+
+  describe('#deleteUpload', () => {
+    it('should delete an existing upload', async () => {
+      await FileService.createUpload(testUpload.key, testUpload.bucket);
+      await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
+      const myUpload = await FileService.getUploadById(testUpload.uploadID);
+      expect(myUpload).to.exist;
+      expect(myUpload.uploadID).to.be.equal(testUpload.uploadID);
+      expect(myUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(myUpload.key).to.be.equal(testUpload.key);
+
+      await FileService.deleteUpload(testUpload.uploadID);
+
+      await FileService.getUploadById(testUpload.uploadID)
+      .should.eventually.be.rejectedWith(ClientError, 'Upload not found');
     });
   });
 
@@ -150,7 +212,69 @@ describe('File Logic', () => {
   });
 
   describe('getFilesByFolder', () => {
+    it('should return an empty array if the folder do not exists', async () => {
+      // await FileService.getFilesByFolder(REVERSE_KEY, USER.id)
+      // .should.eventually.rejectedWith(FolderNotFoundError);
+      const files = await FileService.getFilesByFolder(REVERSE_KEY, null);
+      expect(files).to.exist;
+      expect(files).to.be.an('array').with.lengthOf(0);
+    });
+    it('should return an empty array if the folder is empty', async () => {
+      const folder = await FileService.create({ size, bucket }, 'myFolder', USER.id, 'Folder');
+      const files = await FileService.getFilesByFolder(folder.id, null);
+      expect(files).to.exist;
+      expect(files).to.be.an('array').with.lengthOf(0);
+    });
+    it('should return all the files and folders directly under the given folder', async () => {
+      const key2 = FileService.generateKey();
+      const key3 = FileService.generateKey();
 
+      const father = await FileService.create({ size, bucket }, 'father', USER.id, 'Folder');
+
+      const file1 = await FileService.create(
+        { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
+      const file2 = await FileService.create(
+        { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
+      const folder1 = await FileService.create(
+        { size, bucket }, 'folder1', USER.id, 'Folder', father.id);
+      const file11 = await FileService.create(
+        { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
+
+      const files = await FileService.getFilesByFolder(father.id, null);
+
+      expect(files).to.exist;
+      files.should.be.an('array').with.lengthOf(3);
+    });
+    describe('Root Folder', () => {
+      it('should throw an error if the fileID and the user are null', async () => {
+        await FileService.getFilesByFolder(null, null)
+          .should.eventually.rejectedWith(ClientError, 'No file or owner id sent');
+      });
+      it('should return an empty array if the user has no root folder', async () => {
+        const files = await FileService.getFilesByFolder(null, USER.id);
+
+        expect(files).to.exist;
+        files.should.be.an('array').with.lengthOf(0);
+      });
+      it('should return the items of the given user root folder', async () => {
+        const key2 = FileService.generateKey();
+        const key3 = FileService.generateKey();
+
+        const file1 = await FileService.create(
+          { size, bucket }, 'file1.txt', USER.id, 'text', null, KEY);
+        const file2 = await FileService.create(
+          { size, bucket }, 'file2.txt', USER.id, 'text', null, key2);
+        const folder1 = await FileService.create(
+          { size, bucket }, 'folder1', USER.id, 'Folder', null);
+        const file11 = await FileService.create(
+          { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
+
+        const files = await FileService.getFilesByFolder(null, USER.id);
+
+        expect(files).to.exist;
+        files.should.be.an('array').with.lengthOf(3);
+      });
+    });
   });
 
   describe('#isOwner', () => {

@@ -1,9 +1,11 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
 
-const PROTO_PATH = `${__dirname}/../../protos/file.proto`;
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
+
+const PROTO_PATH = `${__dirname}/../../protos/file.proto`;
+
 // Suggested options for similarity to existing grpc.load behavior
 
 const packageDefinition = protoLoader.loadSync(
@@ -27,6 +29,10 @@ export class RPC {
     this.server = new grpc.Server();
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
+      CreateUpload: this.createUpload,
+      UpdateUploadID: this.updateUpload,
+      GetUploadByID: this.getUploadByID,
+      DeleteUploadByID: this.deleteUploadByID,
       GetFileByID: this.getFileByID,
       GetFileByKey: this.getFileByKey,
       GetFilesByFolder: this.getFilesByFolder,
@@ -38,11 +44,54 @@ export class RPC {
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
 
+  // ******************** UPLOAD FUNCTIONS ******************** */
   private generateKey(call: any, callback: any) {
     const key: string = FileService.generateKey();
     callback(null, { key });
   }
 
+  private async createUpload(call: any, callback: any) {
+    const key: string = FileService.generateKey();
+    const bucket: string = call.request.bucket;
+    FileService.createUpload(
+      key,
+      bucket)
+      .then((upload) => {
+        callback(null, upload);
+      }).catch(err => callback(err));
+  }
+
+  private async updateUpload(call: any, callback: any) {
+    const key: string = call.request.key;
+    const uploadID: string = call.request.uploadID;
+    const bucket: string = call.request.bucket;
+    FileService.updateUpload(
+      uploadID,
+      key,
+      bucket
+      )
+      .then((upload) => {
+        callback(null, upload);
+      }).catch(err => callback(err));
+  }
+
+  private async getUploadByID(call: any, callback: any) {
+    const id = call.request.uploadID;
+    FileService.getUploadById(id)
+    .then((upload) => {
+      callback(null, upload);
+    }).catch(err => callback(err));
+  }
+
+  private async deleteUploadByID(call: any, callback: any) {
+    const id = call.request.uploadID;
+    FileService.deleteUpload(id)
+    .then((upload) => {
+      callback(null, upload);
+    }).catch(err => callback(err));
+  }
+
+  // ********************* FILE FUNCTIONS ********************* */
   private async createFile(call: any, callback: any) {
     const params = call.request;
     const partialFile: Partial<IFile> = {

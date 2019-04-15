@@ -5,7 +5,6 @@ services:
     image: file-service
     build: .
     environment:
-      NODE_ENV: prod
       MONGO_HOST: mongo
     ports:
       - 5001:50051
