@@ -1,6 +1,6 @@
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
-import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError } from '../utils/errors/client.error';
+import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
 import { Types } from 'mongoose';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { fileModel } from './file.model';
@@ -26,8 +26,12 @@ export class FileService {
 
   public static async getUploadById(uploadID: string): Promise<IUpload> {
     const upload = await UploadRepository.getById(uploadID);
-    if (!upload) throw new FileNotFoundError();
+    if (!upload) throw new UploadNotFoundError();
     return upload;
+  }
+
+  public static async deleteUpload(fileId: string): Promise<void> {
+    await UploadRepository.deleteById(fileId);
   }
 
   // Trusts that the key is unique and that the users exists.

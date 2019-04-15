@@ -24,6 +24,12 @@ export class FileNotFoundError extends ClientError {
   }
 }
 
+export class UploadNotFoundError extends ClientError {
+  constructor(message?: string) {
+    super(message || 'Upload not found', 404);
+  }
+}
+
 export class KeyAlreadyExistsError extends ClientError {
   constructor(key:string, message?: string) {
     super(message || `The given key ${key} is already in use`, 403);

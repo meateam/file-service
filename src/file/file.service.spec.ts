@@ -8,6 +8,7 @@ import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from
 import { FolderNotFoundError } from '../utils/errors/folder';
 import { userInfo } from 'os';
 import { IUpload } from './upload.interface';
+import { uploadModel } from './upload.model';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -83,6 +84,49 @@ describe('File Logic', () => {
       expect(newUpload.uploadID).to.be.equal(upload.uploadID);
       expect(newUpload.bucket).to.be.equal(upload.bucket);
       expect(newUpload.key).to.be.equal(upload.key);
+    });
+
+    // TODO
+    it.skip('should throw an error when key already exist', async () => {
+      uploadModel.on('index', async (err) => { // <-- Wait for model's indexes to finish
+        console.log('on index');
+        const newUpload1: IUpload =
+        await FileService.createUpload(upload.uploadID, upload.key, upload.bucket)
+        .should.eventually.exist;
+        const newUpload2: IUpload =
+        await FileService.createUpload(upload.uploadID, upload.key, upload.bucket)
+        .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+        console.log(newUpload1);
+        console.log(newUpload2);
+      });
+
+    });
+  });
+
+  describe('#getUploadById', () => {
+    it('should return a saved upload', async () => {
+      await FileService.createUpload(upload.uploadID, upload.key, upload.bucket);
+      const myUpload = await FileService.getUploadById(upload.uploadID);
+      expect(myUpload).to.exist;
+      expect(myUpload.uploadID).to.be.equal(upload.uploadID);
+      expect(myUpload.bucket).to.be.equal(upload.bucket);
+      expect(myUpload.key).to.be.equal(upload.key);
+    });
+  });
+
+  describe('#deleteUpload', () => {
+    it('should delete an existing upload', async () => {
+      const newUpload: IUpload =
+      await FileService.createUpload(upload.uploadID, upload.key, upload.bucket);
+      expect(newUpload).to.exist;
+      expect(newUpload.uploadID).to.be.equal(upload.uploadID);
+      expect(newUpload.bucket).to.be.equal(upload.bucket);
+      expect(newUpload.key).to.be.equal(upload.key);
+
+      await FileService.deleteUpload(upload.uploadID);
+
+      const myUpload = await FileService.getUploadById(upload.uploadID)
+      .should.eventually.be.rejectedWith(ClientError, 'Upload not found');
     });
   });
 

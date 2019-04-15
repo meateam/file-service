@@ -74,7 +74,11 @@ export class RPC {
 
   // TODO
   private deleteUploadByID(call: any, callback: any) {
-    callback(null);
+    const id = call.request.uploadID;
+    FileService.deleteUpload(id)
+    .then((upload) => {
+      callback(null, upload);
+    }).catch(err => callback(err));
   }
 
   // ***************************************************************** */
