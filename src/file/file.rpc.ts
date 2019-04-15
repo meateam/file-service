@@ -64,9 +64,11 @@ export class RPC {
   private async updateUpload(call: any, callback: any) {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
+    const bucket: string = call.request.bucket;
     FileService.updateUpload(
       uploadID,
-      key
+      key,
+      bucket
       )
       .then((upload) => {
         callback(null, upload);

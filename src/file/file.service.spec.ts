@@ -103,7 +103,7 @@ describe('File Logic', () => {
   describe('#updateUploadID', () => {
     it('should update upload id', async () => {
       await FileService.createUpload(testUpload.key, testUpload.bucket);
-      await FileService.updateUpload(testUpload.uploadID, testUpload.key);
+      await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
       const myUpload = await FileService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
@@ -114,7 +114,7 @@ describe('File Logic', () => {
   describe('#deleteUpload', () => {
     it('should delete an existing upload', async () => {
       await FileService.createUpload(testUpload.key, testUpload.bucket);
-      await FileService.updateUpload(testUpload.uploadID, testUpload.key);
+      await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
       const myUpload = await FileService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.uploadID).to.be.equal(testUpload.uploadID);

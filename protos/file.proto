@@ -36,6 +36,7 @@ message KeyResponse {
 message UpdateUploadIDRequest {
     string key = 1;
     string uploadID = 2;
+    string bucket = 3;
 }
 
 message UpdateUploadIDResponse {

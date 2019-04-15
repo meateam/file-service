@@ -28,8 +28,8 @@ export class FileService {
     return await UploadRepository.create(upload);
   }
 
-  public static async updateUpload(uploadID: string, key: string) {
-    return await UploadRepository.updateByKey(key, uploadID);
+  public static async updateUpload(uploadID: string, key: string, bucket: string) {
+    return await UploadRepository.updateByKey(key, uploadID, bucket);
   }
 
   public static async getUploadById(uploadID: string): Promise<IUpload> {
