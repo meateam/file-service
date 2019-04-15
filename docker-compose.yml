@@ -3,9 +3,12 @@ version: '2.1'
 services:
   file-service:
     image: file-service
-    build: .
+    build: 
+      context: .
+      dockerfile: test.Dockerfile
     environment:
       NODE_ENV: prod
+      MONGO_HOST: mongo
     ports:
       - 5001:50051
   mongo:
