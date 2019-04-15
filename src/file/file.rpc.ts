@@ -137,4 +137,19 @@ export class RPC {
       .catch(err => callback(err));
   }
 
+  // TODO
+  private async updateUploadID(call: any, callback: any) {
+    return;
+  }
+
+  // TODO
+  private async getUploadByID(call: any, callback: any) {
+    return;
+  }
+
+  // TODO
+  private async deleteUploadByID(call: any, callback: any) {
+    return;
+  }
+
 }

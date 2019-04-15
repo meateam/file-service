@@ -12,6 +12,10 @@ import { UploadRepository } from './upload.repository';
 // folderID is an objectID of an existing file of type folder.
 export class FileService {
 
+  // TODO: this function should now create an upload schema with the following fields
+  // uploadID: the id of the created upload. received from the client (updates later)
+  // bucket: also received from the client.
+  // key: the key generated.
   public static generateKey(): string {
     const objectID = Types.ObjectId();
     const key = this.hashKey(objectID.toHexString());
@@ -98,19 +102,6 @@ export class FileService {
     return file;
   }
 
-  // public static async getFolderContent(folderID: string): Promise<IFile[]> {
-  //   if (!folderID) { // Search the user's root folder
-  //     if (!ownerID) throw new ClientError('No file or owner id sent');
-  //     const rootFolder = await this.findUserRootFolder(ownerID);
-  //     if (!rootFolder) return [];
-  //     const files = await FilesRepository.find({ parent: rootFolder });
-  //     return files;
-  //   }
-  //   const files = await FilesRepository.find({ parent: folderID });
-  //   return files;
-  // }
-
-  // TODO
   public static async getFilesByFolder(folderID: string | null, ownerID: string | null): Promise<any> {
     let files;
     if (!folderID) { // Search the user's root folder
@@ -143,6 +134,16 @@ export class FileService {
     }
     return folder;
   }
+
+  // TODO
+  public static async updateUploadID(key: string, uploadId: string) {}
+
+  // TODO
+  public static async getUploadByID(uploadId: string) {}
+
+  // TODO
+  public static async deleteUploadByID(uploadId: string) {}
+
   private static async createUserRootFolder(userID: string): Promise<IFile> {
     const folder: IFile = {
       type: 'Folder',
