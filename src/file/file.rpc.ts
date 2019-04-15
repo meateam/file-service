@@ -42,14 +42,12 @@ export class RPC {
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
 
-  // ***************************************************************** */
-  // TODO
+  // ******************** UPLOAD FUNCTIONS ******************** */
   private generateKey(call: any, callback: any) {
     const key: string = FileService.generateKey();
     callback(null, { key });
   }
 
-    // TODO
   private async createUpload(call: any, callback: any) {
     const key: string = call.request.key;
     const bucket: string = call.request.bucket;
@@ -63,8 +61,7 @@ export class RPC {
       }).catch(err => callback(err));
   }
 
-  // TODO
-  private getUploadByID(call: any, callback: any) {
+  private async getUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
     FileService.getUploadById(id)
     .then((upload) => {
@@ -72,8 +69,7 @@ export class RPC {
     }).catch(err => callback(err));
   }
 
-  // TODO
-  private deleteUploadByID(call: any, callback: any) {
+  private async deleteUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
     FileService.deleteUpload(id)
     .then((upload) => {
@@ -81,8 +77,7 @@ export class RPC {
     }).catch(err => callback(err));
   }
 
-  // ***************************************************************** */
-
+  // ********************* FILE FUNCTIONS ********************* */
   private async createFile(call: any, callback: any) {
     const params = call.request;
     const partialFile: Partial<IFile> = {
@@ -135,21 +130,6 @@ export class RPC {
     FileService.isOwner(call.request.fileID, call.request.userID)
       .then(res => callback(res))
       .catch(err => callback(err));
-  }
-
-  // TODO
-  private async updateUploadID(call: any, callback: any) {
-    return;
-  }
-
-  // TODO
-  private async getUploadByID(call: any, callback: any) {
-    return;
-  }
-
-  // TODO
-  private async deleteUploadByID(call: any, callback: any) {
-    return;
   }
 
 }
