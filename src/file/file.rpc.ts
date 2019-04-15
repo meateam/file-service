@@ -142,7 +142,7 @@ export class RPC {
 
   private async isAllowed(call: any, callback: any) {
     FileService.isOwner(call.request.fileID, call.request.userID)
-      .then(res => callback(res))
+      .then(res => callback(null, { allowed: res }))
       .catch(err => callback(err));
   }
 

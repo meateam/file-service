@@ -60,8 +60,8 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
     }
   });
 
-fileSchema.virtual('id').set(() => {
-  return this._id;
+fileSchema.virtual('id').get(function () {
+  return this._id.toHexString();
 });
 
 fileSchema.virtual('fullName')
