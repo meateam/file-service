@@ -1,7 +1,7 @@
+import { Types } from 'mongoose';
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
 import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
-import { Types } from 'mongoose';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { fileModel } from './file.model';
 import { IUpload } from './upload.interface';
@@ -12,7 +12,7 @@ import { UploadRepository } from './upload.repository';
 // folderID is an objectID of an existing file of type folder.
 export class FileService {
 
-  // TODO: this function should now create an upload schema with the following fields
+  // Explanation about upload fields:
   // uploadID: the id of the created upload. received from the client (updates later)
   // bucket: also received from the client.
   // key: the key generated.
@@ -22,10 +22,14 @@ export class FileService {
     return key;
   }
 
-  public static async createUpload(uploadID: string, key: string, bucket: string)
+  public static async createUpload(key: string, bucket: string)
   : Promise<IUpload> {
-    const upload: IUpload = Object.assign({ uploadID, key, bucket });
+    const upload: Partial<IUpload> = { key, bucket };
     return await UploadRepository.create(upload);
+  }
+
+  public static async updateUpload(uploadID: string, key: string) {
+    return await UploadRepository.updateByKey(key, uploadID);
   }
 
   public static async getUploadById(uploadID: string): Promise<IUpload> {
@@ -134,15 +138,6 @@ export class FileService {
     }
     return folder;
   }
-
-  // TODO
-  public static async updateUploadID(key: string, uploadId: string) {}
-
-  // TODO
-  public static async getUploadByID(uploadId: string) {}
-
-  // TODO
-  public static async deleteUploadByID(uploadId: string) {}
 
   private static async createUserRootFolder(userID: string): Promise<IFile> {
     const folder: IFile = {

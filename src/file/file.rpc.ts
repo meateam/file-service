@@ -1,10 +1,11 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
-import { IUpload } from './upload.interface';
 
-const PROTO_PATH = `${__dirname}/../../protos/file.proto`;
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
+
+const PROTO_PATH = `${__dirname}/../../protos/file.proto`;
+
 // Suggested options for similarity to existing grpc.load behavior
 
 const packageDefinition = protoLoader.loadSync(
@@ -29,6 +30,7 @@ export class RPC {
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
       CreateUpload: this.createUpload,
+      UpdateUploadID: this.updateUpload,
       GetUploadByID: this.getUploadByID,
       DeleteUploadByID: this.deleteUploadByID,
       GetFileByID: this.getFileByID,
@@ -49,13 +51,23 @@ export class RPC {
   }
 
   private async createUpload(call: any, callback: any) {
-    const key: string = call.request.key;
+    const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
-    const uploadID: string = call.request.uploadID;
     FileService.createUpload(
-      uploadID,
       key,
       bucket)
+      .then((upload) => {
+        callback(null, upload);
+      }).catch(err => callback(err));
+  }
+
+  private async updateUpload(call: any, callback: any) {
+    const key: string = call.request.key;
+    const uploadID: string = call.request.uploadID;
+    FileService.updateUpload(
+      uploadID,
+      key
+      )
       .then((upload) => {
         callback(null, upload);
       }).catch(err => callback(err));
