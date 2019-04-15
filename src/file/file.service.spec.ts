@@ -7,6 +7,7 @@ import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
 import { FolderNotFoundError } from '../utils/errors/folder';
 import { userInfo } from 'os';
+import { IUpload } from './upload.interface';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -22,6 +23,12 @@ const USER = {
 };
 const size = 420;
 const bucket = 'bucket';
+
+const upload = {
+  key: KEY,
+  uploadID: 'UPLOAD_ID_TEST',
+  bucket : 'BUCKET_TEST',
+};
 
 describe('File Logic', () => {
 
@@ -65,6 +72,17 @@ describe('File Logic', () => {
       const key = FileService.generateKey();
       expect(key).to.exist;
       expect(key).to.be.a('string');
+    });
+  });
+
+  describe('#createUpload', () => {
+    it('should return a new upload', async () => {
+      const newUpload: IUpload =
+      await FileService.createUpload(upload.uploadID, upload.key, upload.bucket).should.eventually.exist;
+      expect(newUpload).to.exist;
+      expect(newUpload.uploadID).to.be.equal(upload.uploadID);
+      expect(newUpload.bucket).to.be.equal(upload.bucket);
+      expect(newUpload.key).to.be.equal(upload.key);
     });
   });
 

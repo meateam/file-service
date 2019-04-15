@@ -4,6 +4,8 @@ import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError } from
 import { Types } from 'mongoose';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { fileModel } from './file.model';
+import { IUpload } from './upload.interface';
+import { UploadRepository } from './upload.repository';
 
 // This server assumes the following:
 // user is a valid existing user.
@@ -11,13 +13,21 @@ import { fileModel } from './file.model';
 export class FileService {
 
   public static generateKey(): string {
-    const key = Types.ObjectId();
-    return this.hashKey(key.toHexString());
+    const objectID = Types.ObjectId();
+    const key = this.hashKey(objectID.toHexString());
+    return key;
   }
 
-  // TODO
-  public static updateUploadID(): void {
-    return;
+  public static async createUpload(uploadID: string, key: string, bucket: string)
+  : Promise<IUpload> {
+    const upload: IUpload = Object.assign({ uploadID, key, bucket });
+    return await UploadRepository.create(upload);
+  }
+
+  public static async getUploadById(uploadID: string): Promise<IUpload> {
+    const upload = await UploadRepository.getById(uploadID);
+    if (!upload) throw new FileNotFoundError();
+    return upload;
   }
 
   // Trusts that the key is unique and that the users exists.

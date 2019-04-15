@@ -1,5 +1,6 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
+import { IUpload } from './upload.interface';
 
 const PROTO_PATH = `${__dirname}/../../protos/file.proto`;
 const grpc = require('grpc');
@@ -27,7 +28,7 @@ export class RPC {
     this.server = new grpc.Server();
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
-      UpdateUploadID: this.updateUploadID,
+      CreateUpload: this.createUpload,
       GetUploadByID: this.getUploadByID,
       DeleteUploadByID: this.deleteUploadByID,
       GetFileByID: this.getFileByID,
@@ -48,14 +49,27 @@ export class RPC {
     callback(null, { key });
   }
 
-  // TODO
-  private updateUploadID(call: any, callback: any) {
-    callback(null);
+    // TODO
+  private async createUpload(call: any, callback: any) {
+    const key: string = call.request.key;
+    const bucket: string = call.request.bucket;
+    const uploadID: string = call.request.uploadID;
+    FileService.createUpload(
+      uploadID,
+      key,
+      bucket)
+      .then((upload) => {
+        callback(null, upload);
+      }).catch(err => callback(err));
   }
 
   // TODO
   private getUploadByID(call: any, callback: any) {
-    callback(null);
+    const id = call.request.uploadID;
+    FileService.getUploadById(id)
+    .then((upload) => {
+      callback(null, upload);
+    }).catch(err => callback(err));
   }
 
   // TODO
