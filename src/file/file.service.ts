@@ -78,6 +78,7 @@ export class FileService {
       fullName,
       ownerID,
       _id: id,
+      isDeleted: false,
       parent: parentID
     });
 
@@ -111,8 +112,8 @@ export class FileService {
     if (!folderID) { // Search the user's root folder
       if (!ownerID) throw new ClientError('No file or owner id sent');
       const rootFolder = await this.findUserRootFolder(ownerID);
-      files = await FilesRepository.find({ parent: rootFolder });
-    } else files = await FilesRepository.find({ parent: folderID });
+      files = await FilesRepository.find({ parent: rootFolder, isDeleted: false });
+    } else files = await FilesRepository.find({ parent: folderID, isDeleted: false });
     return files;
   }
 
@@ -147,6 +148,7 @@ export class FileService {
       fullName: userID,
       ownerID: userID,
       isRootFolder: true,
+      isDeleted: false,
     };
     return await FilesRepository.create(folder);
   }

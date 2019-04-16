@@ -17,6 +17,7 @@ export interface IFile {
   ancestors?: IFile[] | string[];
   children?: IFile[] | string[];
   isRootFolder?: boolean;
+  isDeleted: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

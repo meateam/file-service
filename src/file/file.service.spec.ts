@@ -241,9 +241,13 @@ describe('File Logic', () => {
         { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
 
       const files = await FileService.getFilesByFolder(father.id, null);
+      const files1 = await FileService.getFilesByFolder(folder1.id, null);
 
       expect(files).to.exist;
+      expect(files1).to.exist;
+
       files.should.be.an('array').with.lengthOf(3);
+      files1.should.be.an('array').with.lengthOf(1);
     });
     describe('Root Folder', () => {
       it('should throw an error if the fileID and the user are null', async () => {
@@ -297,4 +301,17 @@ describe('File Logic', () => {
       expect(res).to.be.true;
     });
   });
+
+  describe('#isOwner', () => {
+    it('should mark a file as deleted', async () => {
+      const file: IFile = await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+      const DBFile = await FileService.getById(file.id);
+      expect(DBFile.isDeleted).to.be.false;
+      await FileService.delete(file.id);
+      const deletedFile: IFile = await FileService.getById(file.id);
+      expect(deletedFile.isDeleted).to.be.true;
+    });
+  });
+
 });
