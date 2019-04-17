@@ -137,7 +137,10 @@ export class RPC {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
     FileService.getFilesByFolder(folderID, ownerID)
-      .then(files => callback(null, files))
+      .then((files) => {
+        console.log(files);
+        callback(null, { files });
+      })
       .catch(err => callback(err));
   }
 
