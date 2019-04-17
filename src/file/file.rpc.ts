@@ -134,9 +134,13 @@ export class RPC {
   }
 
   private async getFilesByFolder(call: any, callback: any) {
-    const id: string = call.request.id;
-    FileService.getById(id)
-      .then(files => callback(null, files))
+    const folderID: string = call.request.folderID;
+    const ownerID: string = call.request.ownerID;
+    FileService.getFilesByFolder(folderID, ownerID)
+      .then((files) => {
+        console.log(files);
+        callback(null, { files });
+      })
       .catch(err => callback(err));
   }
 
