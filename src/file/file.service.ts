@@ -107,13 +107,16 @@ export class FileService {
     return file;
   }
 
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null): Promise<any> {
+  // isDeleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, retrieveDeleted?: boolean): Promise<any> {
     let files;
+    const isDeleted = (retrieveDeleted == null) ? false : retrieveDeleted;
+
     if (!folderID) { // Search the user's root folder
       if (!ownerID) throw new ClientError('No file or owner id sent');
       const rootFolder = await this.findUserRootFolder(ownerID);
-      files = await FilesRepository.find({ parent: rootFolder, isDeleted: false });
-    } else files = await FilesRepository.find({ parent: folderID, isDeleted: false });
+      files = await FilesRepository.find({ isDeleted, parent: rootFolder });
+    } else files = await FilesRepository.find({ isDeleted, parent: folderID });
     return files;
   }
 
