@@ -213,8 +213,6 @@ describe('File Logic', () => {
 
   describe('#getFilesByFolder', () => {
     it('should return an empty array if the folder do not exists', async () => {
-      // await FileService.getFilesByFolder(REVERSE_KEY, USER.id)
-      // .should.eventually.rejectedWith(FolderNotFoundError);
       const files = await FileService.getFilesByFolder(REVERSE_KEY, null);
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
@@ -279,32 +277,6 @@ describe('File Logic', () => {
         files.should.be.an('array').with.lengthOf(3);
       });
     });
-
-    describe('#getFilesByFolder for deleted files', () => {
-      it('should separate the non-deleted files from the deleted ones', async () => {
-        const key2 = FileService.generateKey();
-
-        const father = await FileService.create({ size, bucket }, 'father', USER.id, 'Folder');
-
-        const file1 = await FileService.create(
-          { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
-        const file2 = await FileService.create(
-          { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
-
-        await FileService.delete(file1.id);
-        // get non-deleted files
-        const files = await FileService.getFilesByFolder(father.id, USER.id, false);
-        expect(files).to.exist;
-        files.should.be.an('array').with.lengthOf(1);
-        expect(files[0].key).to.equal(file2.key);
-
-        // get deleted files
-        const deletedFiles = await FileService.getFilesByFolder(father.id, USER.id, true);
-        expect(deletedFiles).to.exist;
-        deletedFiles.should.be.an('array').with.lengthOf(1);
-        expect(deletedFiles[0].key).to.equal(file1.key);
-      });
-    });
   });
 
   describe('#isOwner', () => {
@@ -340,4 +312,45 @@ describe('File Logic', () => {
     });
   });
 
+  describe('#getFilesByFolder & #delete integration', () => {
+    it('should separate the non-deleted files from the deleted ones', async () => {
+      const key2 = FileService.generateKey();
+      const key3 = FileService.generateKey();
+
+      const father = await FileService.create({ size, bucket }, 'father', USER.id, 'Folder');
+
+      const file1 = await FileService.create(
+        { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
+      const file2 = await FileService.create(
+        { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
+      const folder1 = await FileService.create(
+        { size, bucket }, 'folder1', USER.id, 'Folder', null);
+      const file11 = await FileService.create(
+        { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
+
+      await FileService.delete(file1.id);
+      // get non-deleted files
+      const files = await FileService.getFilesByFolder(father.id, USER.id, false);
+      expect(files).to.exist;
+      files.should.be.an('array').with.lengthOf(1);
+      expect(files[0].key).to.equal(file2.key);
+
+      // get deleted files
+      const deletedFiles = await FileService.getFilesByFolder(father.id, USER.id, true);
+      expect(deletedFiles).to.exist;
+      deletedFiles.should.be.an('array').with.lengthOf(1);
+      expect(deletedFiles[0].key).to.equal(file1.key);
+
+      // get non-deleted files without the flag
+      const folder1FilesBD = await FileService.getFilesByFolder(folder1.id, USER.id);
+      expect(folder1FilesBD).to.exist;
+      folder1FilesBD.should.be.an('array').with.lengthOf(1);
+
+      // get non-deleted files without the flag after delete
+      await FileService.delete(file11.id);
+      const folder1FilesAD = await FileService.getFilesByFolder(folder1.id, USER.id);
+      expect(folder1FilesAD).to.exist;
+      folder1FilesAD.should.be.an('array').with.lengthOf(0);
+    });
+  });
 });
