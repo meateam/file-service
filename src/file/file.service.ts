@@ -85,10 +85,17 @@ export class FileService {
     return await FilesRepository.create(file);
   }
 
+  // recursive
   public static async delete(fileId: string): Promise<void> {
     // TODO: Delete all children
+    const file: IFile = await this.getById(fileId);
+    if (file.type === 'Folder') {
+      const files: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
+      await Promise.all(files.map(file => this.delete(file.id)));
+    }
+    // delete the file anyways
     await FilesRepository.deleteById(fileId);
-    // TODO: Update Parent
+    // TODO: Update Parent - necessary?
   }
 
   public static updateById(fileId: string, file: Partial<IFile>): Promise<IFile> {
@@ -108,7 +115,7 @@ export class FileService {
   }
 
   // isDeleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, isDeleted = false): Promise<any> {
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, isDeleted = false): Promise<IFile[]> {
     let files;
 
     if (!folderID) { // Search the user's root folder

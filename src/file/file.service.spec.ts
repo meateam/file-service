@@ -310,29 +310,40 @@ describe('File Logic', () => {
       const deletedFile: IFile = await FileService.getById(file.id);
       expect(deletedFile.isDeleted).to.be.true;
     });
+
+    it('should delete recursively a folder', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+
+      const father: IFile = structure[0];
+      for (let i = 0; i < structure.length; i++) {
+        const fileOrFolder: IFile = await FileService.getById(structure[i].id);
+        expect(fileOrFolder.isDeleted).to.equal(false);
+      }
+
+      await FileService.delete(father.id);
+
+      for (let i = 0; i < structure.length; i++) {
+        const fileOrFolder: IFile = await FileService.getById(structure[i].id);
+        expect(fileOrFolder.isDeleted).to.equal(true);
+      }
+    });
   });
 
   describe('#getFilesByFolder & #delete integration', () => {
     it('should separate the non-deleted files from the deleted ones', async () => {
-      const key2 = FileService.generateKey();
-      const key3 = FileService.generateKey();
+      const structure: IFile[] = await generateFolderStructure();
 
-      const father = await FileService.create({ size, bucket }, 'father', USER.id, 'Folder');
-
-      const file1 = await FileService.create(
-        { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
-      const file2 = await FileService.create(
-        { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
-      const folder1 = await FileService.create(
-        { size, bucket }, 'folder1', USER.id, 'Folder', null);
-      const file11 = await FileService.create(
-        { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
+      const father: IFile = structure[0];
+      const file1: IFile = structure[1];
+      const file2: IFile = structure[2];
+      const folder1: IFile = structure[3];
+      const file11: IFile = structure[4];
 
       await FileService.delete(file1.id);
       // get non-deleted files
       const files = await FileService.getFilesByFolder(father.id, USER.id, false);
       expect(files).to.exist;
-      files.should.be.an('array').with.lengthOf(1);
+      files.should.be.an('array').with.lengthOf(2);
       expect(files[0].key).to.equal(file2.key);
 
       // get deleted files
@@ -354,3 +365,21 @@ describe('File Logic', () => {
     });
   });
 });
+
+async function generateFolderStructure() : Promise<IFile[]> {
+  const key2 = FileService.generateKey();
+  const key3 = FileService.generateKey();
+
+  const father = await FileService.create({ size, bucket }, 'father', USER.id, 'Folder');
+
+  const file1: IFile = await FileService.create(
+    { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
+  const file2: IFile = await FileService.create(
+    { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
+  const folder1: IFile = await FileService.create(
+    { size, bucket }, 'folder1', USER.id, 'Folder', father.id, null);
+  const file11: IFile = await FileService.create(
+    { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
+
+  return [father, file1, file2, folder1, file11];
+}
