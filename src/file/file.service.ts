@@ -108,9 +108,8 @@ export class FileService {
   }
 
   // isDeleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, retrieveDeleted?: boolean): Promise<any> {
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, isDeleted = false): Promise<any> {
     let files;
-    const isDeleted = (retrieveDeleted == null) ? false : retrieveDeleted;
 
     if (!folderID) { // Search the user's root folder
       if (!ownerID) throw new ClientError('No file or owner id sent');
