@@ -78,7 +78,7 @@ export class FileService {
       fullName,
       ownerID,
       _id: id,
-      isDeleted: false,
+      deleted: false,
       parent: parentID
     });
 
@@ -114,15 +114,20 @@ export class FileService {
     return file;
   }
 
-  // isDeleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, isDeleted = false): Promise<IFile[]> {
+  /**
+   * @param folderID 
+   * @param ownerID 
+   * @param deleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
+   * @returns an array of IFiles within folderID
+  */
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, deleted = false): Promise<IFile[]> {
     let files;
 
     if (!folderID) { // Search the user's root folder
       if (!ownerID) throw new ClientError('No file or owner id sent');
       const rootFolder = await this.findUserRootFolder(ownerID);
-      files = await FilesRepository.find({ isDeleted, parent: rootFolder });
-    } else files = await FilesRepository.find({ isDeleted, parent: folderID });
+      files = await FilesRepository.find({ deleted, parent: rootFolder });
+    } else files = await FilesRepository.find({ deleted, parent: folderID });
     return files;
   }
 
@@ -157,7 +162,7 @@ export class FileService {
       fullName: userID,
       ownerID: userID,
       isRootFolder: true,
-      isDeleted: false,
+      deleted: false,
     };
     return await FilesRepository.create(folder);
   }

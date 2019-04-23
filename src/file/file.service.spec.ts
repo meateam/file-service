@@ -305,10 +305,10 @@ describe('File Logic', () => {
       const file: IFile = await FileService.create(
         { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
       const DBFile = await FileService.getById(file.id);
-      expect(DBFile.isDeleted).to.be.false;
+      expect(DBFile.deleted).to.be.false;
       await FileService.delete(file.id);
       const deletedFile: IFile = await FileService.getById(file.id);
-      expect(deletedFile.isDeleted).to.be.true;
+      expect(deletedFile.deleted).to.be.true;
     });
 
     it('should delete recursively a folder', async () => {
@@ -317,14 +317,14 @@ describe('File Logic', () => {
       const father: IFile = structure[0];
       for (let i = 0; i < structure.length; i++) {
         const fileOrFolder: IFile = await FileService.getById(structure[i].id);
-        expect(fileOrFolder.isDeleted).to.equal(false);
+        expect(fileOrFolder.deleted).to.equal(false);
       }
 
       await FileService.delete(father.id);
 
       for (let i = 0; i < structure.length; i++) {
         const fileOrFolder: IFile = await FileService.getById(structure[i].id);
-        expect(fileOrFolder.isDeleted).to.equal(true);
+        expect(fileOrFolder.deleted).to.equal(true);
       }
     });
   });
