@@ -22,9 +22,9 @@ export class FileService {
     return key;
   }
 
-  public static async createUpload(key: string, bucket: string)
+  public static async createUpload(key: string, bucket: string, name: string)
   : Promise<IUpload> {
-    const upload: Partial<IUpload> = { key, bucket };
+    const upload: Partial<IUpload> = { key, bucket, name };
     return await UploadRepository.create(upload);
   }
 
@@ -115,8 +115,8 @@ export class FileService {
   }
 
   /**
-   * @param folderID 
-   * @param ownerID 
+   * @param folderID
+   * @param ownerID
    * @param deleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
    * @returns an array of IFiles within folderID
   */

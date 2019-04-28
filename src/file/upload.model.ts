@@ -15,6 +15,10 @@ export const uploadSchema: mongoose.Schema = new mongoose.Schema(
     },
     bucket: {
       type: String,
+    },
+    name: {
+      type: String,
+      required: true
     }
   }
 );

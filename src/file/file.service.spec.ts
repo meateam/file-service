@@ -25,6 +25,7 @@ const bucket = 'bucket';
 
 const testUpload = {
   key: KEY,
+  name: 'UploadName.txt',
   uploadID: 'UPLOAD_ID_TEST',
   bucket : 'BUCKET_TEST',
 };
@@ -77,9 +78,10 @@ describe('File Logic', () => {
   describe('#createUpload', () => {
     it('should return a new upload', async () => {
       const newUpload: IUpload =
-      await FileService.createUpload(testUpload.key, testUpload.bucket).should.eventually.exist;
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(newUpload.name).to.be.equal(testUpload.name);
       expect(newUpload.key).to.be.equal(testUpload.key);
     });
 
@@ -88,10 +90,10 @@ describe('File Logic', () => {
       uploadModel.on('index', async (err) => { // <-- Wait for model's indexes to finish
         console.log('on index');
         const newUpload1: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket)
+        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name)
         .should.eventually.exist;
         const newUpload2: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket)
+        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name)
         .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
         console.log(newUpload1);
         console.log(newUpload2);
@@ -102,23 +104,25 @@ describe('File Logic', () => {
 
   describe('#updateUploadID', () => {
     it('should update upload id', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket);
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name);
       await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
       const myUpload = await FileService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(myUpload.name).to.be.equal(testUpload.name);
       expect(myUpload.key).to.be.equal(testUpload.key);
     });
   });
 
   describe('#deleteUpload', () => {
     it('should delete an existing upload', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket);
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name);
       await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
       const myUpload = await FileService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.uploadID).to.be.equal(testUpload.uploadID);
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(myUpload.name).to.be.equal(testUpload.name);
       expect(myUpload.key).to.be.equal(testUpload.key);
 
       await FileService.deleteUpload(testUpload.uploadID);
