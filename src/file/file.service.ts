@@ -22,9 +22,9 @@ export class FileService {
     return key;
   }
 
-  public static async createUpload(key: string, bucket: string)
+  public static async createUpload(key: string, bucket: string, name: string)
   : Promise<IUpload> {
-    const upload: Partial<IUpload> = { key, bucket };
+    const upload: Partial<IUpload> = { key, bucket, name };
     return await UploadRepository.create(upload);
   }
 
@@ -78,16 +78,24 @@ export class FileService {
       fullName,
       ownerID,
       _id: id,
+      deleted: false,
       parent: parentID
     });
 
     return await FilesRepository.create(file);
   }
 
+  // recursive
   public static async delete(fileId: string): Promise<void> {
     // TODO: Delete all children
+    const file: IFile = await this.getById(fileId);
+    if (file.type === 'Folder') {
+      const files: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
+      await Promise.all(files.map(file => this.delete(file.id)));
+    }
+    // delete the file anyways
     await FilesRepository.deleteById(fileId);
-    // TODO: Update Parent
+    // TODO: Update Parent - necessary?
   }
 
   public static updateById(fileId: string, file: Partial<IFile>): Promise<IFile> {
@@ -106,13 +114,20 @@ export class FileService {
     return file;
   }
 
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null): Promise<any> {
+  /**
+   * @param folderID
+   * @param ownerID
+   * @param deleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
+   * @returns an array of IFiles within folderID
+  */
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, deleted = false): Promise<IFile[]> {
     let files;
+
     if (!folderID) { // Search the user's root folder
       if (!ownerID) throw new ClientError('No file or owner id sent');
       const rootFolder = await this.findUserRootFolder(ownerID);
-      files = await FilesRepository.find({ parent: rootFolder });
-    } else files = await FilesRepository.find({ parent: folderID });
+      files = await FilesRepository.find({ deleted, parent: rootFolder });
+    } else files = await FilesRepository.find({ deleted, parent: folderID });
     return files;
   }
 
@@ -147,6 +162,7 @@ export class FileService {
       fullName: userID,
       ownerID: userID,
       isRootFolder: true,
+      deleted: false,
     };
     return await FilesRepository.create(folder);
   }

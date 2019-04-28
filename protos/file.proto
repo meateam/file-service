@@ -19,10 +19,12 @@ service FileService {
 
 message CreateUploadRequest {
     string bucket = 1;
+    string Name = 2;
 }
 
 message CreateUploadResponse {
     string key = 1;
+    string bucket = 2;
 }
 
 message GenerateKeyRequest {
