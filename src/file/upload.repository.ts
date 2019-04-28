@@ -1,5 +1,5 @@
 import { IUpload } from './upload.interface';
-import { uploadSchema, uploadModel } from './upload.model';
+import { uploadModel } from './upload.model';
 
 export class UploadRepository {
   static create(upload: Partial<IUpload>): Promise<IUpload> {

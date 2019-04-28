@@ -25,6 +25,7 @@ const bucket = 'bucket';
 
 const testUpload = {
   key: KEY,
+  name: 'UploadName.txt',
   uploadID: 'UPLOAD_ID_TEST',
   bucket : 'BUCKET_TEST',
 };
@@ -77,9 +78,10 @@ describe('File Logic', () => {
   describe('#createUpload', () => {
     it('should return a new upload', async () => {
       const newUpload: IUpload =
-      await FileService.createUpload(testUpload.key, testUpload.bucket).should.eventually.exist;
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(newUpload.name).to.be.equal(testUpload.name);
       expect(newUpload.key).to.be.equal(testUpload.key);
     });
 
@@ -88,10 +90,10 @@ describe('File Logic', () => {
       uploadModel.on('index', async (err) => { // <-- Wait for model's indexes to finish
         console.log('on index');
         const newUpload1: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket)
+        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name)
         .should.eventually.exist;
         const newUpload2: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket)
+        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name)
         .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
         console.log(newUpload1);
         console.log(newUpload2);
@@ -102,23 +104,25 @@ describe('File Logic', () => {
 
   describe('#updateUploadID', () => {
     it('should update upload id', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket);
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name);
       await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
       const myUpload = await FileService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(myUpload.name).to.be.equal(testUpload.name);
       expect(myUpload.key).to.be.equal(testUpload.key);
     });
   });
 
   describe('#deleteUpload', () => {
     it('should delete an existing upload', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket);
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name);
       await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
       const myUpload = await FileService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.uploadID).to.be.equal(testUpload.uploadID);
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(myUpload.name).to.be.equal(testUpload.name);
       expect(myUpload.key).to.be.equal(testUpload.key);
 
       await FileService.deleteUpload(testUpload.uploadID);
@@ -212,10 +216,8 @@ describe('File Logic', () => {
     });
   });
 
-  describe('getFilesByFolder', () => {
+  describe('#getFilesByFolder', () => {
     it('should return an empty array if the folder do not exists', async () => {
-      // await FileService.getFilesByFolder(REVERSE_KEY, USER.id)
-      // .should.eventually.rejectedWith(FolderNotFoundError);
       const files = await FileService.getFilesByFolder(REVERSE_KEY, null);
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
@@ -303,16 +305,86 @@ describe('File Logic', () => {
     });
   });
 
-  describe('#isOwner', () => {
+  describe('#delete', () => {
     it('should mark a file as deleted', async () => {
       const file: IFile = await FileService.create(
         { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
       const DBFile = await FileService.getById(file.id);
-      expect(DBFile.isDeleted).to.be.false;
+      expect(DBFile.deleted).to.be.false;
       await FileService.delete(file.id);
       const deletedFile: IFile = await FileService.getById(file.id);
-      expect(deletedFile.isDeleted).to.be.true;
+      expect(deletedFile.deleted).to.be.true;
+    });
+
+    it('should delete recursively a folder', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+
+      const father: IFile = structure[0];
+      for (let i = 0; i < structure.length; i++) {
+        const fileOrFolder: IFile = await FileService.getById(structure[i].id);
+        expect(fileOrFolder.deleted).to.equal(false);
+      }
+
+      await FileService.delete(father.id);
+
+      for (let i = 0; i < structure.length; i++) {
+        const fileOrFolder: IFile = await FileService.getById(structure[i].id);
+        expect(fileOrFolder.deleted).to.equal(true);
+      }
     });
   });
 
+  describe('#getFilesByFolder & #delete integration', () => {
+    it('should separate the non-deleted files from the deleted ones', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+
+      const father: IFile = structure[0];
+      const file1: IFile = structure[1];
+      const file2: IFile = structure[2];
+      const folder1: IFile = structure[3];
+      const file11: IFile = structure[4];
+
+      await FileService.delete(file1.id);
+      // get non-deleted files
+      const files = await FileService.getFilesByFolder(father.id, USER.id, false);
+      expect(files).to.exist;
+      files.should.be.an('array').with.lengthOf(2);
+      expect(files[0].key).to.equal(file2.key);
+
+      // get deleted files
+      const deletedFiles = await FileService.getFilesByFolder(father.id, USER.id, true);
+      expect(deletedFiles).to.exist;
+      deletedFiles.should.be.an('array').with.lengthOf(1);
+      expect(deletedFiles[0].key).to.equal(file1.key);
+
+      // get non-deleted files without the flag
+      const folder1FilesBD = await FileService.getFilesByFolder(folder1.id, USER.id);
+      expect(folder1FilesBD).to.exist;
+      folder1FilesBD.should.be.an('array').with.lengthOf(1);
+
+      // get non-deleted files without the flag after delete
+      await FileService.delete(file11.id);
+      const folder1FilesAD = await FileService.getFilesByFolder(folder1.id, USER.id);
+      expect(folder1FilesAD).to.exist;
+      folder1FilesAD.should.be.an('array').with.lengthOf(0);
+    });
+  });
 });
+
+async function generateFolderStructure() : Promise<IFile[]> {
+  const key2 = FileService.generateKey();
+  const key3 = FileService.generateKey();
+
+  const father = await FileService.create({ size, bucket }, 'father', USER.id, 'Folder');
+
+  const file1: IFile = await FileService.create(
+    { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
+  const file2: IFile = await FileService.create(
+    { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
+  const folder1: IFile = await FileService.create(
+    { size, bucket }, 'folder1', USER.id, 'Folder', father.id, null);
+  const file11: IFile = await FileService.create(
+    { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
+
+  return [father, file1, file2, folder1, file11];
+}
