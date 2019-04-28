@@ -73,6 +73,7 @@ message GetFileByKeyRequest {
 
 message GetFilesByFolderRequest {
     string folderID = 1;
+    string ownerID = 2;
 }
 
 message GetFilesByFolderResponse {
@@ -136,7 +137,10 @@ message File {
     string description = 5;
     string ownerID = 6;
     int64 size = 7;
-    FileOrID parent = 10;
+    oneof fileOrId {
+        string parent = 8;
+        File parentObject = 9;
+    }
     string bucket = 11;
     string createdAt = 15;
     string updatedAt = 16;

@@ -151,6 +151,7 @@ describe('File Logic', () => {
       expect(file.key).to.equal(KEY);
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('txt');
+      expect(file.fullName).to.equal('file.txt');
     });
 
     it('should create a file in a given folder', async () => {
