@@ -1,11 +1,12 @@
 import { Types } from 'mongoose';
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
-import { KeyAlreadyExistsError, FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { fileModel } from './file.model';
 import { IUpload } from './upload.interface';
 import { UploadRepository } from './upload.repository';
+
+export const FolderContentType = 'application/vnd.drive.folder';
 
 // This server assumes the following:
 // user is a valid existing user.
@@ -50,7 +51,7 @@ export class FileService {
     key: string = null
   ): Promise<IFile> {
 
-    const isFolder = (type === 'Folder');
+    const isFolder = (type === FolderContentType);
     let id: any;
 
     // Create the file id (from key or new one).
@@ -89,7 +90,7 @@ export class FileService {
   public static async delete(fileId: string): Promise<void> {
     // TODO: Delete all children
     const file: IFile = await this.getById(fileId);
-    if (file.type === 'Folder') {
+    if (file.type === FolderContentType) {
       const files: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
       await Promise.all(files.map(file => this.delete(file.id)));
     }
@@ -156,7 +157,7 @@ export class FileService {
 
   private static async createUserRootFolder(userID: string): Promise<IFile> {
     const folder: IFile = {
-      type: 'Folder',
+      type: FolderContentType,
       key: null,
       bucket: userID,
       fullName: userID,
