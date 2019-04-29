@@ -1,5 +1,6 @@
 import { IFile } from './file.interface';
 import { fileModel } from './file.model';
+import { ObjectId, ObjectID } from 'mongodb';
 
 const pagination = {
   startIndex: 0,
@@ -21,7 +22,7 @@ export default class FilesRepository {
   }
 
   static deleteById(id: string): Promise<IFile | null> {
-    return fileModel.findByIdAndUpdate(id, { deleted: true }, { new: true, runValidators: true }).exec();
+    return fileModel.findByIdAndUpdate({ _id: new ObjectID(id) }, { deleted: true }, { new: true, runValidators: true }).exec();
   }
 
   static getById(id: string): Promise<IFile | null> {
