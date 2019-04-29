@@ -53,9 +53,11 @@ export class RPC {
   private async createUpload(call: any, callback: any) {
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
+    const name: string = call.request.name;
     FileService.createUpload(
       key,
-      bucket)
+      bucket,
+      name)
       .then((upload) => {
         callback(null, upload);
       }).catch(err => callback(err));

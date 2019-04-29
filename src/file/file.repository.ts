@@ -22,7 +22,7 @@ export default class FilesRepository {
   }
 
   static deleteById(id: string): Promise<IFile | null> {
-    return fileModel.findByIdAndRemove({ _id: new ObjectId(id) }).exec();
+    return fileModel.findByIdAndUpdate({ _id: new ObjectId(id) }, { deleted: true }, { new: true, runValidators: true }).exec();
   }
 
   static getById(id: string): Promise<IFile | null> {

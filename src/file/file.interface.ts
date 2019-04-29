@@ -1,4 +1,3 @@
-import { Document } from 'mongoose';
 import { IUser } from '../utils/user.interface';
 
 export interface IFile {
@@ -17,6 +16,7 @@ export interface IFile {
   ancestors?: IFile[] | string[];
   children?: IFile[] | string[];
   isRootFolder?: boolean;
+  deleted: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
