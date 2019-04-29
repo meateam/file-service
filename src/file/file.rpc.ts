@@ -117,7 +117,7 @@ export class RPC {
   private async deleteFile(call: any, callback: any) {
     const id: string = call.request.id;
     FileService.delete(id)
-      .then(() => callback({ ok: true }))
+      .then(() => callback(null, { ok: true }))
       .catch(err => callback(err));
   }
 
