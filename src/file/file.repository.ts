@@ -1,5 +1,6 @@
 import { IFile } from './file.interface';
 import { fileModel } from './file.model';
+import { ObjectId } from 'bson';
 
 const pagination = {
   startIndex: 0,
@@ -21,7 +22,7 @@ export default class FilesRepository {
   }
 
   static deleteById(id: string): Promise<IFile | null> {
-    return fileModel.findByIdAndRemove(id).exec();
+    return fileModel.findByIdAndRemove({ _id: new ObjectId(id) }).exec();
   }
 
   static getById(id: string): Promise<IFile | null> {
