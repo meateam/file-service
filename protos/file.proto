@@ -53,6 +53,7 @@ message GetUploadByIDResponse {
     string key = 1;
     string bucket = 2;
     string uploadID = 3;
+    string name = 4;
 }
 
 message DeleteUploadByIDRequest {
