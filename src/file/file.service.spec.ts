@@ -154,6 +154,18 @@ describe('File Logic', () => {
       expect(file.fullName).to.equal('file.txt');
     });
 
+    it('should create a file without extention', async () => {
+      const file: IFile = await FileService.create(
+        { size, bucket }, 'file', USER.id, 'text', null, KEY);
+      expect(file).to.exist;
+      expect(file).to.have.property('createdAt');
+      expect(file.id).to.equal(REVERSE_KEY);
+      expect(file.key).to.equal(KEY);
+      expect(file.displayName).to.equal('file');
+      expect(file.fullExtension).to.equal('');
+      expect(file.fullName).to.equal('file');
+    });
+
     it('should create a file in a given folder', async () => {
       const folder: IFile = await FileService.create({ size, bucket }, 'myFolder', USER.id, 'Folder');
       const file: IFile = await FileService.create({ size, bucket }, 'tmp', USER.id, 'Text', folder.id, KEY);
