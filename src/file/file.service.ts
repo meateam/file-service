@@ -144,7 +144,7 @@ export class FileService {
 
   private static async isFileInFolder(fullName: string, folderId: string): Promise<boolean> {
     const file = await FilesRepository.getFileInFolderByName(folderId, fullName);
-    return (file != null && file.deleted);
+    return (file != null && !(file.deleted));
   }
 
   public static async findUserRootFolder(userID: string, createIfNotExist = false): Promise<IFile | null> {
