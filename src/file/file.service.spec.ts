@@ -381,6 +381,39 @@ describe('File Logic', () => {
       folder1FilesAD.should.be.an('array').with.lengthOf(0);
     });
   });
+
+  describe('#createFile & #delete integration', () => {
+    it('create a second file with the same name after first one was deleted', async () => {
+
+      // create a file
+      const v1file: IFile = await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+      expect(v1file).to.exist;
+      expect(v1file.deleted).to.be.false;
+
+      // delete the file
+      await FileService.delete(v1file.id);
+      const deletedFile: IFile = await FileService.getById(v1file.id);
+      expect(deletedFile.deleted).to.be.true;
+
+      // create the same file at the same location
+      const v2file: IFile = await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+      expect(v2file).to.exist;
+      expect(v2file.deleted).to.be.false;
+
+      // check both deleted and not-detetad files exist
+      const v1DBFile = await FileService.getById(v1file.id);
+      expect(v1DBFile).to.exist;
+      expect(v1DBFile.deleted).to.be.true;
+
+      const v2DBFile = await FileService.getById(v2file.id);
+      expect(v2DBFile).to.exist;
+      expect(v2DBFile.deleted).to.be.false;
+
+    });
+  });
+
 });
 
 async function generateFolderStructure() : Promise<IFile[]> {
