@@ -13,6 +13,7 @@ const should = chai.should();
 chai.use(chaiAsPromised);
 
 const KEY = mongoose.Types.ObjectId().toHexString();
+const KEY2 = mongoose.Types.ObjectId().toHexString();
 const REVERSE_KEY = KEY.split('').reverse().join('');
 const USER = {
   id: '123456',
@@ -398,7 +399,7 @@ describe('File Logic', () => {
 
       // create the same file at the same location
       const v2file: IFile = await FileService.create(
-        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY2);
       expect(v2file).to.exist;
       expect(v2file.deleted).to.be.false;
 
