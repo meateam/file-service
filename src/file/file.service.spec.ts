@@ -2,7 +2,7 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import mongoose from 'mongoose';
 import { IFile } from './file.interface';
-import { FileService } from './file.service';
+import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from './upload.interface';
@@ -139,7 +139,7 @@ describe('File Logic', () => {
     });
 
     it('should not throw an error if key is not sent with a folder', async () => {
-      await FileService.create({ size, bucket }, 'myFolder', USER.id, 'Folder').should.eventually.exist;
+      await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType).should.eventually.exist;
     });
 
     it('should create a file', async () => {
@@ -167,7 +167,7 @@ describe('File Logic', () => {
     });
 
     it('should create a file in a given folder', async () => {
-      const folder: IFile = await FileService.create({ size, bucket }, 'myFolder', USER.id, 'Folder');
+      const folder: IFile = await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType);
       const file: IFile = await FileService.create({ size, bucket }, 'tmp', USER.id, 'Text', folder.id, KEY);
       expect(file.parent.toString()).to.equal(folder.id);
     });
@@ -235,7 +235,7 @@ describe('File Logic', () => {
       expect(files).to.be.an('array').with.lengthOf(0);
     });
     it('should return an empty array if the folder is empty', async () => {
-      const folder = await FileService.create({ size, bucket }, 'myFolder', USER.id, 'Folder');
+      const folder = await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType);
       const files = await FileService.getFilesByFolder(folder.id, null);
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
@@ -244,14 +244,14 @@ describe('File Logic', () => {
       const key2 = FileService.generateKey();
       const key3 = FileService.generateKey();
 
-      const father = await FileService.create({ size, bucket }, 'father', USER.id, 'Folder');
+      const father = await FileService.create({ size, bucket }, 'father', USER.id, FolderContentType);
 
       const file1 = await FileService.create(
         { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
       const file2 = await FileService.create(
         { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
       const folder1 = await FileService.create(
-        { size, bucket }, 'folder1', USER.id, 'Folder', father.id);
+        { size, bucket }, 'folder1', USER.id, FolderContentType, father.id);
       const file11 = await FileService.create(
         { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
 
@@ -284,7 +284,7 @@ describe('File Logic', () => {
         const file2 = await FileService.create(
           { size, bucket }, 'file2.txt', USER.id, 'text', null, key2);
         const folder1 = await FileService.create(
-          { size, bucket }, 'folder1', USER.id, 'Folder', null);
+          { size, bucket }, 'folder1', USER.id, FolderContentType, null);
         const file11 = await FileService.create(
           { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
 
@@ -387,14 +387,14 @@ async function generateFolderStructure() : Promise<IFile[]> {
   const key2 = FileService.generateKey();
   const key3 = FileService.generateKey();
 
-  const father = await FileService.create({ size, bucket }, 'father', USER.id, 'Folder');
+  const father = await FileService.create({ size, bucket }, 'father', USER.id, FolderContentType);
 
   const file1: IFile = await FileService.create(
     { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
   const file2: IFile = await FileService.create(
     { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
   const folder1: IFile = await FileService.create(
-    { size, bucket }, 'folder1', USER.id, 'Folder', father.id, null);
+    { size, bucket }, 'folder1', USER.id, FolderContentType, father.id, null);
   const file11: IFile = await FileService.create(
     { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
 
