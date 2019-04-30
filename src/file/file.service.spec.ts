@@ -128,7 +128,7 @@ describe('File Logic', () => {
       await FileService.deleteUpload(testUpload.uploadID);
 
       await FileService.getUploadById(testUpload.uploadID)
-      .should.eventually.be.rejectedWith(ClientError, 'Upload not found');
+      .should.eventually.be.rejectedWith(ClientError, 'upload not found');
     });
   });
 
@@ -381,6 +381,7 @@ describe('File Logic', () => {
       folder1FilesAD.should.be.an('array').with.lengthOf(0);
     });
   });
+
 });
 
 async function generateFolderStructure() : Promise<IFile[]> {

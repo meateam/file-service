@@ -10,19 +10,19 @@ export class ApplicationError extends Error {
 
     Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
-    this.message = message || 'Undefined Application Error';
+    this.message = message || 'undefined Application Error';
     this.status = status || 500;
   }
 }
 
 export class ServerError extends ApplicationError {
   constructor(message?: string, status?: number) {
-    super(message || 'Internal Server Error', status || 500);
+    super(message || 'internal Server Error', status || 500);
   }
 }
 
 export class ClientError extends ApplicationError {
   constructor(message?: string, status?: number) {
-    super(message || 'Client Side Error', status || 400);
+    super(message || 'client Side Error', status || 400);
   }
 }
