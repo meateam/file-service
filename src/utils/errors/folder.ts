@@ -1,11 +1,11 @@
-/**
+/**status
  * The errors that come from the client-side
  */
 import { ClientError } from './application.error';
 
 export class FolderError extends ClientError {
-  constructor(message?: string, status?: number) {
-    super(message || 'bad folder error', status || 400);
+  constructor(message?: string, code?: number) {
+    super(message || 'bad folder error', code || 400);
   }
 }
 

@@ -4,14 +4,14 @@
 import { ClientError } from './application.error';
 
 export class FileError extends ClientError {
-  constructor(message?: string, status?: number) {
-    super(message || 'bad file error', status || 400);
+  constructor(message?: string, code?: number) {
+    super(message || 'bad file error', code || 400);
   }
 }
 
 export class FilesEmpty extends ClientError {
-  constructor(message?: string, status?: number) {
-    super(message || 'files cannot be empty', status || 400);
+  constructor(message?: string, code?: number) {
+    super(message || 'files cannot be empty', code || 400);
   }
 }
 
