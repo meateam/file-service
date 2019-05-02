@@ -1,6 +1,6 @@
 import { IFile } from './file.interface';
 import { fileModel } from './file.model';
-import { ObjectId, ObjectID } from 'mongodb';
+import { ObjectID } from 'mongodb';
 
 const pagination = {
   startIndex: 0,
