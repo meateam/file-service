@@ -15,6 +15,7 @@ export class Server {
     this.createApplication();
     this.configApplication();
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+
     if (!testing) {
       this.connectDB();
       this.log();
@@ -40,7 +41,7 @@ export class Server {
       resave: true,
       saveUninitialized: true
     }));
-    this.app.use((req, res, next) => {
+    this.app.use((_, res, next) => {
       res.header('Access-Control-Allow-Origin', '*');
       res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
       res.header('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');

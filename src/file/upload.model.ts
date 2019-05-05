@@ -16,7 +16,8 @@ export const uploadSchema: mongoose.Schema = new mongoose.Schema(
     },
     bucket: {
       type: String,
-      required: false,    },
+      required: false,
+    },
     name: {
       type: String,
       required: true
