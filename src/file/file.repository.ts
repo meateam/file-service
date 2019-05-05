@@ -1,6 +1,6 @@
+import { ObjectID } from 'mongodb';
 import { IFile } from './file.interface';
 import { fileModel } from './file.model';
-import { ObjectID } from 'mongodb';
 
 const pagination = {
   startIndex: 0,
@@ -27,7 +27,7 @@ export default class FilesRepository {
   }
 
   static getById(id: string): Promise<IFile | null> {
-    return fileModel.findById(id).exec();
+    return fileModel.findById({ _id: new ObjectID(id) }).exec();
   }
 
   static getByKey(key: string): Promise<IFile | null> {
@@ -35,8 +35,9 @@ export default class FilesRepository {
   }
 
   static getByIds(ids: string[]): Promise<IFile[]> {
+    const objIds: ObjectID[] = ids.map(id => new ObjectID(id));
     return fileModel.find({
-      _id: { $in: ids },
+      _id: { $in: objIds },
     }).exec();
   }
 
@@ -77,6 +78,6 @@ export default class FilesRepository {
   static getFileInFolderByName(parentId: string, fileFullName: string): Promise<IFile | null> {
     const displayName = fileFullName.split('.')[0];
     const fullExtension = fileFullName.split('.').splice(1).join('.');
-    return fileModel.findOne({ displayName, fullExtension, parent: parentId }).exec();
+    return fileModel.findOne({ displayName, fullExtension, parent: new ObjectID(parentId) }).exec();
   }
 }
