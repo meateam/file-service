@@ -22,6 +22,9 @@ const packageDefinition = protoLoader.loadSync(
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 const file_proto = protoDescriptor.file;
 
+/**
+ * The RPC class, containing all of the RPC methods.
+ */
 export class RPC {
   public server: any;
 
@@ -44,12 +47,14 @@ export class RPC {
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
+
+  //Generates a random key for the upload.
   private generateKey(call: any, callback: any) {
     const key: string = FileService.generateKey();
     callback(null, { key });
   }
 
-  // Creates an upload object, present while uploading a file
+  // Creates an upload object, present while uploading a file.
   private async createUpload(call: any, callback: any) {
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
@@ -63,7 +68,7 @@ export class RPC {
       }).catch(err => callback(err));
   }
 
-  // Updates the uploadID
+  // Updates the uploadID.
   private async updateUpload(call: any, callback: any) {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
@@ -77,6 +82,7 @@ export class RPC {
       }).catch(err => callback(err));
   }
 
+  // Get an upload metadata by its id in the DB.
   private async getUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
     FileService.getUploadById(id)
@@ -85,6 +91,7 @@ export class RPC {
     }).catch(err => callback(err));
   }
 
+  //  Delete an upload from the DB by its id.
   private async deleteUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
     FileService.deleteUpload(id)
@@ -94,6 +101,8 @@ export class RPC {
   }
 
   // ********************* FILE FUNCTIONS ********************* */
+
+  // Creates a new file in the DB.
   private async createFile(call: any, callback: any) {
     const params = call.request;
     const partialFile: Partial<IFile> = {
@@ -114,6 +123,7 @@ export class RPC {
       .catch(err => callback(err));
   }
 
+  // Deletes a file, according to the file deletion policy.
   private async deleteFile(call: any, callback: any) {
     const id: string = call.request.id;
     FileService.delete(id)
@@ -121,6 +131,7 @@ export class RPC {
       .catch(err => callback(err));
   }
 
+  // Retrieves a file by its id.
   private async getFileByID(call: any, callback: any) {
     const id: string = call.request.id;
     FileService.getById(id)
@@ -128,6 +139,7 @@ export class RPC {
       .catch(err => callback(err));
   }
 
+  // Retrieves a file by its key.
   private async getFileByKey(call: any, callback: any) {
     const key: string = call.request.key;
     FileService.getByKey(key)
@@ -135,6 +147,7 @@ export class RPC {
       .catch(err => callback(err));
   }
 
+  // Retrieves all files residing in a given folder.
   private async getFilesByFolder(call: any, callback: any) {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
@@ -146,6 +159,7 @@ export class RPC {
       .catch(err => callback(err));
   }
 
+  // Checks if an operation is allowed by permission of the owner. 
   private async isAllowed(call: any, callback: any) {
     FileService.isOwner(call.request.fileID, call.request.userID)
       .then(res => callback(null, { allowed: res }))

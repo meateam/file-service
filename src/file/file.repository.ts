@@ -12,10 +12,15 @@ const sort = {
   sortBy: 'createdAt',
 };
 
-export default class FilesRepository {
+/**
+ * The repository connects the file-service with the mongo DB.
+ * It is the 'lowest' level of code before making changes in the database or retrieving information from it.
+ * Usually called from the FileService class in file.service.ts .
+ */
+export default class FileRepository {
   /**
    * Adds a given file to the DB.
-   * @param file is the file to be added to the DB
+   * @param file - is the file to be added to the DB
    */
   static create(file: IFile): Promise<IFile> {
     return fileModel.create(file);
