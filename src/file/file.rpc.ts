@@ -48,7 +48,7 @@ export class RPC {
 
   // ******************** UPLOAD FUNCTIONS ******************** */
 
-  //Generates a random key for the upload.
+  // Generates a random key for the upload.
   private generateKey(call: any, callback: any) {
     const key: string = FileService.generateKey();
     callback(null, { key });
@@ -159,7 +159,7 @@ export class RPC {
       .catch(err => callback(err));
   }
 
-  // Checks if an operation is allowed by permission of the owner. 
+  // Checks if an operation is allowed by permission of the owner.
   private async isAllowed(call: any, callback: any) {
     FileService.isOwner(call.request.fileID, call.request.userID)
       .then(res => callback(null, { allowed: res }))
