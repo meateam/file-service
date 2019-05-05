@@ -1,5 +1,5 @@
 export interface IUpload {
-  id?: string;          // mongoId
+  id?: string;
   uploadID: string;
   key: string;
   bucket: string;

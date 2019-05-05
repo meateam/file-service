@@ -1,4 +1,5 @@
 import { Types } from 'mongoose';
+import { ObjectID } from 'mongodb';
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
 import { FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
@@ -12,23 +13,31 @@ export const FolderContentType = 'application/vnd.drive.folder';
 // user is a valid existing user.
 // folderID is an objectID of an existing file of type folder.
 export class FileService {
-
   // Explanation about upload fields:
   // uploadID: the id of the created upload. received from the client (updates later)
   // bucket: also received from the client.
   // key: the key generated.
   public static generateKey(): string {
-    const objectID = Types.ObjectId();
-    const key = this.hashKey(objectID.toHexString());
-    return key;
+    const objectID : ObjectID = Types.ObjectId();
+    return this.hashKey(objectID.toHexString());
   }
 
+  /**
+   * @param key - generated with generateKey
+   * @param bucket - is the s3 bucket in the storage
+   * @param name - of the file uploaded
+   */
   public static async createUpload(key: string, bucket: string, name: string)
   : Promise<IUpload> {
     const upload: Partial<IUpload> = { key, bucket, name };
     return await UploadRepository.create(upload);
   }
 
+  /**
+   * @param uploadID - the new id of the upload
+   * @param key - of the upload
+   * @param bucket - together with bucket, create a unique identifier
+   */
   public static async updateUpload(uploadID: string, key: string, bucket: string) {
     return await UploadRepository.updateByKey(key, uploadID, bucket);
   }
@@ -52,7 +61,7 @@ export class FileService {
   ): Promise<IFile> {
 
     const isFolder = (type === FolderContentType);
-    let id: any;
+    let id: string | ObjectID;
 
     // Create the file id (from key or new one).
     if (key) { // if key exists reverse it to get the generated id
@@ -86,17 +95,20 @@ export class FileService {
     return await FilesRepository.create(file);
   }
 
-  // recursive
+  /**
+   * If receiving a file, deletes the file.
+   * If receiving a folder:
+   * Recursively delete all files and sub-folders in the given folder,
+   * only then delete the folder.
+   * @param fileId - the id of the file/folder
+   */
   public static async delete(fileId: string): Promise<void> {
-    // TODO: Delete all children
     const file: IFile = await this.getById(fileId);
     if (file.type === FolderContentType) {
       const files: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
       await Promise.all(files.map(file => this.delete(file.id)));
     }
-    // delete the file anyways
     await FilesRepository.deleteById(fileId);
-    // TODO: Update Parent - necessary?
   }
 
   public static updateById(fileId: string, file: Partial<IFile>): Promise<IFile> {
@@ -116,42 +128,43 @@ export class FileService {
   }
 
   /**
-   * @param folderID
-   * @param ownerID
+   * @param folderID -the given folder.
+   * @param ownerID - for permissions check.
    * @param deleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
-   * @returns an array of IFiles within folderID
+   * @returns {IFile[]}
   */
   public static async getFilesByFolder(folderID: string | null, ownerID: string | null, deleted = false): Promise<IFile[]> {
-    let files;
-
+    let files: IFile[];
     if (!folderID) { // Search the user's root folder
       if (!ownerID) throw new ClientError('No file or owner id sent');
       const rootFolder = await this.findUserRootFolder(ownerID);
       files = await FilesRepository.find({ deleted, parent: rootFolder });
     } else files = await FilesRepository.find({ deleted, parent: folderID });
+
     return files;
   }
 
   public static async isOwner(fileID: string, userID: string): Promise<boolean> {
-    const file = await this.getById(fileID);
+    const file: IFile = await this.getById(fileID);
     return file.ownerID === userID;
   }
 
   private static async isKeyNotInUse(key: string): Promise<boolean> {
-    const fileByKey = await FileService.getByKey(key);
+    const fileByKey: IFile = await FileService.getByKey(key);
     return fileByKey == null;
   }
 
   private static async isFileInFolder(fullName: string, folderId: string): Promise<boolean> {
-    const file = await FilesRepository.getFileInFolderByName(folderId, fullName);
+    const file: IFile = await FilesRepository.getFileInFolderByName(folderId, fullName);
     return (file != null && !(file.deleted));
   }
 
   public static async findUserRootFolder(userID: string, createIfNotExist = false): Promise<IFile | null> {
-    const folder = await FilesRepository.getRootFolder(userID);
+    const folder: IFile = await FilesRepository.getRootFolder(userID);
     if (!folder && createIfNotExist) {
       return await this.createUserRootFolder(userID);
     }
+
     return folder;
   }
 
@@ -165,12 +178,15 @@ export class FileService {
       isRootFolder: true,
       deleted: false,
     };
+
     return await FilesRepository.create(folder);
   }
+
   // Reversing a given string
   public static hashKey(id: string): string {
     return this.reverseString(id);
   }
+
   private static reverseString(str: string): string {
     return str.split('').reverse().join('');
   }

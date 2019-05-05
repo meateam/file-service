@@ -21,6 +21,7 @@ export default class FilesRepository {
     return fileModel.findByIdAndUpdate(id, user, { new: true, runValidators: true }).exec();
   }
 
+  // Change 'deleted' flag to true. Does not delete from th DB.
   static deleteById(id: string): Promise<IFile | null> {
     return fileModel.findByIdAndUpdate({ _id: new ObjectID(id) }, { deleted: true }, { new: true, runValidators: true }).exec();
   }

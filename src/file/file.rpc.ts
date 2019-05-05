@@ -18,8 +18,8 @@ const packageDefinition = protoLoader.loadSync(
     oneofs: true,
   });
 
+// Has the full package hierarchy
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
-// The protoDescriptor object has the full package hierarchy
 const file_proto = protoDescriptor.file;
 
 export class RPC {
@@ -39,7 +39,6 @@ export class RPC {
       CreateFile: this.createFile,
       DeleteFile: this.deleteFile,
       IsAllowed: this.isAllowed,
-      // UpdateFile: Not yet implemented
     });
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
@@ -50,6 +49,7 @@ export class RPC {
     callback(null, { key });
   }
 
+  // Creates an upload object, present while uploading a file
   private async createUpload(call: any, callback: any) {
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
@@ -63,6 +63,7 @@ export class RPC {
       }).catch(err => callback(err));
   }
 
+  // Updates the uploadID
   private async updateUpload(call: any, callback: any) {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
@@ -70,8 +71,7 @@ export class RPC {
     FileService.updateUpload(
       uploadID,
       key,
-      bucket
-      )
+      bucket)
       .then((upload) => {
         callback(null, upload);
       }).catch(err => callback(err));
