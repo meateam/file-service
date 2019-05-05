@@ -13,27 +13,51 @@ const sort = {
 };
 
 export default class FilesRepository {
+  /**
+   * Adds a given file to the DB.
+   * @param file is the file to be added to the DB
+   */
   static create(file: IFile): Promise<IFile> {
     return fileModel.create(file);
   }
 
-  static updateById(id: string, user: Partial<IFile>): Promise<IFile | null> {
-    return fileModel.findByIdAndUpdate(id, user, { new: true, runValidators: true }).exec();
+  /**
+   * Updates the file metatata by its id.
+   * @param id - the file id.
+   * @param partialFile - the partial file containing the attributes to be changed.
+   */
+  static updateById(id: string, partialFile: Partial<IFile>): Promise<IFile | null> {
+    return fileModel.findByIdAndUpdate(id, partialFile, { new: true, runValidators: true }).exec();
   }
 
-  // Change 'deleted' flag to true. Does not delete from th DB.
+  /**
+   * Changes 'deleted' flag to true. Does not delete from th DB.
+   * @param id - the id of the file to be deleted.
+   */
   static deleteById(id: string): Promise<IFile | null> {
     return fileModel.findByIdAndUpdate({ _id: new ObjectID(id) }, { deleted: true }, { new: true, runValidators: true }).exec();
   }
 
+  /**
+   * Get the file by its id.
+   * @param id - the id of the file.
+   */
   static getById(id: string): Promise<IFile | null> {
     return fileModel.findById({ _id: new ObjectID(id) }).exec();
   }
 
+  /**
+   * Get the file by its key.
+   * @param key - the key of the file.
+   */
   static getByKey(key: string): Promise<IFile | null> {
     return fileModel.findOne({ key }).exec();
   }
 
+  /**
+   * Get several filed by their ids.
+   * @param ids - the array of the ids.
+   */
   static getByIds(ids: string[]): Promise<IFile[]> {
     const objIds: ObjectID[] = ids.map(id => new ObjectID(id));
     return fileModel.find({
@@ -41,6 +65,14 @@ export default class FilesRepository {
     }).exec();
   }
 
+  /**
+   * Get several files according to the specifications.
+   * @param fileFilter - specific file attributes.
+   * @param startIndex - start with this index to retrieve the files.
+   * @param endIndex - last file index to retrieve.
+   * @param sortOrder - sorting order.
+   * @param sortBy - sort by option.
+   */
   static getMany(
     fileFilter: Partial<IFile>,
     startIndex: number = pagination.startIndex,
@@ -56,6 +88,12 @@ export default class FilesRepository {
       .exec();
   }
 
+  /**
+   * Retrieves an array of files according to a condition.
+   * @param cond - the condiotion for the search.
+   * @param populate - an option to populate the retrieved file's fields.
+   * @param select - seelect certain fields of the files.
+   */
   static find(cond?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
 
     let findPromise = fileModel.find(cond);
@@ -71,13 +109,22 @@ export default class FilesRepository {
     });
   }
 
+  /**
+   * Retrieve the root folder (IFile) of a user by its name.
+   * @param folderName - the name of the folder.
+   */
   static getRootFolder(folderName: string): Promise<IFile | null> {
     return fileModel.findOne({ displayName: folderName, isRootFolder: true }).exec();
   }
 
+  /**
+   * Retrieve a file residing in a folder by its name.
+   * @param parentId - the folder id.
+   * @param fileFullName - the name of the file (should be unique in the folder).
+   */
   static getFileInFolderByName(parentId: string, fileFullName: string): Promise<IFile | null> {
     const displayName = fileFullName.split('.')[0];
     const fullExtension = fileFullName.split('.').splice(1).join('.');
-    return fileModel.findOne({ displayName, fullExtension, parent: new ObjectID(parentId) }).exec();
+    return fileModel.findOne({ displayName, fullExtension, parent: new ObjectID(parentId), deleted: false }).exec();
   }
 }
