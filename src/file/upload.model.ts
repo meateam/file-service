@@ -12,9 +12,11 @@ export const uploadSchema: mongoose.Schema = new mongoose.Schema(
     },
     key: {
       type: String,
+      required: false,
     },
     bucket: {
       type: String,
+      required: false,
     },
     name: {
       type: String,

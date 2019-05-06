@@ -86,18 +86,14 @@ describe('File Logic', () => {
       expect(newUpload.key).to.be.equal(testUpload.key);
     });
 
-    // TODO
     it.skip('should throw an error when key already exist', async () => {
       uploadModel.on('index', async (err) => { // <-- Wait for model's indexes to finish
-        console.log('on index');
         const newUpload1: IUpload =
         await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name)
         .should.eventually.exist;
         const newUpload2: IUpload =
         await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name)
         .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
-        console.log(newUpload1);
-        console.log(newUpload2);
       });
 
     });
