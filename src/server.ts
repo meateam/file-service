@@ -2,17 +2,10 @@ import express from 'express';
 import * as bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
-import * as path from 'path';
-import { config } from './config';
-// import * as fs from 'fs';
-import * as https from 'https';
 import session from 'express-session';
 import cors from 'cors';
-
+import { config } from './config';
 import { RPC } from './file/file.rpc';
-// const privateKey = fs.readFileSync('wildcard.key', 'utf8');
-// const certificate = fs.readFileSync('wildcard.pem', 'utf8');
-// const credentials = { key: privateKey, cert: certificate };
 
 export class Server {
   public app: express.Application;
