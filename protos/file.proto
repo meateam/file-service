@@ -19,10 +19,12 @@ service FileService {
 
 message CreateUploadRequest {
     string bucket = 1;
+    string name = 2;
 }
 
 message CreateUploadResponse {
     string key = 1;
+    string bucket = 2;
 }
 
 message GenerateKeyRequest {
@@ -51,6 +53,7 @@ message GetUploadByIDResponse {
     string key = 1;
     string bucket = 2;
     string uploadID = 3;
+    string name = 4;
 }
 
 message DeleteUploadByIDRequest {
@@ -135,13 +138,10 @@ message File {
     string description = 5;
     string ownerID = 6;
     int64 size = 7;
-    oneof fileOrId {
-        string parent = 8;
-        File parentObject = 9;
-    }
-    string bucket = 11;
-    string createdAt = 15;
-    string updatedAt = 16;
+    FileOrID parent = 8;
+    string bucket = 9;
+    string createdAt = 10;
+    string updatedAt = 11;
 }
 
 message FileOrID {
