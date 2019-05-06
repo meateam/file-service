@@ -35,9 +35,9 @@ export class UploadRepository {
    * Update the upload ID with the given ID
    * @param key - the key of the upload. is unique with bucket.
    * @param bucket - the bucket of the upload.
-   * @param newID - the new id.
+   * @param uploadID - the new id.
    */
-  static updateByKey(key: string, bucket: string, newID: string) {
-    return uploadModel.findOneAndUpdate({ key, bucket }, { uploadID: newID }, { new: true }).exec();
+  static updateByKey(key: string, bucket: string, uploadID: string) {
+    return uploadModel.findOneAndUpdate({ key, bucket }, { uploadID }, { new: true }).exec();
   }
 }
