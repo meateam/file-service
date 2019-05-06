@@ -129,7 +129,7 @@ describe('File Logic', () => {
       await FileService.deleteUpload(testUpload.uploadID);
 
       await FileService.getUploadById(testUpload.uploadID)
-      .should.eventually.be.rejectedWith(ClientError, 'Upload not found');
+      .should.eventually.be.rejectedWith(ClientError, 'upload not found');
     });
   });
 
