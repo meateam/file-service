@@ -65,8 +65,7 @@ export class Server {
   }
 
   private listen() {
-    const rpcPort = '50051';
-    const rpcServer: RPC = new RPC(rpcPort);
+    const rpcServer: RPC = new RPC(process.env.RPC_PORT);
 
     // Insures you don't run the server twice
     if (!module.parent) {

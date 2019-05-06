@@ -2,6 +2,8 @@
  *
  */
 
+process.env.RPC_PORT = '50051';
+
 type Config = {
   conf_type: string;
   server: string;
