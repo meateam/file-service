@@ -140,8 +140,8 @@ message File {
     int64 size = 7;
     FileOrID parent = 8;
     string bucket = 9;
-    string createdAt = 10;
-    string updatedAt = 11;
+    int64 createdAt = 10;
+    int64 updatedAt = 11;
 }
 
 message FileOrID {
