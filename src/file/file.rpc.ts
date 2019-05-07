@@ -207,7 +207,7 @@ class ResFile{
     this.children        =     file.children;
     this.isRootFolder    =     file.isRootFolder;
     this.deleted         =     file.deleted;
-    this.createdAt       =     file.createdAt ? file.createdAt.getTime() : '';
-    this.updatedAt       =     file.updatedAt ? file.updatedAt.getTime() : '';
+    this.createdAt       =     file.createdAt.getTime();
+    this.updatedAt       =     file.updatedAt.getTime();
   }
 }
