@@ -154,7 +154,7 @@ export class RPC {
     const ownerID: string = call.request.ownerID;
     FileService.getFilesByFolder(folderID, ownerID)
       .then((files) => {
-        const resFiles = files.length ? [] : files.map(file => new ResFile(file));
+        const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
         callback(null, { resFiles });
       })
       .catch(err => callback(err));
