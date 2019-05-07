@@ -138,16 +138,11 @@ message File {
     string description = 5;
     string ownerID = 6;
     int64 size = 7;
-    FileOrID parent = 8;
-    string bucket = 9;
-    string createdAt = 10;
-    string updatedAt = 11;
-}
-
-message FileOrID {
-    oneof fileField {
-        string fileID = 1;
-        File fileObject = 2;
+    oneof fileOrId {
+        string parent = 8;
+        File parentObject = 9;
     }
+    string bucket = 10;
+    string createdAt = 11;
+    string updatedAt = 12;
 }
-
