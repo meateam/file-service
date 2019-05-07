@@ -155,7 +155,7 @@ export class RPC {
     FileService.getFilesByFolder(folderID, ownerID)
       .then((files) => {
         const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
-        callback(null, { resFiles });
+        callback(null, { files: resFiles });
       })
       .catch(err => callback(err));
   }
