@@ -171,24 +171,24 @@ export class RPC {
 
 // Same as IFile, but changing types accordingly
 class ResFile{
-  id?: string;
-  key?: string;
-  bucket?: string;
-  displayName?: string;
-  fullExtension?: string;
+  id: string;
+  key: string;
+  bucket: string;
+  displayName: string;
+  fullExtension: string;
   fullName: string;
   type: string;
-  description?: string;
+  description: string;
   ownerID: string;
-  owner?: IUser;
-  size?: number;
-  parent?: IFile | string;
-  ancestors?: IFile[] | string[];
-  children?: IFile[] | string[];
-  isRootFolder?: boolean;
+  owner: IUser;
+  size: number;
+  parent: IFile | string;
+  ancestors: IFile[] | string[];
+  children: IFile[] | string[];
+  isRootFolder: boolean;
   deleted: boolean;
-  createdAt?: number;
-  updatedAt?: number;
+  createdAt: number;
+  updatedAt: number;
 
   constructor(file: IFile) {
     this.id              =     file.id;
