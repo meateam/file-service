@@ -143,6 +143,6 @@ message File {
         File parentObject = 9;
     }
     string bucket = 10;
-    string createdAt = 11;
-    string updatedAt = 12;
+    int64 createdAt = 11;
+    int64 updatedAt = 12;
 }
