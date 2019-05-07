@@ -119,7 +119,7 @@ export class RPC {
       params.parent,
       params.key)
       .then((file) => {
-        callback(null, this.convertFile(file));
+        callback(null, new ResFile(file));
       })
       .catch(err => callback(err));
   }
@@ -136,7 +136,7 @@ export class RPC {
   private async getFileByID(call: any, callback: any) {
     const id: string = call.request.id;
     FileService.getById(id)
-      .then(file => callback(null, this.convertFile(file)))
+      .then(file => callback(null, new ResFile(file)))
       .catch(err => callback(err));
   }
 
@@ -144,7 +144,7 @@ export class RPC {
   private async getFileByKey(call: any, callback: any) {
     const key: string = call.request.key;
     FileService.getByKey(key)
-      .then(file => callback(null, this.convertFile(file)))
+      .then(file => callback(null, new ResFile(file)))
       .catch(err => callback(err));
   }
 
@@ -154,7 +154,7 @@ export class RPC {
     const ownerID: string = call.request.ownerID;
     FileService.getFilesByFolder(folderID, ownerID)
       .then((files) => {
-        const resFiles = files.map(this.convertFile);
+        const resFiles = files.length ? [] : files.map(file => new ResFile(file));
         callback(null, { resFiles });
       })
       .catch(err => callback(err));
@@ -167,10 +167,6 @@ export class RPC {
       .catch(err => callback(err));
   }
 
-  // Converts the file type to the expected response type
-  private convertFile(file: IFile): ResFile {
-    return new ResFile(file);
-  }
 }
 
 // Same as IFile, but changing types accordingly
@@ -211,7 +207,7 @@ class ResFile{
     this.children        =     file.children;
     this.isRootFolder    =     file.isRootFolder;
     this.deleted         =     file.deleted;
-    this.createdAt       =     file.createdAt.getTime();
-    this.updatedAt       =     file.updatedAt.getTime();
+    this.createdAt       =     file.createdAt ? file.createdAt.getTime() : '';
+    this.updatedAt       =     file.updatedAt ? file.updatedAt.getTime() : '';
   }
 }
