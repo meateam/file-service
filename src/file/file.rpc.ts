@@ -1,6 +1,6 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
-import { IUser } from 'src/utils/user.interface';
+import { IUser } from '../utils/user.interface';
 
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
@@ -136,7 +136,7 @@ export class RPC {
   private async getFileByID(call: any, callback: any) {
     const id: string = call.request.id;
     FileService.getById(id)
-      .then(file => callback(null, file))
+      .then(file => callback(null, this.convertFile(file)))
       .catch(err => callback(err));
   }
 
@@ -144,7 +144,7 @@ export class RPC {
   private async getFileByKey(call: any, callback: any) {
     const key: string = call.request.key;
     FileService.getByKey(key)
-      .then(file => callback(null, file))
+      .then(file => callback(null, this.convertFile(file)))
       .catch(err => callback(err));
   }
 
@@ -154,7 +154,8 @@ export class RPC {
     const ownerID: string = call.request.ownerID;
     FileService.getFilesByFolder(folderID, ownerID)
       .then((files) => {
-        callback(null, { files });
+        const resFiles = files.map(this.convertFile);
+        callback(null, { resFiles });
       })
       .catch(err => callback(err));
   }
@@ -168,7 +169,6 @@ export class RPC {
 
   // Converts the file type to the expected response type
   private convertFile(file: IFile): ResFile {
-
     return new ResFile(file);
   }
 }
