@@ -142,15 +142,7 @@ message File {
         string parent = 8;
         File parentObject = 9;
     }
-    string bucket = 11;
-    string createdAt = 15;
-    string updatedAt = 16;
+    string bucket = 10;
+    string createdAt = 11;
+    string updatedAt = 12;
 }
-
-message FileOrID {
-    oneof fileField {
-        string fileID = 1;
-        File fileObject = 2;
-    }
-}
-
