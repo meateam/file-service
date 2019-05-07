@@ -1,10 +1,11 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
+import { IUser } from '../utils/user.interface';
 
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
 
-const PROTO_PATH = `${__dirname}/../../protos/file.proto`;
+const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
 
@@ -118,7 +119,7 @@ export class RPC {
       params.parent,
       params.key)
       .then((file) => {
-        callback(null, file);
+        callback(null, new ResFile(file));
       })
       .catch(err => callback(err));
   }
@@ -135,7 +136,7 @@ export class RPC {
   private async getFileByID(call: any, callback: any) {
     const id: string = call.request.id;
     FileService.getById(id)
-      .then(file => callback(null, file))
+      .then(file => callback(null, new ResFile(file)))
       .catch(err => callback(err));
   }
 
@@ -143,7 +144,7 @@ export class RPC {
   private async getFileByKey(call: any, callback: any) {
     const key: string = call.request.key;
     FileService.getByKey(key)
-      .then(file => callback(null, file))
+      .then(file => callback(null, new ResFile(file)))
       .catch(err => callback(err));
   }
 
@@ -153,7 +154,8 @@ export class RPC {
     const ownerID: string = call.request.ownerID;
     FileService.getFilesByFolder(folderID, ownerID)
       .then((files) => {
-        callback(null, { files });
+        const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
+        callback(null, { files: resFiles });
       })
       .catch(err => callback(err));
   }
@@ -165,4 +167,47 @@ export class RPC {
       .catch(err => callback(err));
   }
 
+}
+
+// Same as IFile, but changing types accordingly
+class ResFile{
+  id: string;
+  key: string;
+  bucket: string;
+  displayName: string;
+  fullExtension: string;
+  fullName: string;
+  type: string;
+  description: string;
+  ownerID: string;
+  owner: IUser;
+  size: number;
+  parent: IFile | string;
+  ancestors: IFile[] | string[];
+  children: IFile[] | string[];
+  isRootFolder: boolean;
+  deleted: boolean;
+  createdAt: number;
+  updatedAt: number;
+
+  constructor(file: IFile) {
+    this.id              =     file.id;
+    this.key             =     file.key;
+    this.bucket          =     file.bucket;
+    this.displayName     =     file.displayName;
+    this.fullExtension   =     file.fullExtension;
+    this.fullName        =     file.fullName;
+    this.type            =     file.type;
+    this.description     =     file.description;
+    this.ownerID         =     file.ownerID;
+    this.owner           =     file.owner;
+    this.size            =     file.size;
+    this.parent          =     file.parent;
+    this.ancestors       =     file.ancestors;
+    this.children        =     file.children;
+    this.isRootFolder    =     file.isRootFolder;
+    this.deleted         =     file.deleted;
+    this.createdAt       =     file.createdAt.getTime();
+    this.updatedAt       =     file.updatedAt.getTime();
+  }
 }
