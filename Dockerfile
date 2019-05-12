@@ -7,5 +7,5 @@ RUN npm install -g typescript
 COPY . .
 RUN npm run build-ts
 LABEL Name=upload-service Version=0.0.1
-EXPOSE 50051
+EXPOSE 8080
 CMD ["npm", "run", "serve"]

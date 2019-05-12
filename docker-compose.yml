@@ -7,7 +7,7 @@ services:
     environment:
       MONGO_HOST: mongo
     ports:
-      - 5001:50051
+      - 8080:8080
   mongo:
     image: mongo:latest
     ports:
