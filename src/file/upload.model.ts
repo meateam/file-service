@@ -3,6 +3,7 @@ import { ServerError } from '../utils/errors/application.error';
 import { IUpload } from './upload.interface';
 import { MongoError } from 'mongodb';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
+import { NextFunction } from 'connect';
 
 export const uploadSchema: mongoose.Schema = new mongoose.Schema(
   {
@@ -41,7 +42,7 @@ uploadSchema.post('save', handleE11000);
 uploadSchema.post('update', handleE11000);
 uploadSchema.post('findOneAndUpdate', handleE11000);
 
-uploadSchema.post('save', (error, doc, next) => {
+uploadSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
     next(new ServerError(error.message));
   }

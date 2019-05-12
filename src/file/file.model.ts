@@ -3,6 +3,7 @@ import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
+import { NextFunction } from 'connect';
 
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -13,12 +14,9 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
       sparse: true,
       unique: true,
     },
-    displayName: {
+    name: {
       type: String,
       required: true,
-    },
-    fullExtension: {
-      type: String,
     },
     type: {
       type: String,
@@ -68,7 +66,7 @@ fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-fileSchema.virtual('fullName')
+fileSchema.virtual('displayName')
 .set(function (name: string) {
   this.displayName = name.split('.')[0];
   this.fullExtension = name.split('.').splice(1).join('.');
@@ -90,7 +88,7 @@ fileSchema.post('update', handleE11000);
 fileSchema.post('findOneAndUpdate', handleE11000);
 fileSchema.post('insertMany', handleE11000);
 
-fileSchema.post('save', (error, doc, next) => {
+fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
     next(new ServerError(error.message));
   }
