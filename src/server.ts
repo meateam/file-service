@@ -63,7 +63,6 @@ export class Server {
     const db = mongoose.connection;
     db.on('error', console.error.bind(console, 'connection error:'));
     db.once('open', () => {
-      console.log(`DB IS CONNECTED! to mongodb://${mongoHost}:${config.db.port}/${config.db.name}`);
     });
   }
 
