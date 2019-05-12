@@ -42,7 +42,7 @@ uploadSchema.post('save', handleE11000);
 uploadSchema.post('update', handleE11000);
 uploadSchema.post('findOneAndUpdate', handleE11000);
 
-uploadSchema.post('save', (error: MongoError, doc: any, next: NextFunction) => {
+uploadSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
     next(new ServerError(error.message));
   }
