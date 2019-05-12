@@ -113,13 +113,13 @@ export default class FileRepository {
       return (result ? result.map((mongoObject => mongoObject.toObject())) : result);
     });
   }
-  
+
   /**
    * Retrieve the root folder (IFile) of a user by its name.
    * @param folderName - the name of the folder.
    */
   static getRootFolder(folderName: string): Promise<IFile | null> {
-    return fileModel.findOne({ displayName: folderName, isRootFolder: true }).exec();
+    return fileModel.findOne({ name: folderName, isRootFolder: true }).exec();
   }
 
   /**
@@ -128,8 +128,6 @@ export default class FileRepository {
    * @param filename - the name of the file (should be unique in the folder).
    */
   static getFileInFolderByName(parentId: string, filename: string): Promise<IFile | null> {
-    const displayName = filename.split('.')[0];
-    const fullExtension = filename.split('.').splice(1).join('.');
-    return fileModel.findOne({ displayName, fullExtension, parent: new ObjectID(parentId), deleted: false }).exec();
+    return fileModel.findOne({ name: filename, parent: new ObjectID(parentId), deleted: false }).exec();
   }
 }
