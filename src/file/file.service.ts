@@ -74,7 +74,7 @@ export class FileService {
    * Creates a file and adds it to the DB.
    * Trusts that the key is unique and that the users exists.
    * @param partialFile - a partial file containing some of the fields.
-   * @param fullName - the name of the file with the extantions.
+   * @param name - the name of the file with the extantions.
    * @param ownerID - the id of the file owner.
    * @param type - the type of the file.
    * @param folderID - id of the folder in which the file will reside (in the GUI).
@@ -82,7 +82,7 @@ export class FileService {
    */
   public static async create(
     partialFile: Partial<IFile>,
-    fullName: string, ownerID: string,
+    name: string, ownerID: string,
     type: string, folderID: string = null,
     key: string = null
   ): Promise<IFile> {
@@ -106,13 +106,13 @@ export class FileService {
       parentID = rootFolder.id;
     }
 
-    if (await this.isFileInFolder(fullName, parentID)) {
+    if (await this.isFileInFolder(name, parentID)) {
       throw new FileExistsWithSameName();
     }
     const file: IFile = Object.assign(partialFile, {
       key,
       type,
-      fullName,
+      name,
       ownerID,
       _id: id,
       deleted: false,
@@ -206,11 +206,11 @@ export class FileService {
 
   /**
    * Checks if there is a file with a given name in a given filder.
-   * @param fullName - the name of the file.
+   * @param name - the name of the file.
    * @param folderId - the id of the folder.
    */
-  private static async isFileInFolder(fullName: string, folderId: string): Promise<boolean> {
-    const file: IFile = await FilesRepository.getFileInFolderByName(folderId, fullName);
+  private static async isFileInFolder(name: string, folderId: string): Promise<boolean> {
+    const file: IFile = await FilesRepository.getFileInFolderByName(folderId, name);
     return (file != null && !(file.deleted));
   }
 
@@ -237,7 +237,7 @@ export class FileService {
       type: FolderContentType,
       key: null,
       bucket: userID,
-      fullName: userID,
+      name: userID,
       ownerID: userID,
       isRootFolder: true,
       deleted: false,

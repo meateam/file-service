@@ -67,11 +67,17 @@ fileSchema.virtual('id').get(function () {
 });
 
 fileSchema.virtual('displayName')
-.set(function (name: string) {
-  this.displayName = name.split('.')[0];
-  this.fullExtension = name.split('.').splice(1).join('.');
+.set(function () {
+  this.displayName = this.name.split('.')[0];
 }) .get(function ()  {
-  return (this.fullExtension.length ? `${this.displayName}.${this.fullExtension}` : `${this.displayName}`);
+  return (`${this.name.split('.')[0]}`);
+});
+
+fileSchema.virtual('fullExtension')
+.set(function () {
+  this.fullExtension = this.name.split('.').splice(1).join('.');
+}) .get(function ()  {
+  return (`${this.name.split('.').splice(1).join('.')}`);
 });
 
 // handleE11000 is called when there is a duplicateKey Error
