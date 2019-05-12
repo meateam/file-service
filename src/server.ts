@@ -71,7 +71,6 @@ export class Server {
 
     // Insures you don't run the server twice
     if (!module.parent) {
-      console.log('Starting RPC server');
       rpcServer.server.start();
     }
   }
