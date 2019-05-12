@@ -90,7 +90,7 @@ fileSchema.post('update', handleE11000);
 fileSchema.post('findOneAndUpdate', handleE11000);
 fileSchema.post('insertMany', handleE11000);
 
-fileSchema.post('save', (error, doc, next) => {
+fileSchema.post('save', (error: any, doc: any, next: any) => {
   if (error.name === 'MongoError') {
     next(new ServerError(error.message));
   }

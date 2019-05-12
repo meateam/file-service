@@ -56,11 +56,14 @@ export class Server {
   // Connect mongoose to our database
   private async connectDB() {
     const mongoHost = process.env.MONGO_HOST || config.db.host;
-    await mongoose.connect(`mongodb://${mongoHost}:${config.db.port}/${config.db.name}`);
+    await mongoose.connect(
+      `mongodb://${mongoHost}:${config.db.port}/${config.db.name}`,
+      { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
+    );
     const db = mongoose.connection;
     db.on('error', console.error.bind(console, 'connection error:'));
     db.once('open', () => {
-      console.log('DB IS CONNECTED!');
+      console.log(`DB IS CONNECTED! to mongodb://${mongoHost}:${config.db.port}/${config.db.name}`);
     });
   }
 

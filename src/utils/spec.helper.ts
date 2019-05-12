@@ -43,7 +43,10 @@ before(async () => {
   console.log(process.env.MONGO_HOST);
   const mongoHost = process.env.MONGO_HOST || config.db.host;
   console.log(mongoHost);
-  await mongoose.connect(`mongodb://${mongoHost}:27017/file`);
+  await mongoose.connect(
+    `mongodb://${mongoHost}:27017/file`,
+    { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
+  );
 });
 
 after((done) => {
