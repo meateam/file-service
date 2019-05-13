@@ -5,7 +5,7 @@ import { IUser } from '../utils/user.interface';
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
 
-const PROTO_PATH = `${__dirname}/../../protos/file.proto`;
+const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
 

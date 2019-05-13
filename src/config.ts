@@ -2,7 +2,9 @@
  *
  */
 
+
 type Config = {
+  rpc_port: string;
   conf_type: string;
   server: string;
   port: number;
@@ -14,6 +16,7 @@ type Config = {
 };
 
 const testing: Config = {
+  rpc_port: process.env.RPC_PORT || '8080',
   conf_type: 'testing',
   server: 'http://localhost',
   port: 9000,
@@ -25,6 +28,7 @@ const testing: Config = {
 };
 
 const dev: Config = {
+  rpc_port: process.env.RPC_PORT || '8080',
   conf_type: 'dev',
   server: 'http://40.115.124.214',
   port: 9000,
@@ -37,6 +41,7 @@ const dev: Config = {
 
 // Change to Production Environment
 const prod: Config = {
+  rpc_port: process.env.RPC_PORT || '8080',
   conf_type: 'prod',
   server: 'https://seal.blue.com',
   port: 9000,
