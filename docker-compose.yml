@@ -11,7 +11,7 @@ services:
   mongo:
     image: mongo:4.0.9
     ports:
-      - "27018:27017"
+      - "27017:27017"
     volumes:
       - mongo-data-volume:/data/db
 volumes:
