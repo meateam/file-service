@@ -56,12 +56,12 @@ export class Server {
   // Connect mongoose to our database
   private async connectDB() {
     const mongoHost = process.env.MONGO_HOST || config.db.host;
-    await mongoose.connect(
-      `mongodb://${mongoHost}:${config.db.port}/${config.db.name}`,
-      { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
-    );
+    await mongoose.connect(`mongodb://${mongoHost}:${config.db.port}/${config.db.name}`);
     const db = mongoose.connection;
     db.on('error', console.error.bind(console, 'connection error:'));
+    db.once('open', () => {
+      console.log('DB IS CONNECTED!');
+    });
   }
 
   private listen() {
@@ -69,6 +69,7 @@ export class Server {
 
     // Insures you don't run the server twice
     if (!module.parent) {
+      console.log('Starting RPC server');
       rpcServer.server.start();
     }
   }

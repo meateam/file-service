@@ -3,7 +3,6 @@ import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
-import { NextFunction } from 'connect';
 
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
@@ -78,7 +77,7 @@ fileSchema.virtual('fullName')
 });
 
 // handleE11000 is called when there is a duplicateKey Error
-const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
+const handleE11000 = function (error: MongoError, res: any, next: any) {
   if (error.name === 'MongoError' && error.code === 11000) {
     next(new KeyAlreadyExistsError(this.key));
   } else {
@@ -91,7 +90,7 @@ fileSchema.post('update', handleE11000);
 fileSchema.post('findOneAndUpdate', handleE11000);
 fileSchema.post('insertMany', handleE11000);
 
-fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
+fileSchema.post('save', (error, doc, next) => {
   if (error.name === 'MongoError') {
     next(new ServerError(error.message));
   }
