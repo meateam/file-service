@@ -34,11 +34,10 @@ const testUpload = {
 describe('File Logic', () => {
 
   before(async () => {
-
     // Remove files from DB
     const removeCollectionPromises = [];
     for (const i in mongoose.connection.collections) {
-      removeCollectionPromises.push(mongoose.connection.collections[i].remove({}));
+      removeCollectionPromises.push(mongoose.connection.collections[i].deleteMany({}));
     }
     await Promise.all(removeCollectionPromises);
   });
