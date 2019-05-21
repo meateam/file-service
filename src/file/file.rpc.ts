@@ -1,8 +1,21 @@
+// Add this to the VERY top of the first file loaded in your app
+const apm = require('elastic-apm-node').start({
+  // Override service name from package.json
+  // Allowed characters: a-z, A-Z, 0-9, -, _, and space
+  serviceName: '',
+
+  // Use if APM Server requires a token
+  secretToken: '',
+
+  // Set custom APM Server URL (default: http://localhost:8200)
+  serverUrl: '',
+});
+
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { IUser } from '../utils/user.interface';
 
-const grpc = require('grpc');
+const grpc = require('grpc-middleware');
 const protoLoader = require('@grpc/proto-loader');
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
@@ -30,7 +43,7 @@ export class RPC {
   public server: any;
 
   public constructor(port: string) {
-    this.server = new grpc.Server();
+    this.server = new grpc.Server({}, this.mid);
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
       CreateUpload: this.createUpload,
@@ -45,6 +58,10 @@ export class RPC {
       IsAllowed: this.isAllowed,
     });
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+  }
+
+  private mid(call: any, callback: any) {
+    console.log('prints every time');
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
