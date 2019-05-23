@@ -1,14 +1,14 @@
 // Add this to the VERY top of the first file loaded in your app
 const apm = require('elastic-apm-node').start({
-  // Override service name from package.json
+    // Override service name from package.json
   // Allowed characters: a-z, A-Z, 0-9, -, _, and space
-  serviceName: '',
+  serviceName: 'test-sh',
 
   // Use if APM Server requires a token
   secretToken: '',
 
   // Set custom APM Server URL (default: http://localhost:8200)
-  serverUrl: '',
+  serverUrl: 'http://13.69.137.179:8200',
 });
 
 import { FileService } from './file.service';
@@ -31,6 +31,7 @@ const packageDefinition = protoLoader.loadSync(
     defaults: true,
     oneofs: true,
   });
+  
 
 // Has the full package hierarchy
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
@@ -61,7 +62,10 @@ export class RPC {
   }
 
   private mid(call: any, callback: any) {
+    const trans = apm.startTransaction('transName3', 'transType');
     console.log('prints every time');
+    console.log(`1: ${trans.id}`);
+    // trans.end();
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
@@ -82,6 +86,8 @@ export class RPC {
       bucket,
       name)
       .then((upload) => {
+        apm.endTransaction('happy');
+        // console.log(call.request.trans.id);
         callback(null, upload);
       }).catch(err => callback(err));
   }

@@ -9,7 +9,7 @@
   "author": "Yonatan Tal",
   "license": "MIT",
   "scripts": {
-    "start": "tsc && npm run serve",
+    "start": "tsc && npm run serve  -r elastic-apm-node/start",
     "build": "npm run build-sass && npm run build-ts && npm run tslint && npm run copy-static-assets",
     "serve": "node dist/server.js",
     "watch-node": "nodemon dist/server.js",
