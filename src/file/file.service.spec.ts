@@ -54,19 +54,6 @@ describe('File Logic', () => {
     });
   });
 
-  describe('#findUserRootFolder', () => {
-    const userID = '12345';
-    it('should create a root folder when none exists and if specified', async () => {
-      const not_specified = await FileService.findUserRootFolder(userID);
-      const specified = await FileService.findUserRootFolder(userID, true);
-      const check = await FileService.findUserRootFolder(userID);
-
-      expect(not_specified).to.be.null;
-      expect(specified).to.not.be.null;
-      expect(check).to.not.be.null;
-    });
-  });
-
   describe('#generateKey', () => {
     it('should return a string', () => {
       const key = FileService.generateKey();
@@ -138,6 +125,17 @@ describe('File Logic', () => {
       await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType).should.eventually.exist;
     });
 
+    it('should throw error: same owner, folder and filename', async () => {
+      await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', null, KEY).should.eventually.exist;
+      await FileService.create({ size , bucket }, 'myFile', USER.id, 'Other', null, KEY2)
+      .should.eventually.be.rejectedWith(FileExistsWithSameName);
+    });
+
+    it('should not throw error: same folder and filename, different owner', async () => {
+      await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', null, KEY).should.eventually.exist;
+      await FileService.create({ size , bucket }, 'myFile', '654321', 'Other', null, KEY2).should.eventually.exist;
+    });
+
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
         { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
@@ -147,7 +145,7 @@ describe('File Logic', () => {
       expect(file.key).to.equal(KEY);
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('txt');
-      expect(file.fullName).to.equal('file.txt');
+      expect(file.name).to.equal('file.txt');
     });
 
     it('should create a file without extention', async () => {
@@ -159,7 +157,7 @@ describe('File Logic', () => {
       expect(file.key).to.equal(KEY);
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('');
-      expect(file.fullName).to.equal('file');
+      expect(file.name).to.equal('file');
     });
 
     it('should create a file in a given folder', async () => {
@@ -173,8 +171,10 @@ describe('File Logic', () => {
       const newKey = FileService.generateKey();
       const file2: IFile = await FileService.create(
         { size, bucket }, 'file.txt', USER.id, 'text', null, newKey);
-      expect(file1.parent).to.not.be.null;
-      expect(file2.parent.toString()).to.equal(file1.parent.toString());
+      const filesInRoot : IFile[] = await FileService.getFilesByFolder(null, USER.id);
+      expect(filesInRoot.length).to.equal(2);
+      expect(file1.parent).to.be.null;
+      expect(file2.parent).to.equal(file1.parent);
 
     });
 
@@ -184,17 +184,6 @@ describe('File Logic', () => {
       .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
     });
 
-    it('should throw an error when there is a file with the same name in the folder', async () => {
-      const file = await FileService.create({ size, bucket }, 'tmp.txt', USER.id, 'text', null, KEY);
-      const newKey = FileService.generateKey();
-      const newFile = await FileService.create(
-        { size, bucket },
-        'tmp.txt',
-        USER.id,
-        'text',
-        file.parent.toString(),
-        newKey).should.eventually.be.rejectedWith(FileExistsWithSameName);
-    });
   });
 
   describe('#getByID', () => {
@@ -225,14 +214,17 @@ describe('File Logic', () => {
   });
 
   describe('#getFilesByFolder', () => {
-    it('should return an empty array if the folder do not exists', async () => {
-      const files = await FileService.getFilesByFolder(REVERSE_KEY, null);
+    it('should throw an error when not sending ownerID', async () => {
+      await FileService.getFilesByFolder(REVERSE_KEY, null).should.eventually.be.rejectedWith(ClientError);
+    });
+    it('should return an empty array if the folder does not exists', async () => {
+      const files = await FileService.getFilesByFolder(REVERSE_KEY, 'fake_id');
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
     });
     it('should return an empty array if the folder is empty', async () => {
       const folder = await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType);
-      const files = await FileService.getFilesByFolder(folder.id, null);
+      const files = await FileService.getFilesByFolder(folder.id, USER.id);
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
     });
@@ -251,8 +243,8 @@ describe('File Logic', () => {
       const file11 = await FileService.create(
         { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
 
-      const files = await FileService.getFilesByFolder(father.id, null);
-      const files1 = await FileService.getFilesByFolder(folder1.id, null);
+      const files = await FileService.getFilesByFolder(father.id, USER.id);
+      const files1 = await FileService.getFilesByFolder(folder1.id, USER.id);
 
       expect(files).to.exist;
       expect(files1).to.exist;
@@ -263,7 +255,7 @@ describe('File Logic', () => {
     describe('Root Folder', () => {
       it('should throw an error if the fileID and the user are null', async () => {
         await FileService.getFilesByFolder(null, null)
-          .should.eventually.rejectedWith(ClientError, 'No file or owner id sent');
+          .should.eventually.rejectedWith(ClientError, 'No owner id sent');
       });
       it('should return an empty array if the user has no root folder', async () => {
         const files = await FileService.getFilesByFolder(null, USER.id);
