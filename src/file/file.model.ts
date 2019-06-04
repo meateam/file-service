@@ -1,25 +1,22 @@
-import mongoose from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
-const ObjectId = mongoose.Schema.Types.ObjectId;
+const ObjectId = Schema.Types.ObjectId;
 
-export const fileSchema: mongoose.Schema = new mongoose.Schema(
+export const fileSchema: Schema = new Schema(
   {
     key: {
       type: String,
       sparse: true,
       unique: true,
     },
-    displayName: {
+    name: {
       type: String,
       required: true,
-    },
-    fullExtension: {
-      type: String,
     },
     type: {
       type: String,
@@ -61,16 +58,24 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
     }
   });
 
+fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
+
 fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-fileSchema.virtual('fullName')
-.set(function (name: string) {
-  this.displayName = name.split('.')[0];
-  this.fullExtension = name.split('.').splice(1).join('.');
+fileSchema.virtual('displayName')
+.set(function () {
+  this.displayName = this.name.split('.')[0];
 }) .get(function ()  {
-  return (this.fullExtension.length ? `${this.displayName}.${this.fullExtension}` : `${this.displayName}`);
+  return (`${this.name.split('.')[0]}`);
+});
+
+fileSchema.virtual('fullExtension')
+.set(function () {
+  this.fullExtension = this.name.split('.').splice(1).join('.');
+}) .get(function ()  {
+  return (`${this.name.split('.').splice(1).join('.')}`);
 });
 
 // handleE11000 is called when there is a duplicateKey Error
@@ -94,4 +99,4 @@ fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   next(error);
 });
 
-export const fileModel = mongoose.model<IFile & mongoose.Document>('File', fileSchema);
+export const fileModel = model<IFile & Document>('File', fileSchema);

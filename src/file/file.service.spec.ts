@@ -125,6 +125,17 @@ describe('File Logic', () => {
       await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType).should.eventually.exist;
     });
 
+    it('should throw error: same owner, folder and filename', async () => {
+      await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', null, KEY).should.eventually.exist;
+      await FileService.create({ size , bucket }, 'myFile', USER.id, 'Other', null, KEY2)
+      .should.eventually.be.rejectedWith(FileExistsWithSameName);
+    });
+
+    it('should not throw error: same folder and filename, different owner', async () => {
+      await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', null, KEY).should.eventually.exist;
+      await FileService.create({ size , bucket }, 'myFile', '654321', 'Other', null, KEY2).should.eventually.exist;
+    });
+
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
         { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
@@ -134,7 +145,7 @@ describe('File Logic', () => {
       expect(file.key).to.equal(KEY);
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('txt');
-      expect(file.fullName).to.equal('file.txt');
+      expect(file.name).to.equal('file.txt');
     });
 
     it('should create a file without extention', async () => {
@@ -146,7 +157,7 @@ describe('File Logic', () => {
       expect(file.key).to.equal(KEY);
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('');
-      expect(file.fullName).to.equal('file');
+      expect(file.name).to.equal('file');
     });
 
     it('should create a file in a given folder', async () => {

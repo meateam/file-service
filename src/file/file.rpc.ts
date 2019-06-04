@@ -113,7 +113,7 @@ export class RPC {
 
     FileService.create(
       partialFile,
-      params.fullName,
+      params.name,
       params.ownerID,
       params.type,
       params.parent,
@@ -176,7 +176,7 @@ class ResFile{
   bucket: string;
   displayName: string;
   fullExtension: string;
-  fullName: string;
+  name: string;
   type: string;
   description: string;
   ownerID: string;
@@ -195,7 +195,7 @@ class ResFile{
     this.bucket          =     file.bucket;
     this.displayName     =     file.displayName;
     this.fullExtension   =     file.fullExtension;
-    this.fullName        =     file.fullName;
+    this.name            =     file.name;
     this.type            =     file.type;
     this.description     =     file.description;
     this.ownerID         =     file.ownerID;
