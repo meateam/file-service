@@ -83,7 +83,7 @@ fileSchema.virtual('fullExtension')
 });
 
 // handleE11000 is called when there is a duplicateKey Error
-const handleE11000 = function (error: MongoError, res: any, next: any) {
+const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
     next(new KeyAlreadyExistsError(this.key));
   } else {
