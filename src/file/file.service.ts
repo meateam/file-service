@@ -211,23 +211,6 @@ export class FileService {
   }
 
   /**
-   * Creates a root folder for a given user.
-   * @param userID - the id of the user.
-   */
-  private static async createUserRootFolder(userID: string): Promise<IFile> {
-    const folder: IFile = {
-      type: FolderContentType,
-      key: null,
-      bucket: userID,
-      name: userID,
-      ownerID: userID,
-      deleted: false,
-    };
-
-    return await FilesRepository.create(folder);
-  }
-
-  /**
    * Hashes a given key.
    * @param id - the key to be hashed.
    */
