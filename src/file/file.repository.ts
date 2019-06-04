@@ -119,7 +119,7 @@ export default class FileRepository {
    * @param parentId - the folder id.
    * @param filename - the name of the file (should be unique in the folder).
    */
-  static getFileInFolderByName(parentId: string, filename: string, ownerID: string): Promise<IFile | null> {
+  static getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
     const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
     return fileModel.findOne({ ownerID, parent, name: filename, deleted: false }).exec();
   }
