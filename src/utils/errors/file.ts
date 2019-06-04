@@ -5,42 +5,42 @@ import { ClientError } from './application.error';
 
 export class FileError extends ClientError {
   constructor(message?: string, code?: number) {
-    super(message || 'bad file error', code || 400);
+    super(message || 'INVALID_ARGUMENT: bad file error', code || 3);
   }
 }
 
 export class FilesEmpty extends ClientError {
   constructor(message?: string, code?: number) {
-    super(message || 'files cannot be empty', code || 400);
+    super(message || 'INVALID_ARGUMENT: files cannot be empty', code || 3);
   }
 }
 
 export class FileNotFoundError extends FileError {
   constructor(message?: string) {
-    super(message || 'the file requested was not found', 404);
+    super(message || 'NOT_FOUND: the file requested was not found', 5);
   }
 }
 
 export class FileExistsError extends FileError {
   constructor(message?: string) {
-    super(message || 'file already exists', 409);
+    super(message || 'ALREADY_EXISTS: file already exists', 6);
   }
 }
 
 export class BadIdError extends FileError {
   constructor(message?: string) {
-    super(message || 'bad id provided', 422);
+    super(message || 'INVALID_ARGUMENT: bad id provided', 3);
   }
 }
 
 export class DeleteFileError extends FileError {
   constructor(message?: string) {
-    super(message || 'file doesnt exist', 404);
+    super(message || "NOT_FOUND: file doesn't exist", 5);
   }
 }
 
 export class UpdateFileError extends FileError {
   constructor(message?: string) {
-    super(message || 'file was not updated', 422);
+    super(message || 'FAILED_PRECONDITION: file was not updated', 9);
   }
 }
