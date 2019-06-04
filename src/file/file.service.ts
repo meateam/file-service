@@ -172,14 +172,9 @@ export class FileService {
    * @returns {IFile[]}
   */
   public static async getFilesByFolder(folderID: string | null, ownerID: string | null, deleted = false): Promise<IFile[]> {
-    if (!ownerID) throw new ClientError('No file or owner id sent');
-
-    let files: IFile[];
-    if (!folderID) { // Search the user's root folder
-      files = await FilesRepository.find({ deleted, ownerID, parent: null });
-    } else files = await FilesRepository.find({ deleted, ownerID, parent: new ObjectID(folderID) });
-
-    return files;
+    if (!ownerID) throw new ClientError('No owner id sent');
+    const parent = folderID ? new ObjectID(folderID) : null 
+    return await FilesRepository.find({ deleted, ownerID, parent });
   }
 
   /**
