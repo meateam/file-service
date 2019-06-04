@@ -25,7 +25,9 @@
     "copy-static-assets": "ts-node copyStaticAssets.ts",
     "debug": "npm run build && npm run watch-debug",
     "serve-debug": "nodemon --inspect dist/server.js",
-    "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\""
+    "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\"",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "@grpc/proto-loader": "^0.4.0",
@@ -40,11 +42,12 @@
     "express-session": "^1.15.6",
     "grpc": "^1.19.0",
     "lodash": "^4.17.5",
-    "mocha": "^6.0.2",
-    "mongoose": "^4.13.11",
+    "mocha": "^6.1.4",
+    "mongoose": "^4.13.17",
     "morgan": "^1.9.1",
     "request": "^2.83.0",
-    "request-promise": "^4.2.2"
+    "request-promise": "^4.2.2",
+    "snyk": "^1.171.1"
   },
   "devDependencies": {
     "@types/body-parser": "^1.16.8",
@@ -73,5 +76,6 @@
     "tslint": "^5.9.1",
     "tslint-config-airbnb": "^5.11.1",
     "typescript": "^2.7.2"
-  }
+  },
+  "snyk": true
 }
