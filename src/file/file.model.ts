@@ -37,10 +37,6 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    isRootFolder: {
-      type: Boolean,
-      default: false,
-    },
     parent: {
       type: ObjectId,
       ref: 'File',

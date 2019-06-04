@@ -54,19 +54,6 @@ describe('File Logic', () => {
     });
   });
 
-  describe('#findUserRootFolder', () => {
-    const userID = '12345';
-    it('should create a root folder when none exists and if specified', async () => {
-      const not_specified = await FileService.findUserRootFolder(userID);
-      const specified = await FileService.findUserRootFolder(userID, true);
-      const check = await FileService.findUserRootFolder(userID);
-
-      expect(not_specified).to.be.null;
-      expect(specified).to.not.be.null;
-      expect(check).to.not.be.null;
-    });
-  });
-
   describe('#generateKey', () => {
     it('should return a string', () => {
       const key = FileService.generateKey();
@@ -173,8 +160,10 @@ describe('File Logic', () => {
       const newKey = FileService.generateKey();
       const file2: IFile = await FileService.create(
         { size, bucket }, 'file.txt', USER.id, 'text', null, newKey);
-      expect(file1.parent).to.not.be.null;
-      expect(file2.parent.toString()).to.equal(file1.parent.toString());
+      const filesInRoot : IFile[] = await FileService.getFilesByFolder(null, USER.id);
+      expect(filesInRoot.length).to.equal(2);
+      expect(file1.parent).to.be.null;
+      expect(file2.parent).to.equal(file1.parent);
 
     });
 
@@ -184,17 +173,6 @@ describe('File Logic', () => {
       .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
     });
 
-    it('should throw an error when there is a file with the same name in the folder', async () => {
-      const file = await FileService.create({ size, bucket }, 'tmp.txt', USER.id, 'text', null, KEY);
-      const newKey = FileService.generateKey();
-      const newFile = await FileService.create(
-        { size, bucket },
-        'tmp.txt',
-        USER.id,
-        'text',
-        file.parent.toString(),
-        newKey).should.eventually.be.rejectedWith(FileExistsWithSameName);
-    });
   });
 
   describe('#getByID', () => {

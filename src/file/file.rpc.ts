@@ -185,7 +185,6 @@ class ResFile{
   parent: IFile | string;
   ancestors: IFile[] | string[];
   children: IFile[] | string[];
-  isRootFolder: boolean;
   deleted: boolean;
   createdAt: number;
   updatedAt: number;
@@ -205,7 +204,6 @@ class ResFile{
     this.parent          =     file.parent;
     this.ancestors       =     file.ancestors;
     this.children        =     file.children;
-    this.isRootFolder    =     file.isRootFolder;
     this.deleted         =     file.deleted;
     this.createdAt       =     file.createdAt.getTime();
     this.updatedAt       =     file.updatedAt.getTime();
