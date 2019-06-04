@@ -100,13 +100,10 @@ export class FileService {
       id = Types.ObjectId();
     }
 
-    let parentID: string = folderID;
-    if (!parentID) { // If there is not parent given, create the file in the user's root folder
-      const rootFolder: IFile = await this.findUserRootFolder(ownerID, true); // Creates one if not exists
-      parentID = rootFolder.id;
-    }
+    // If there is not parent given, create the file in the user's root folde
+    const parentID: string = folderID;
 
-    if (await this.isFileInFolder(name, parentID)) {
+    if (await this.isFileInFolder(name, parentID, ownerID)) {
       throw new FileExistsWithSameName();
     }
     const file: IFile = Object.assign(partialFile, {
@@ -175,14 +172,9 @@ export class FileService {
    * @returns {IFile[]}
   */
   public static async getFilesByFolder(folderID: string | null, ownerID: string | null, deleted = false): Promise<IFile[]> {
-    let files: IFile[];
-    if (!folderID) { // Search the user's root folder
-      if (!ownerID) throw new ClientError('No file or owner id sent');
-      const rootFolder = await this.findUserRootFolder(ownerID);
-      files = await FilesRepository.find({ deleted, parent: rootFolder });
-    } else files = await FilesRepository.find({ deleted, parent: folderID });
-
-    return files;
+    if (!ownerID) throw new ClientError('No owner id sent');
+    const parent = folderID ? new ObjectID(folderID) : null;
+    return await FilesRepository.find({ deleted, ownerID, parent });
   }
 
   /**
@@ -209,41 +201,9 @@ export class FileService {
    * @param name - the name of the file.
    * @param folderId - the id of the folder.
    */
-  private static async isFileInFolder(name: string, folderId: string): Promise<boolean> {
-    const file: IFile = await FilesRepository.getFileInFolderByName(folderId, name);
+  private static async isFileInFolder(name: string, folderId: string, ownerID: string): Promise<boolean> {
+    const file: IFile = await FilesRepository.getFileInFolderByName(folderId, name, ownerID);
     return (file != null && !(file.deleted));
-  }
-
-  /**
-   * Retrieves the root folder of a given user.
-   * @param userID - the id of the user.
-   * @param createIfNotExist - An option. If true, creates a root folder if it doen't exist.
-   */
-  public static async findUserRootFolder(userID: string, createIfNotExist = false): Promise<IFile | null> {
-    const folder: IFile = await FilesRepository.getRootFolder(userID);
-    if (!folder && createIfNotExist) {
-      return await this.createUserRootFolder(userID);
-    }
-
-    return folder;
-  }
-
-  /**
-   * Creates a root folder for a given user.
-   * @param userID - the id of the user.
-   */
-  private static async createUserRootFolder(userID: string): Promise<IFile> {
-    const folder: IFile = {
-      type: FolderContentType,
-      key: null,
-      bucket: userID,
-      name: userID,
-      ownerID: userID,
-      isRootFolder: true,
-      deleted: false,
-    };
-
-    return await FilesRepository.create(folder);
   }
 
   /**
