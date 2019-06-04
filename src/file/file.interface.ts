@@ -4,9 +4,9 @@ export interface IFile {
   id?: string;
   key?: string;
   bucket?: string;
+  name: string;
   displayName?: string;
   fullExtension?: string;
-  fullName: string;
   type: string;
   description?: string;
   ownerID: string;
