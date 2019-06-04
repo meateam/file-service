@@ -1,13 +1,13 @@
-import mongoose from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
-const ObjectId = mongoose.Schema.Types.ObjectId;
+const ObjectId = Schema.Types.ObjectId;
 
-export const fileSchema: mongoose.Schema = new mongoose.Schema(
+export const fileSchema: Schema = new Schema(
   {
     key: {
       type: String,
@@ -62,6 +62,8 @@ export const fileSchema: mongoose.Schema = new mongoose.Schema(
     }
   });
 
+fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
+
 fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
@@ -101,4 +103,4 @@ fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   next(error);
 });
 
-export const fileModel = mongoose.model<IFile & mongoose.Document>('File', fileSchema);
+export const fileModel = model<IFile & Document>('File', fileSchema);
