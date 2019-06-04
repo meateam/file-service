@@ -10,19 +10,19 @@ export class ApplicationError extends Error {
 
     Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
-    this.message = message || 'UNKNOWN';
+    this.message = message || 'unknown application error';
     this.code = code || 2;
   }
 }
 
 export class ServerError extends ApplicationError {
   constructor(message?: string, code?: number) {
-    super(message || 'UNKNOWN: server side error', code || 2);
+    super(message || 'server side error', code || 2);
   }
 }
 
 export class ClientError extends ApplicationError {
   constructor(message?: string, code?: number) {
-    super(message || 'INVALID_ARGUMENT: client side error', code || 3);
+    super(message || 'client side error', code || 3);
   }
 }
