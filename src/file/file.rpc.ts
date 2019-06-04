@@ -183,8 +183,6 @@ class ResFile{
   owner: IUser;
   size: number;
   parent: IFile | string;
-  ancestors: IFile[] | string[];
-  children: IFile[] | string[];
   deleted: boolean;
   createdAt: number;
   updatedAt: number;
@@ -202,8 +200,6 @@ class ResFile{
     this.owner           =     file.owner;
     this.size            =     file.size;
     this.parent          =     file.parent;
-    this.ancestors       =     file.ancestors;
-    this.children        =     file.children;
     this.deleted         =     file.deleted;
     this.createdAt       =     file.createdAt.getTime();
     this.updatedAt       =     file.updatedAt.getTime();

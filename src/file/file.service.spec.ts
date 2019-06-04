@@ -214,14 +214,17 @@ describe('File Logic', () => {
   });
 
   describe('#getFilesByFolder', () => {
-    it('should return an empty array if the folder do not exists', async () => {
-      const files = await FileService.getFilesByFolder(REVERSE_KEY, null);
+    it('should throw an error when not sending ownerID', async () => {
+      await FileService.getFilesByFolder(REVERSE_KEY, null).should.eventually.be.rejectedWith(ClientError);
+    });
+    it('should return an empty array if the folder does not exists', async () => {
+      const files = await FileService.getFilesByFolder(REVERSE_KEY, 'fake_id');
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
     });
     it('should return an empty array if the folder is empty', async () => {
       const folder = await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType);
-      const files = await FileService.getFilesByFolder(folder.id, null);
+      const files = await FileService.getFilesByFolder(folder.id, USER.id);
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
     });
@@ -240,8 +243,8 @@ describe('File Logic', () => {
       const file11 = await FileService.create(
         { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
 
-      const files = await FileService.getFilesByFolder(father.id, null);
-      const files1 = await FileService.getFilesByFolder(folder1.id, null);
+      const files = await FileService.getFilesByFolder(father.id, USER.id);
+      const files1 = await FileService.getFilesByFolder(folder1.id, USER.id);
 
       expect(files).to.exist;
       expect(files1).to.exist;

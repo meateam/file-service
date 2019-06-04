@@ -13,8 +13,6 @@ export interface IFile {
   owner?: IUser;
   size?: number;
   parent?: IFile | string;
-  ancestors?: IFile[] | string[];
-  children?: IFile[] | string[];
   deleted: boolean;
   createdAt?: Date;
   updatedAt?: Date;
