@@ -5,7 +5,7 @@ import { ClientError } from './application.error';
 
 export class FolderError extends ClientError {
   constructor(message?: string, code?: number) {
-    super(message || 'bad folder error', code || 3);
+    super(message || 'invalid folder error', code || 3);
   }
 }
 
@@ -23,6 +23,6 @@ export class FolderExistsError extends FolderError {
 
 export class BadIdError extends FolderError {
   constructor(message?: string) {
-    super(message || 'bad id provided', 3);
+    super(message || 'invalid id provided', 3);
   }
 }
