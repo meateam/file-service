@@ -15,18 +15,6 @@ export class FilesEmpty extends ClientError {
   }
 }
 
-export class FileNotFoundError extends FileError {
-  constructor(message?: string) {
-    super(message || 'the file requested was not found', 5);
-  }
-}
-
-export class FileExistsError extends FileError {
-  constructor(message?: string) {
-    super(message || 'file already exists', 6);
-  }
-}
-
 export class BadIdError extends FileError {
   constructor(message?: string) {
     super(message || 'invalid id provided', 3);
@@ -36,6 +24,18 @@ export class BadIdError extends FileError {
 export class DeleteFileError extends FileError {
   constructor(message?: string) {
     super(message || "file doesn't exist", 5);
+  }
+}
+
+export class FileNotFoundError extends FileError {
+  constructor(message?: string) {
+    super(message || 'the file requested was not found', 5);
+  }
+}
+
+export class FileExistsError extends FileError {
+  constructor(message?: string) {
+    super(message || 'file already exists', 6);
   }
 }
 

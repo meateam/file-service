@@ -9,20 +9,19 @@ export class FolderError extends ClientError {
   }
 }
 
+export class BadIdError extends FolderError {
+  constructor(message?: string) {
+    super(message || 'invalid id provided', 3);
+  }
+}
 export class FolderNotFoundError extends FolderError {
   constructor(message?: string) {
-    super(message || 'the folder requested was not found', 5);
+    super(message || 'requested folder not found', 5);
   }
 }
 
 export class FolderExistsError extends FolderError {
   constructor(message?: string) {
     super(message || 'folder already exists', 6);
-  }
-}
-
-export class BadIdError extends FolderError {
-  constructor(message?: string) {
-    super(message || 'invalid id provided', 3);
   }
 }
