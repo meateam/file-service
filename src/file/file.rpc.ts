@@ -71,13 +71,19 @@ export class RPC {
 
   // Updates the uploadID.
   private async updateUpload(call: any, callback: any) {
-    const key: string = call.request.key;
-    const uploadID: string = call.request.uploadID;
-    const bucket: string = call.request.bucket;
+    const key:        string = call.request.key;
+    const uploadID:   string = call.request.uploadID;
+    const bucket:     string = call.request.bucket;
+    const ownerID:    string = call.request.ownerID;
+    const parent:     string = call.request.parent;
+    const filename:   string = call.request.filename;
     FileService.updateUpload(
       uploadID,
       key,
-      bucket)
+      bucket,
+      ownerID,
+      parent,
+      filename)
       .then((upload) => {
         callback(null, upload);
       }).catch(err => callback(err));

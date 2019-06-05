@@ -37,7 +37,11 @@ export class UploadRepository {
    * @param bucket - the bucket of the upload.
    * @param uploadID - the new id.
    */
-  static updateByKey(key: string, bucket: string, uploadID: string) {
+  static updateByKey(key: string, bucket: string, uploadID: string) : Promise<IUpload> {
     return uploadModel.findOneAndUpdate({ key, bucket }, { uploadID }, { new: true }).exec();
+  }
+
+  static getMany(filter: Partial<IUpload>): Promise<IUpload[]> {
+    return uploadModel.find(filter).exec();
   }
 }

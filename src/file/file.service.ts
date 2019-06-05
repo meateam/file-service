@@ -48,7 +48,16 @@ export class FileService {
    * @param key - of the upload
    * @param bucket - together with bucket, create a unique identifier
    */
-  public static async updateUpload(uploadID: string, key: string, bucket: string) {
+  public static async updateUpload(
+    uploadID: string,
+    key: string,
+    bucket: string,
+    // ownerID: string,
+    // parent: string,
+    // filename: string
+  ): Promise<IUpload> {
+    // const objOwnerID = new ObjectID(ownerID);
+    // const objParent = new ObjectID(parent);
     return await UploadRepository.updateByKey(key, bucket, uploadID);
   }
 
