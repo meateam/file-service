@@ -1,4 +1,5 @@
 import { IUser } from '../utils/user.interface';
+import { ObjectID } from 'mongodb';
 
 export interface IFile {
   id?: string;
@@ -12,7 +13,7 @@ export interface IFile {
   ownerID: string;
   owner?: IUser;
   size?: number;
-  parent?: IFile | string;
+  parent?: ObjectID | string;
   deleted: boolean;
   createdAt?: Date;
   updatedAt?: Date;
