@@ -83,7 +83,7 @@ message GetFilesByFolderResponse {
 
 message CreateFileRequest {
     string key = 1;
-    string fullName = 2;
+    string name = 2;
     int64 size = 3;
     string type = 4;
     string ownerID = 5;
@@ -101,7 +101,7 @@ message DeleteFileResponse {
 }
 
 message UpdateFileRequest {
-    string fullName = 2;
+    string name = 2;
     int64 size = 3;
     string ownerID = 5;
     string parent = 6;
@@ -133,7 +133,7 @@ message App {
 message File {
     string id = 1;
     string key = 2;
-    string fullName = 3;
+    string name = 3;
     string type = 4;
     string description = 5;
     string ownerID = 6;

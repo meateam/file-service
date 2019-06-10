@@ -1,6 +1,7 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { IUser } from '../utils/user.interface';
+import { ObjectID } from 'mongodb';
 
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
@@ -113,7 +114,7 @@ export class RPC {
 
     FileService.create(
       partialFile,
-      params.fullName,
+      params.name,
       params.ownerID,
       params.type,
       params.parent,
@@ -176,16 +177,13 @@ class ResFile{
   bucket: string;
   displayName: string;
   fullExtension: string;
-  fullName: string;
+  name: string;
   type: string;
   description: string;
   ownerID: string;
   owner: IUser;
   size: number;
-  parent: IFile | string;
-  ancestors: IFile[] | string[];
-  children: IFile[] | string[];
-  isRootFolder: boolean;
+  parent: ObjectID | string;
   deleted: boolean;
   createdAt: number;
   updatedAt: number;
@@ -196,16 +194,13 @@ class ResFile{
     this.bucket          =     file.bucket;
     this.displayName     =     file.displayName;
     this.fullExtension   =     file.fullExtension;
-    this.fullName        =     file.fullName;
+    this.name            =     file.name;
     this.type            =     file.type;
     this.description     =     file.description;
     this.ownerID         =     file.ownerID;
     this.owner           =     file.owner;
     this.size            =     file.size;
     this.parent          =     file.parent;
-    this.ancestors       =     file.ancestors;
-    this.children        =     file.children;
-    this.isRootFolder    =     file.isRootFolder;
     this.deleted         =     file.deleted;
     this.createdAt       =     file.createdAt.getTime();
     this.updatedAt       =     file.updatedAt.getTime();

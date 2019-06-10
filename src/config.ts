@@ -2,7 +2,6 @@
  *
  */
 
-
 type Config = {
   rpc_port: string;
   conf_type: string;
