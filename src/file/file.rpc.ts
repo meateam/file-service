@@ -60,10 +60,14 @@ export class RPC {
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
     const name: string = call.request.name;
+    const ownerID:    string = call.request.ownerID;
+    const parent:     string = call.request.parent;
     FileService.createUpload(
       key,
       bucket,
-      name)
+      name,
+      ownerID,
+      parent)
       .then((upload) => {
         callback(null, upload);
       }).catch(err => callback(err));
@@ -74,16 +78,10 @@ export class RPC {
     const key:        string = call.request.key;
     const uploadID:   string = call.request.uploadID;
     const bucket:     string = call.request.bucket;
-    const ownerID:    string = call.request.ownerID;
-    const parent:     string = call.request.parent;
-    const filename:   string = call.request.filename;
     FileService.updateUpload(
       uploadID,
       key,
-      bucket,
-      ownerID,
-      parent,
-      filename)
+      bucket)
       .then((upload) => {
         callback(null, upload);
       }).catch(err => callback(err));

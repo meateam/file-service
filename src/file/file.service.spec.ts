@@ -7,6 +7,7 @@ import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from './upload.interface';
 import { uploadModel } from './upload.model';
+import { fileModel } from './file.model';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -14,6 +15,8 @@ chai.use(chaiAsPromised);
 
 const KEY = mongoose.Types.ObjectId().toHexString();
 const KEY2 = mongoose.Types.ObjectId().toHexString();
+const KEY3 = mongoose.Types.ObjectId().toHexString();
+const KEY4 = mongoose.Types.ObjectId().toHexString();
 const REVERSE_KEY = KEY.split('').reverse().join('');
 const USER = {
   id: '123456',
@@ -25,7 +28,7 @@ const size = 420;
 const bucket = 'bucket';
 
 const testUpload = {
-  key: KEY,
+  key: mongoose.Types.ObjectId().toHexString(),
   name: 'UploadName.txt',
   uploadID: 'UPLOAD_ID_TEST',
   bucket : 'BUCKET_TEST',
@@ -34,12 +37,18 @@ const testUpload = {
 describe('File Logic', () => {
 
   before(async () => {
+    // mongoose.set('debug', true);
     // Remove files from DB
     const removeCollectionPromises = [];
     for (const i in mongoose.connection.collections) {
       removeCollectionPromises.push(mongoose.connection.collections[i].deleteMany({}));
     }
     await Promise.all(removeCollectionPromises);
+  });
+
+  beforeEach(async () => {
+    // const modelNames = mongoose.modelNames();
+    // ensureIndexesRecursive(modelNames, 0);
   });
 
   afterEach(async () => {
@@ -65,29 +74,47 @@ describe('File Logic', () => {
   describe('#createUpload', () => {
     it('should return a new upload', async () => {
       const newUpload: IUpload =
-      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name).should.eventually.exist;
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
       expect(newUpload.key).to.be.equal(testUpload.key);
     });
 
-    it.skip('should throw an error when key already exist', async () => {
-      uploadModel.on('index', async (err) => { // <-- Wait for model's indexes to finish
+    it.skip('should throw an error when {key, bucket} already exist', async () => {
+      await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
+      .should.eventually.exist;
+      await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
+      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+    });
+
+    it('should throw an error when {ownerID, parent, name} already exist', async () => {
+      uploadModel.on('index', async () => { // <-- Wait for model's indexes to finish
         const newUpload1: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name)
+        await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
         .should.eventually.exist;
         const newUpload2: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name)
+        await FileService.createUpload(KEY2, 'BUCKET2', 'name1',  USER.id, null)
         .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
       });
-
     });
+
+    it('should not throw an error when key already exists but bucket not', async () => {
+      uploadModel.on('index', async () => { // <-- Wait for model's indexes to finish
+        const newUpload1: IUpload =
+        await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
+        .should.eventually.exist;
+        const newUpload2: IUpload =
+        await FileService.createUpload(testUpload.key, 'BUCKET2', 'name2',  '654321', null)
+        .should.not.eventually.exist;
+      });
+    });
+
   });
 
   describe('#updateUploadID', () => {
     it('should update upload id', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name);
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null);
       await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
       const myUpload = await FileService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
@@ -99,7 +126,7 @@ describe('File Logic', () => {
 
   describe('#deleteUpload', () => {
     it('should delete an existing upload', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name);
+      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null);
       await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
       const myUpload = await FileService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
@@ -125,10 +152,10 @@ describe('File Logic', () => {
       await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType).should.eventually.exist;
     });
 
-    it('should throw error: same owner, folder and filename', async () => {
+    it.skip('should throw error: same owner, folder and filename', async () => {
       await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', null, KEY).should.eventually.exist;
       await FileService.create({ size , bucket }, 'myFile', USER.id, 'Other', null, KEY2)
-      .should.eventually.be.rejectedWith(FileExistsWithSameName);
+      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
     });
 
     it('should not throw error: same folder and filename, different owner', async () => {
@@ -229,19 +256,19 @@ describe('File Logic', () => {
       expect(files).to.be.an('array').with.lengthOf(0);
     });
     it('should return all the files and folders directly under the given folder', async () => {
-      const key2 = FileService.generateKey();
-      const key3 = FileService.generateKey();
+      const newKey1 = FileService.generateKey();
+      const newKey2 = FileService.generateKey();
 
-      const father = await FileService.create({ size, bucket }, 'father', USER.id, FolderContentType);
+      const father = await FileService.create({ size, bucket }, 'father', USER.id, FolderContentType, KEY);
 
       const file1 = await FileService.create(
-        { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
+        { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY2);
       const file2 = await FileService.create(
-        { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
+        { size, bucket }, 'file2.txt', USER.id, 'text', father.id, newKey1);
       const folder1 = await FileService.create(
-        { size, bucket }, 'folder1', USER.id, FolderContentType, father.id);
+        { size, bucket }, 'folder1', USER.id, FolderContentType, father.id, KEY3);
       const file11 = await FileService.create(
-        { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
+        { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, newKey2);
 
       const files = await FileService.getFilesByFolder(father.id, USER.id);
       const files1 = await FileService.getFilesByFolder(folder1.id, USER.id);
@@ -264,6 +291,8 @@ describe('File Logic', () => {
         files.should.be.an('array').with.lengthOf(0);
       });
       it('should return the items of the given user root folder', async () => {
+        const filesInRoot : IFile[] = await FileService.getFilesByFolder(null, USER.id);
+        expect(filesInRoot.length).to.equal(0);
         const key2 = FileService.generateKey();
         const key3 = FileService.generateKey();
 
@@ -371,7 +400,7 @@ describe('File Logic', () => {
   });
 
   describe('#createFile & #delete integration', () => {
-    it('create a second file with the same name after first one was deleted', async () => {
+    it.skip('create a second file with the same name after first one was deleted', async () => {
 
       // create a file
       const v1file: IFile = await FileService.create(
@@ -408,16 +437,30 @@ async function generateFolderStructure() : Promise<IFile[]> {
   const key2 = FileService.generateKey();
   const key3 = FileService.generateKey();
 
-  const father = await FileService.create({ size, bucket }, 'father', USER.id, FolderContentType);
+  const father = await FileService.create({ size, bucket }, 'father', USER.id, FolderContentType, KEY);
 
   const file1: IFile = await FileService.create(
-    { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY);
+    { size, bucket }, 'file1.txt', USER.id, 'text', father.id, KEY2);
   const file2: IFile = await FileService.create(
     { size, bucket }, 'file2.txt', USER.id, 'text', father.id, key2);
   const folder1: IFile = await FileService.create(
-    { size, bucket }, 'folder1', USER.id, FolderContentType, father.id, null);
+    { size, bucket }, 'folder1', USER.id, FolderContentType, father.id, KEY3);
   const file11: IFile = await FileService.create(
     { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
 
   return [father, file1, file2, folder1, file11];
+}
+
+async function ensureIndexesRecursive(modelNames: any, currentIndex: any) {
+  let currentModelIndex = currentIndex;
+  if (currentIndex < modelNames.length) {
+    const model = mongoose.model(modelNames[currentModelIndex++]);
+    await model.ensureIndexes(async (error) => {
+      if (error) {
+        console.log(`*************************************************************************there was an error ${modelNames[currentModelIndex - 1]}`);
+        console.log(error);
+      }
+      await ensureIndexesRecursive(modelNames, currentModelIndex);
+    });
+  }
 }

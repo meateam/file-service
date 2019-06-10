@@ -20,6 +20,8 @@ service FileService {
 message CreateUploadRequest {
     string bucket = 1;
     string name = 2;
+    string ownerID = 4;
+    string parent = 5;
 }
 
 message CreateUploadResponse {
@@ -39,9 +41,6 @@ message UpdateUploadIDRequest {
     string key = 1;
     string uploadID = 2;
     string bucket = 3;
-    string ownerID = 4;
-    string parent = 5;
-    string filename = 6;
 }
 
 message UpdateUploadIDResponse {

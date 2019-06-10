@@ -49,6 +49,7 @@ export const fileSchema: Schema = new Schema(
     }
   },
   {
+    autoIndex: true,
     timestamps: true,
     toObject: {
       virtuals: true,
@@ -58,7 +59,7 @@ export const fileSchema: Schema = new Schema(
     }
   });
 
-fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
+fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true, background: false });
 
 fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
@@ -100,3 +101,7 @@ fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
 });
 
 export const fileModel = model<IFile & Document>('File', fileSchema);
+// fileModel.ensureIndexes((err) => {
+//   if (err) console.log(`ERROR!!!! ${err}`);
+//   else console.log('index done');
+// });
