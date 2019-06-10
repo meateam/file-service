@@ -138,7 +138,19 @@ describe('File Logic', () => {
 
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
-        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+        { size, bucket }, 'file.txt', USER.id, 'text', KEY2, KEY);
+      expect(file).to.exist;
+      expect(file).to.have.property('createdAt');
+      expect(file.id).to.equal(REVERSE_KEY);
+      expect(file.key).to.equal(KEY);
+      expect(file.displayName).to.equal('file');
+      expect(file.fullExtension).to.equal('txt');
+      expect(file.name).to.equal('file.txt');
+    });
+
+    it('should create a file in root, parent is empty string', async () => {
+      const file: IFile = await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', '', KEY);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.id).to.equal(REVERSE_KEY);
@@ -175,7 +187,6 @@ describe('File Logic', () => {
       expect(filesInRoot.length).to.equal(2);
       expect(file1.parent).to.be.null;
       expect(file2.parent).to.equal(file1.parent);
-
     });
 
     it('should throw an error when KEY already exist', async () => {
