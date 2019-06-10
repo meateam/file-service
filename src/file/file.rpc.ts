@@ -1,6 +1,7 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { IUser } from '../utils/user.interface';
+import { ObjectID } from 'mongodb';
 
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
@@ -182,7 +183,7 @@ class ResFile{
   ownerID: string;
   owner: IUser;
   size: number;
-  parent: IFile | string;
+  parent: ObjectID | string;
   deleted: boolean;
   createdAt: number;
   updatedAt: number;
