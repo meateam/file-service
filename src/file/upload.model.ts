@@ -3,6 +3,7 @@ import { ServerError } from '../utils/errors/application.error';
 import { IUpload } from './upload.interface';
 import { MongoError } from 'mongodb';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
+import { NextFunction } from 'connect';
 
 export const uploadSchema: mongoose.Schema = new mongoose.Schema(
   {
@@ -29,7 +30,7 @@ uploadSchema.index({ key: 1, bucket: 1 }, { unique: true });
 
 // ******* SAME AS FILE *******//
 // handleE11000 is called when there is a duplicateKey Error
-const handleE11000 = function (error: MongoError, res: any, next: any) {
+const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
     next(new KeyAlreadyExistsError(this.key));
   } else {
@@ -41,7 +42,7 @@ uploadSchema.post('save', handleE11000);
 uploadSchema.post('update', handleE11000);
 uploadSchema.post('findOneAndUpdate', handleE11000);
 
-uploadSchema.post('save', (error, doc, next) => {
+uploadSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
     next(new ServerError(error.message));
   }

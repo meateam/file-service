@@ -115,21 +115,12 @@ export default class FileRepository {
   }
 
   /**
-   * Retrieve the root folder (IFile) of a user by its name.
-   * @param folderName - the name of the folder.
-   */
-  static getRootFolder(folderName: string): Promise<IFile | null> {
-    return fileModel.findOne({ displayName: folderName, isRootFolder: true }).exec();
-  }
-
-  /**
    * Retrieve a file residing in a folder by its name.
    * @param parentId - the folder id.
-   * @param fileFullName - the name of the file (should be unique in the folder).
+   * @param filename - the name of the file (should be unique in the folder).
    */
-  static getFileInFolderByName(parentId: string, fileFullName: string): Promise<IFile | null> {
-    const displayName = fileFullName.split('.')[0];
-    const fullExtension = fileFullName.split('.').splice(1).join('.');
-    return fileModel.findOne({ displayName, fullExtension, parent: new ObjectID(parentId), deleted: false }).exec();
+  static getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
+    const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
+    return fileModel.findOne({ ownerID, parent, name: filename, deleted: false }).exec();
   }
 }

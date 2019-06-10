@@ -9,9 +9,9 @@ services:
     ports:
       - 8080:8080
   mongo:
-    image: mongo:latest
+    image: mongo:4.0.9
     ports:
-      - "27018:27017"
+      - "27017:27017"
     volumes:
       - mongo-data-volume:/data/db
 volumes:
