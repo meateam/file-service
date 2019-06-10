@@ -83,8 +83,8 @@ export class FileService {
   public static async create(
     partialFile: Partial<IFile>,
     name: string, ownerID: string,
-    type: string, folderID: string = null,
-    key: string = null
+    type: string, folderID: string = '',
+    key: string = ''
   ): Promise<IFile> {
 
     const isFolder: boolean = (type === FolderContentType);
