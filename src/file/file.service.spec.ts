@@ -8,6 +8,7 @@ import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from
 import { IUpload } from './upload.interface';
 import { uploadModel } from './upload.model';
 import { fileModel } from './file.model';
+import { promises } from 'fs';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -37,22 +38,21 @@ const testUpload = {
 describe('File Logic', () => {
 
   before(async () => {
-    // mongoose.set('debug', true);
     // Remove files from DB
+    const collections = ['files', 'uploads'];
+    for (const i in collections) {
+      mongoose.connection.db.createCollection(collections[i], (err) => {});
+    }
+    await mongoose.connection.collections['files'].createIndex({ name: 1, parent: 1, ownerID: 1 }, { unique: true, background: true });
+    await mongoose.connection.collections['uploads'].createIndex({ key: 1, bucket: 1 }, { unique: true, background: true });
+  });
+
+  beforeEach(async () => {
     const removeCollectionPromises = [];
     for (const i in mongoose.connection.collections) {
       removeCollectionPromises.push(mongoose.connection.collections[i].deleteMany({}));
     }
     await Promise.all(removeCollectionPromises);
-  });
-
-  beforeEach(async () => {
-    // const modelNames = mongoose.modelNames();
-    // ensureIndexesRecursive(modelNames, 0);
-  });
-
-  afterEach(async () => {
-    await mongoose.connection.dropDatabase();
   });
 
   describe('#hashKey', () => {
@@ -81,7 +81,7 @@ describe('File Logic', () => {
       expect(newUpload.key).to.be.equal(testUpload.key);
     });
 
-    it.skip('should throw an error when {key, bucket} already exist', async () => {
+    it('should throw an error when {key, bucket} already exist', async () => {
       await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
       .should.eventually.exist;
       await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
@@ -152,9 +152,9 @@ describe('File Logic', () => {
       await FileService.create({ size, bucket }, 'myFolder', USER.id, FolderContentType).should.eventually.exist;
     });
 
-    it.skip('should throw error: same owner, folder and filename', async () => {
-      await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', null, KEY).should.eventually.exist;
-      await FileService.create({ size , bucket }, 'myFile', USER.id, 'Other', null, KEY2)
+    it('should throw error: same owner, folder and filename', async () => {
+      await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', '082340964462a5b09fd4ffc5', KEY).should.eventually.exist;
+      await FileService.create({ size , bucket }, 'myFile', USER.id, 'Other', '082340964462a5b09fd4ffc5', KEY2)
       .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
     });
 
