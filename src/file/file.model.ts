@@ -49,7 +49,6 @@ export const fileSchema: Schema = new Schema(
     }
   },
   {
-    autoIndex: true,
     timestamps: true,
     toObject: {
       virtuals: true,
@@ -101,7 +100,3 @@ fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
 });
 
 export const fileModel = model<IFile & Document>('File', fileSchema);
-// fileModel.ensureIndexes((err) => {
-//   if (err) console.log(`ERROR!!!! ${err}`);
-//   else console.log('index done');
-// });

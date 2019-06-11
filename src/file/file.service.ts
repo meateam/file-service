@@ -35,6 +35,8 @@ export class FileService {
    * @param key - generated with generateKey
    * @param bucket - is the s3 bucket in the storage
    * @param name - of the file uploaded
+   * @param ownerID - the id of the file owner
+   * @param parent - the folder id in which the file resides
    */
   public static async createUpload(
     key: string,

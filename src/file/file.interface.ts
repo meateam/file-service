@@ -11,7 +11,6 @@ export interface IFile {
   type: string;
   description?: string;
   ownerID: string;
-  owner?: IUser;
   size?: number;
   parent?: ObjectID | string;
   deleted: boolean;

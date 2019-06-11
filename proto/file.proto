@@ -20,8 +20,8 @@ service FileService {
 message CreateUploadRequest {
     string bucket = 1;
     string name = 2;
-    string ownerID = 4;
-    string parent = 5;
+    string ownerID = 3;
+    string parent = 4;
 }
 
 message CreateUploadResponse {

@@ -1,6 +1,6 @@
 import { IUpload } from './upload.interface';
 import { uploadModel } from './upload.model';
-import { ObjectID } from 'mongodb';
+import { IdInvalidError } from '../utils/errors/client.error';
 
 /**
  * The repository connects the file-service with the mongo DB.
@@ -13,7 +13,9 @@ export class UploadRepository {
    * @param upload - the upload to be created.
    */
   static create(upload: Partial<IUpload>): Promise<IUpload> {
-    upload.ownerID = upload.ownerID ? upload.ownerID : 'null';
+    if (!upload.ownerID) {
+      throw new IdInvalidError('ownerID not provided');
+    }
     upload.parent = upload.parent ? upload.parent : null;
     return uploadModel.create(upload);
   }
@@ -39,9 +41,6 @@ export class UploadRepository {
    * @param key - the key of the upload. is unique with bucket.
    * @param bucket - the bucket of the upload.
    * @param uploadID - the new id.
-   * @param ownerID - owner of the file to be uploaded.
-   * @param parent - folder id of the file.
-   * @param filename - name of the file.
    */
   static updateByKey(key: string, bucket: string, uploadID: string) : Promise<IUpload> {
     return uploadModel.findOneAndUpdate({ key, bucket }, { uploadID }, { new: true }).exec();
