@@ -46,8 +46,7 @@ export const uploadSchema: Schema = new Schema(
   }
 );
 
-uploadSchema.index({ key: 1, bucket: 1 }, { unique: true, background: true });
-// uploadSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
+uploadSchema.index({ key: 1, bucket: 1 }, { unique: true });
 
 // ******* SAME AS FILE *******//
 // handleE11000 is called when there is a duplicateKey Error

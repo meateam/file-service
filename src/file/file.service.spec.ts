@@ -43,8 +43,8 @@ describe('File Logic', () => {
     for (const i in collections) {
       mongoose.connection.db.createCollection(collections[i], (err) => {});
     }
-    await mongoose.connection.collections['files'].createIndex({ name: 1, parent: 1, ownerID: 1 }, { unique: true, background: true });
-    await mongoose.connection.collections['uploads'].createIndex({ key: 1, bucket: 1 }, { unique: true, background: true });
+    await mongoose.connection.collections['files'].createIndex({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
+    await mongoose.connection.collections['uploads'].createIndex({ key: 1, bucket: 1 }, { unique: true });
   });
 
   beforeEach(async () => {
@@ -159,8 +159,8 @@ describe('File Logic', () => {
     });
 
     it('should throw error: same owner, folder and filename', async () => {
-      await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', '082340964462a5b09fd4ffc5', KEY).should.eventually.exist;
-      await FileService.create({ size , bucket }, 'myFile', USER.id, 'Other', '082340964462a5b09fd4ffc5', KEY2)
+      await FileService.create({ size, bucket }, 'myFile', USER.id, 'Text', null, KEY).should.eventually.exist;
+      await FileService.create({ size , bucket }, 'myFile', USER.id, 'Other', null, KEY2)
       .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
     });
 
@@ -466,18 +466,4 @@ async function generateFolderStructure() : Promise<IFile[]> {
     { size, bucket }, 'file11.txt', USER.id, 'text', folder1.id, key3);
 
   return [father, file1, file2, folder1, file11];
-}
-
-async function ensureIndexesRecursive(modelNames: any, currentIndex: any) {
-  let currentModelIndex = currentIndex;
-  if (currentIndex < modelNames.length) {
-    const model = mongoose.model(modelNames[currentModelIndex++]);
-    await model.ensureIndexes(async (error) => {
-      if (error) {
-        console.log(`*************************************************************************there was an error ${modelNames[currentModelIndex - 1]}`);
-        console.log(error);
-      }
-      await ensureIndexesRecursive(modelNames, currentModelIndex);
-    });
-  }
 }

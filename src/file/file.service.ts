@@ -116,9 +116,6 @@ export class FileService {
     // If there is not parent given, create the file in the user's root folde
     const parentID: string = folderID;
 
-    // if (await this.isFileInFolder(name, parentID, ownerID)) {
-    //   throw new FileExistsWithSameName();
-    // }
     const file: IFile = Object.assign(partialFile, {
       key,
       type,
