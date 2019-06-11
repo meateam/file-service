@@ -23,6 +23,7 @@ export default class FileRepository {
    * @param file - is the file to be added to the DB
    */
   static create(file: IFile): Promise<IFile> {
+    file.parent = file.parent ? new ObjectID(file.parent) : null;
     return fileModel.create(file);
   }
 
