@@ -43,6 +43,10 @@ export class FileService {
     ownerID: string,
     parent: string
   ) : Promise<IUpload> {
+    const file = await FilesRepository.getFileInFolderByName(parent, name, ownerID);
+    if (file) {
+      throw new FileExistsWithSameName();
+    }
     const upload: Partial<IUpload> = { key, bucket, name, ownerID, parent };
     return await UploadRepository.create(upload);
   }

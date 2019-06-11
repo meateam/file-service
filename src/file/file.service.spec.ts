@@ -110,6 +110,12 @@ describe('File Logic', () => {
       });
     });
 
+    it('should throw an error if file with the same name, ownerID and parent exists', async () => {
+      await FileService.create({ size, bucket }, 'file.txt', USER.id, 'text', KEY, KEY2);
+      await FileService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY)
+      .should.eventually.be.rejectedWith(FileExistsWithSameName);
+    });
+
   });
 
   describe('#updateUploadID', () => {
