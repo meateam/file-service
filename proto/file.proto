@@ -30,7 +30,6 @@ message CreateUploadResponse {
 }
 
 message GenerateKeyRequest {
-    string bucket = 1;
 }
 
 message KeyResponse {
@@ -91,7 +90,6 @@ message CreateFileRequest {
     string ownerID = 5;
     string bucket = 6;
     string parent = 7;
-    string appID = 8;
 }
 
 message DeleteFileRequest {
@@ -103,12 +101,11 @@ message DeleteFileResponse {
 }
 
 message UpdateFileRequest {
-    string name = 2;
-    int64 size = 3;
-    string ownerID = 5;
-    string parent = 6;
-    string appID = 7;
-    string bucket = 11;
+    string name = 1;
+    int64 size = 2;
+    string ownerID = 3;
+    string parent = 4;
+    string bucket = 5;
 }
 
 message IsAllowedRequest {
