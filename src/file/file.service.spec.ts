@@ -7,8 +7,6 @@ import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from './upload.interface';
 import { uploadModel } from './upload.model';
-import { fileModel } from './file.model';
-import { promises } from 'fs';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();

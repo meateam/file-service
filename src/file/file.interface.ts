@@ -1,4 +1,3 @@
-import { IUser } from '../utils/user.interface';
 import { ObjectID } from 'mongodb';
 
 export interface IFile {

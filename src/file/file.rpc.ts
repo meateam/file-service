@@ -1,6 +1,5 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
-import { IUser } from '../utils/user.interface';
 import { ObjectID } from 'mongodb';
 
 const grpc = require('grpc');
