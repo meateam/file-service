@@ -1,7 +1,6 @@
 import { IUpload } from './upload.interface';
 import { uploadModel } from './upload.model';
 import { IdInvalidError } from '../utils/errors/client.error';
-import { ServerError } from '../utils/errors/application.error';
 
 /**
  * The repository connects the file-service with the mongo DB.
@@ -14,10 +13,7 @@ export class UploadRepository {
    * @param upload - the upload to be created.
    */
   static create(upload: Partial<IUpload>): Promise<IUpload> {
-    if (!upload) {
-      throw new ServerError();
-    }
-    if (upload && !upload.ownerID) {
+    if (!upload.ownerID) {
       throw new IdInvalidError('ownerID not provided');
     }
     upload.parent = upload.parent ? upload.parent : null;
