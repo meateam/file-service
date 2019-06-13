@@ -17,7 +17,7 @@ export class UploadRepository {
     if (!upload) {
       throw new ServerError();
     }
-    if (upload && !upload.ownerID) {
+    if (!upload.ownerID) {
       throw new IdInvalidError('ownerID not provided');
     }
     upload.parent = upload.parent ? upload.parent : null;
@@ -50,6 +50,10 @@ export class UploadRepository {
     return uploadModel.findOneAndUpdate({ key, bucket }, { uploadID }, { new: true }).exec();
   }
 
+  /**
+   * Get all the uploads after a filter.
+   * @param filter - an object of upload fields which the results will be filtered by.
+   */
   static getMany(filter: Partial<IUpload>): Promise<IUpload[]> {
     return uploadModel.find(filter).exec();
   }
