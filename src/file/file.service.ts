@@ -35,10 +35,21 @@ export class FileService {
    * @param key - generated with generateKey
    * @param bucket - is the s3 bucket in the storage
    * @param name - of the file uploaded
+   * @param ownerID - the id of the file owner
+   * @param parent - the folder id in which the file resides
    */
-  public static async createUpload(key: string, bucket: string, name: string)
-  : Promise<IUpload> {
-    const upload: Partial<IUpload> = { key, bucket, name };
+  public static async createUpload(
+    key: string,
+    bucket: string,
+    name: string,
+    ownerID: string,
+    parent: string
+  ) : Promise<IUpload> {
+    const file = await FilesRepository.getFileInFolderByName(parent, name, ownerID);
+    if (file) {
+      throw new FileExistsWithSameName();
+    }
+    const upload: Partial<IUpload> = { key, bucket, name, ownerID, parent };
     return await UploadRepository.create(upload);
   }
 
@@ -48,7 +59,11 @@ export class FileService {
    * @param key - of the upload
    * @param bucket - together with bucket, create a unique identifier
    */
-  public static async updateUpload(uploadID: string, key: string, bucket: string) {
+  public static async updateUpload(
+    uploadID: string,
+    key: string,
+    bucket: string,
+  ): Promise<IUpload> {
     return await UploadRepository.updateByKey(key, bucket, uploadID);
   }
 
@@ -103,9 +118,6 @@ export class FileService {
     // If there is not parent given, create the file in the user's root folde
     const parentID: string = folderID;
 
-    if (await this.isFileInFolder(name, parentID, ownerID)) {
-      throw new FileExistsWithSameName();
-    }
     const file: IFile = Object.assign(partialFile, {
       key,
       type,

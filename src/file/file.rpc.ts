@@ -1,6 +1,5 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
-import { IUser } from '../utils/user.interface';
 import { ObjectID } from 'mongodb';
 
 const grpc = require('grpc');
@@ -52,19 +51,23 @@ export class RPC {
 
   // Generates a random key for the upload.
   private generateKey(call: any, callback: any) {
-    const key: string = FileService.generateKey();
+    const key:        string = FileService.generateKey();
     callback(null, { key });
   }
 
   // Creates an upload object, present while uploading a file.
   private async createUpload(call: any, callback: any) {
-    const key: string = FileService.generateKey();
-    const bucket: string = call.request.bucket;
-    const name: string = call.request.name;
+    const key:        string = FileService.generateKey();
+    const bucket:     string = call.request.bucket;
+    const name:       string = call.request.name;
+    const ownerID:    string = call.request.ownerID;
+    const parent:     string = call.request.parent;
     FileService.createUpload(
       key,
       bucket,
-      name)
+      name,
+      ownerID,
+      parent)
       .then((upload) => {
         callback(null, upload);
       }).catch(err => callback(err));
@@ -72,9 +75,9 @@ export class RPC {
 
   // Updates the uploadID.
   private async updateUpload(call: any, callback: any) {
-    const key: string = call.request.key;
-    const uploadID: string = call.request.uploadID;
-    const bucket: string = call.request.bucket;
+    const key:        string = call.request.key;
+    const uploadID:   string = call.request.uploadID;
+    const bucket:     string = call.request.bucket;
     FileService.updateUpload(
       uploadID,
       key,
@@ -127,7 +130,7 @@ export class RPC {
 
   // Deletes a file, according to the file deletion policy.
   private async deleteFile(call: any, callback: any) {
-    const id: string = call.request.id;
+    const id:         string = call.request.id;
     FileService.delete(id)
       .then(() => callback(null, { ok: true }))
       .catch(err => callback(err));
@@ -135,7 +138,7 @@ export class RPC {
 
   // Retrieves a file by its id.
   private async getFileByID(call: any, callback: any) {
-    const id: string = call.request.id;
+    const id:         string = call.request.id;
     FileService.getById(id)
       .then(file => callback(null, new ResFile(file)))
       .catch(err => callback(err));
@@ -143,7 +146,7 @@ export class RPC {
 
   // Retrieves a file by its key.
   private async getFileByKey(call: any, callback: any) {
-    const key: string = call.request.key;
+    const key:        string = call.request.key;
     FileService.getByKey(key)
       .then(file => callback(null, new ResFile(file)))
       .catch(err => callback(err));
@@ -151,8 +154,8 @@ export class RPC {
 
   // Retrieves all files residing in a given folder.
   private async getFilesByFolder(call: any, callback: any) {
-    const folderID: string = call.request.folderID;
-    const ownerID: string = call.request.ownerID;
+    const folderID:   string = call.request.folderID;
+    const ownerID:    string = call.request.ownerID;
     FileService.getFilesByFolder(folderID, ownerID)
       .then((files) => {
         const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
@@ -172,21 +175,20 @@ export class RPC {
 
 // Same as IFile, but changing types accordingly
 class ResFile{
-  id: string;
-  key: string;
-  bucket: string;
-  displayName: string;
-  fullExtension: string;
-  name: string;
-  type: string;
-  description: string;
-  ownerID: string;
-  owner: IUser;
-  size: number;
-  parent: ObjectID | string;
-  deleted: boolean;
-  createdAt: number;
-  updatedAt: number;
+  id:             string;
+  key:            string;
+  bucket:         string;
+  displayName:    string;
+  fullExtension:  string;
+  name:           string;
+  type:           string;
+  description:    string;
+  ownerID:        string;
+  size:           number;
+  parent:         ObjectID | string;
+  deleted:        boolean;
+  createdAt:      number;
+  updatedAt:      number;
 
   constructor(file: IFile) {
     this.id              =     file.id;
@@ -198,7 +200,6 @@ class ResFile{
     this.type            =     file.type;
     this.description     =     file.description;
     this.ownerID         =     file.ownerID;
-    this.owner           =     file.owner;
     this.size            =     file.size;
     this.parent          =     file.parent;
     this.deleted         =     file.deleted;
