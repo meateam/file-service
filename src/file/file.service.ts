@@ -27,7 +27,7 @@ export class FileService {
    * Generates a random key.
    */
   public static generateKey(): string {
-    const objectID : ObjectID = Types.ObjectId();
+    const objectID : ObjectID = new ObjectID();
     return this.hashKey(objectID.toHexString());
   }
 
@@ -244,6 +244,6 @@ export class FileService {
    * @param str - the string to be reversed.
    */
   private static reverseString(str: string): string {
-    return str.split('').reverse().join('');
+    return str ? str.split('').reverse().join('') : '';
   }
 }
