@@ -7,7 +7,8 @@ import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
-import { BucketService } from '../bucket/bucket.service';
+import { QuotaService } from '../quota/quota.service';
+import { QuotaExceededError } from '../utils/errors/quota.error';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -180,12 +181,24 @@ describe('File Logic', () => {
       expect(file.name).to.equal('file.txt');
     });
 
-    it('should increase owner used total files size', async () => {
+    it('should increase owner quota used files size', async () => {
       const file: IFile = await FileService.create(
         { size, bucket }, 'file.txt', USER.id, 'text', KEY2, KEY, 256);
 
-      const updatedBucket = await BucketService.getByOwnerID(USER.id);
+      const updatedBucket = await QuotaService.getByOwnerID(USER.id);
       expect(updatedBucket.used).to.equal(file.size);
+    });
+
+    it('should throw exceeded owner quota files size used', async () => {
+      await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', KEY2, KEY, 101 * 1024 * 1024 * 1024)
+        .should.eventually.be.rejectedWith(QuotaExceededError);
+    });
+
+    it('should throw negative used quota', async () => {
+      await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', KEY2, KEY, -256)
+        .should.eventually.be.rejectedWith(ServerError, 'negative used quota');
     });
 
     it('should create a file in root, parent is empty string', async () => {

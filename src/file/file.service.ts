@@ -6,7 +6,7 @@ import { FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { IUpload } from '../upload/upload.interface';
 import { UploadRepository } from '../upload/upload.repository';
-import { BucketService } from '../bucket/bucket.service';
+import { QuotaService } from '../quota/quota.service';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -134,7 +134,7 @@ export class FileService {
 
     const createdFile = await FilesRepository.create(file);
     if (createdFile) {
-      await BucketService.updateUsed(ownerID, size);
+      await QuotaService.updateUsed(ownerID, size);
     }
 
     return createdFile;

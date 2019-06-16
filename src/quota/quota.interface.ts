@@ -1,6 +1,6 @@
-export interface IBucket {
+export interface IQuota {
   ownerID: string;
-  quota: number;
+  limit: number;
   used: number;
   createdAt?: Date;
   updatedAt?: Date;

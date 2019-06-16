@@ -1,20 +1,21 @@
 import { Document, Schema, model } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
-import { IBucket } from './bucket.interface';
+import { IQuota } from './quota.interface';
 import { MongoError } from 'mongodb';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { NextFunction } from 'connect';
 
-const MiB = 1024;
+const KiB = 1024;
+const MiB = 1024 * KiB;
 const GiB = 1024 * MiB;
-export const bucketSchema: Schema = new Schema(
+export const quotaSchema: Schema = new Schema(
   {
     ownerID: {
       type: String,
       required: true,
       unique: true,
     },
-    quota: {
+    limit: {
       type: Number,
       required: true,
       default: 100 * GiB,
@@ -40,11 +41,11 @@ const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   }
 };
 
-bucketSchema.post('save', handleE11000);
-bucketSchema.post('update', handleE11000);
-bucketSchema.post('findOneAndUpdate', handleE11000);
+quotaSchema.post('save', handleE11000);
+quotaSchema.post('update', handleE11000);
+quotaSchema.post('findOneAndUpdate', handleE11000);
 
-bucketSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
+quotaSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
     next(new ServerError(error.message));
   }
@@ -53,4 +54,4 @@ bucketSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
 
 // ***************************//
 
-export const bucketModel = model<IBucket & Document>('buckets', bucketSchema);
+export const quotaModel = model<IQuota & Document>('quotas', quotaSchema);
