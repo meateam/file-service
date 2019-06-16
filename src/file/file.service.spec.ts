@@ -347,6 +347,16 @@ describe('File Logic', () => {
       expect(res).to.exist;
       expect(res).to.be.true;
     });
+    it('should return true if it is the users root folder', async () => {
+      const file = await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', null, KEY);
+      const res1 = await FileService.isOwner('', USER.id);
+      const res2 = await FileService.isOwner(null, USER.id);
+      expect(res1).to.exist;
+      expect(res1).to.be.true;
+      expect(res2).to.exist;
+      expect(res2).to.be.true;
+    });
   });
 
   describe('#delete', () => {
