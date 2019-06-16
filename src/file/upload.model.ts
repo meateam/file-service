@@ -1,11 +1,13 @@
-import mongoose from 'mongoose';
+import { Schema, Document, model } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IUpload } from './upload.interface';
 import { MongoError } from 'mongodb';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { NextFunction } from 'connect';
 
-export const uploadSchema: mongoose.Schema = new mongoose.Schema(
+const ObjectId = Schema.Types.ObjectId;
+
+export const uploadSchema: Schema = new Schema(
   {
     uploadID: {
       type: String,
@@ -13,15 +15,33 @@ export const uploadSchema: mongoose.Schema = new mongoose.Schema(
     },
     key: {
       type: String,
-      required: false,
+      required: true,
     },
     bucket: {
       type: String,
-      required: false,
+      required: true,
     },
     name: {
       type: String,
-      required: true
+      required: true,
+    },
+    parent: {
+      type: String,
+      default: null,
+      required: false,
+    },
+    ownerID: {
+      type: String,
+      required: false,
+    }
+  },
+  {
+    timestamps: true,
+    toObject: {
+      virtuals: true,
+    },
+    toJSON: {
+      virtuals: true,
     }
   }
 );
@@ -51,4 +71,4 @@ uploadSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
 
 // ***************************//
 
-export const uploadModel = mongoose.model<IUpload & mongoose.Document>('Upload', uploadSchema);
+export const uploadModel = model<IUpload & Document>('Upload', uploadSchema);
