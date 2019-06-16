@@ -4,6 +4,7 @@ export interface IUpload {
   key: string;
   bucket: string;
   name: string;
+  size: number;
   ownerID?: string;
   parent?: string;
   createdAt?: Date;

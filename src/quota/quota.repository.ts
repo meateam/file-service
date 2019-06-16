@@ -19,7 +19,7 @@ export class QuotaRepository {
    * Creates a new quota object in the DB.
    * @param quota - the quota to be created.
    */
-  static create(quota: Partial<IQuota>): Promise<IQuota> {
+  static create(quota: Partial<IQuota>): Promise<IQuota | null> {
     return quotaModel.create(quota);
   }
 

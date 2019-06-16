@@ -38,20 +38,27 @@ export class FileService {
    * @param name - of the file uploaded
    * @param ownerID - the id of the file owner
    * @param parent - the folder id in which the file resides
+   * @param size - the size of the file that is being uploaded.
    */
   public static async createUpload(
     key: string,
     bucket: string,
     name: string,
     ownerID: string,
-    parent: string
+    parent: string,
+    size: number = 0,
   ) : Promise<IUpload> {
     const file = await FilesRepository.getFileInFolderByName(parent, name, ownerID);
     if (file) {
       throw new FileExistsWithSameName();
     }
-    const upload: Partial<IUpload> = { key, bucket, name, ownerID, parent };
-    return await UploadRepository.create(upload);
+
+    const createdUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size });
+    if (createdUpload) {
+      await QuotaService.updateUsed(ownerID, size);
+    }
+
+    return createdUpload;
   }
 
   /**
@@ -95,6 +102,7 @@ export class FileService {
    * @param type - the type of the file.
    * @param folderID - id of the folder in which the file will reside (in the GUI).
    * @param key - the key of the file.
+   * @param size - the size of the file.
    */
   public static async create(
     partialFile: Partial<IFile>,
@@ -105,7 +113,6 @@ export class FileService {
     key: string = '',
     size: number = 0,
   ): Promise<IFile> {
-
     const isFolder: boolean = (type === FolderContentType);
     if (!key && !isFolder) {
       throw new ServerError('No key sent');

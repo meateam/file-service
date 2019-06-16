@@ -31,6 +31,11 @@ export const uploadSchema: Schema = new Schema(
     ownerID: {
       type: String,
       required: false,
+    },
+    size: {
+      type: Number,
+      required: true,
+      default: 0,
     }
   },
   {

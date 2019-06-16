@@ -74,7 +74,7 @@ describe('File Logic', () => {
   describe('#createUpload', () => {
     it('should return a new upload', async () => {
       const newUpload: IUpload =
-      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null).should.eventually.exist;
+        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
@@ -116,6 +116,26 @@ describe('File Logic', () => {
       .should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
 
+    it('should return a new upload', async () => {
+      const newUpload: IUpload =
+        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 256).should.eventually.exist;
+      expect(newUpload).to.exist;
+      expect(newUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(newUpload.name).to.be.equal(testUpload.name);
+      expect(newUpload.key).to.be.equal(testUpload.key);
+      const quota = await QuotaService.getByOwnerID(USER.id);
+      expect(quota.used).to.be.equal(newUpload.size);
+    });
+
+    it('should throw exceeded quota error', async () => {
+      await FileService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY, 101 * 1024 * 1024 * 1024)
+        .should.eventually.be.rejectedWith(QuotaExceededError);
+    });
+
+    it('should throw negative used quota', async () => {
+      await FileService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY, -256)
+        .should.eventually.be.rejectedWith(ServerError, 'negative used quota');
+    });
   });
 
   describe('#updateUploadID', () => {
