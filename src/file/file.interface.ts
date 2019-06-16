@@ -10,7 +10,7 @@ export interface IFile {
   type: string;
   description?: string;
   ownerID: string;
-  size?: number;
+  size: number;
   parent?: ObjectID | string;
   deleted: boolean;
   createdAt?: Date;

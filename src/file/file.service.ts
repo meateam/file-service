@@ -4,8 +4,9 @@ import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
 import { FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { IUpload } from './upload.interface';
-import { UploadRepository } from './upload.repository';
+import { IUpload } from '../upload/upload.interface';
+import { UploadRepository } from '../upload/upload.repository';
+import { BucketService } from '../bucket/bucket.service';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -97,25 +98,27 @@ export class FileService {
    */
   public static async create(
     partialFile: Partial<IFile>,
-    name: string, ownerID: string,
-    type: string, folderID: string = '',
-    key: string = ''
+    name: string,
+    ownerID: string,
+    type: string,
+    folderID: string = '',
+    key: string = '',
+    size: number = 0,
   ): Promise<IFile> {
 
     const isFolder: boolean = (type === FolderContentType);
-    let id: string | ObjectID;
-
-    // Create the file id (from key or new one).
-    if (key) { // if key exists reverse it to get the generated id
-      id = this.reverseString(key);
-    } else {
-      if (!isFolder) {
-        throw new ServerError('No key sent');
-      }
-      id = Types.ObjectId();
+    if (!key && !isFolder) {
+      throw new ServerError('No key sent');
     }
 
-    // If there is not parent given, create the file in the user's root folde
+    let id: string | ObjectID = new ObjectID();
+
+    // Create the file id by reversing key.
+    if (key) {
+      id = this.reverseString(key);
+    }
+
+    // If there is no parent given, create the file in the user's root folder.
     const parentID: string = folderID;
 
     const file: IFile = Object.assign(partialFile, {
@@ -123,12 +126,18 @@ export class FileService {
       type,
       name,
       ownerID,
+      size,
       _id: id,
       deleted: false,
-      parent: parentID
+      parent: parentID,
     });
 
-    return await FilesRepository.create(file);
+    const createdFile = await FilesRepository.create(file);
+    if (createdFile) {
+      await BucketService.updateUsed(ownerID, size);
+    }
+
+    return createdFile;
   }
 
   /**

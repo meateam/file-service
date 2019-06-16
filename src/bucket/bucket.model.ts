@@ -5,13 +5,10 @@ import { MongoError } from 'mongodb';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { NextFunction } from 'connect';
 
+const MiB = 1024;
+const GiB = 1024 * MiB;
 export const bucketSchema: Schema = new Schema(
   {
-    bucketID: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     ownerID: {
       type: String,
       required: true,
@@ -20,11 +17,13 @@ export const bucketSchema: Schema = new Schema(
     quota: {
       type: Number,
       required: true,
+      default: 100 * GiB,
     },
     used: {
       type: Number,
-      required: true
-    }
+      required: true,
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -54,4 +53,4 @@ bucketSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
 
 // ***************************//
 
-export const bucketModel = model<IBucket & Document>('Upload', bucketSchema);
+export const bucketModel = model<IBucket & Document>('buckets', bucketSchema);

@@ -5,8 +5,9 @@ import { IFile } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
-import { IUpload } from './upload.interface';
-import { uploadModel } from './upload.model';
+import { IUpload } from '../upload/upload.interface';
+import { uploadModel } from '../upload/upload.model';
+import { BucketService } from '../bucket/bucket.service';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -177,6 +178,15 @@ describe('File Logic', () => {
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('txt');
       expect(file.name).to.equal('file.txt');
+    });
+
+    it('should increase owner used total files size', async () => {
+      const oldBucket = await BucketService.getByOwnerID(USER.id);
+      const file: IFile = await FileService.create(
+        { size, bucket }, 'file.txt', USER.id, 'text', KEY2, KEY, 256);
+
+      const updatedBucket = await BucketService.getByOwnerID(USER.id);
+      expect(updatedBucket.used).to.equal(file.size + oldBucket.used);
     });
 
     it('should create a file in root, parent is empty string', async () => {

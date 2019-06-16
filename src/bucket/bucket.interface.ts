@@ -1,5 +1,4 @@
 export interface IBucket {
-  bucketID: string;
   ownerID: string;
   quota: number;
   used: number;
