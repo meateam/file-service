@@ -196,7 +196,7 @@ export class FileService {
    */
   public static async isOwner(fileID: string, userID: string): Promise<boolean> {
     // if the file is the user's root folder (which he is owner of) - return true
-    if (!fileID || fileID === '') {
+    if (!fileID) {
       return true;
     }
     const file: IFile = await this.getById(fileID);
