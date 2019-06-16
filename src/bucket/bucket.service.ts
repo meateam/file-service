@@ -3,8 +3,15 @@ import { IBucket } from './bucket.interface';
 import { BucketQuotaExceededError } from '../utils/errors/bucket.error';
 
 export class BucketService {
-  public static getByOwnerID(ownerID: string): Promise<IBucket> {
-    return BucketRepository.getByOwnerID(ownerID);
+  public static async getByOwnerID(ownerID: string): Promise<IBucket> {
+    let bucket = await BucketRepository.getByOwnerID(ownerID);
+
+    // Create bucket if it doesn't exist.
+    if (!bucket) {
+      bucket = await this.create(ownerID);
+    }
+
+    return bucket;
   }
   public static create(ownerID: string): Promise<IBucket> {
     return BucketRepository.create({ ownerID });
@@ -18,7 +25,8 @@ export class BucketService {
    * 	if change is negative then the used field is decreased.
    */
   public static async updateUsed(ownerID: string, change: number) {
-    const bucket = await BucketRepository.getByOwnerID(ownerID);
+    const bucket = await this.getByOwnerID(ownerID);
+
     if (bucket.used + change > bucket.quota) {
       throw new BucketQuotaExceededError();
     }

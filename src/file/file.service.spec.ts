@@ -181,12 +181,11 @@ describe('File Logic', () => {
     });
 
     it('should increase owner used total files size', async () => {
-      const oldBucket = await BucketService.getByOwnerID(USER.id);
       const file: IFile = await FileService.create(
         { size, bucket }, 'file.txt', USER.id, 'text', KEY2, KEY, 256);
 
       const updatedBucket = await BucketService.getByOwnerID(USER.id);
-      expect(updatedBucket.used).to.equal(file.size + oldBucket.used);
+      expect(updatedBucket.used).to.equal(file.size);
     });
 
     it('should create a file in root, parent is empty string', async () => {

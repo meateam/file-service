@@ -6,5 +6,5 @@ RUN npm config set -g production false
 RUN npm install --silent
 RUN npm install -g mocha
 COPY . .
-EXPOSE 50051
+EXPOSE 8080
 CMD ["npm", "run", "run_tests"]
