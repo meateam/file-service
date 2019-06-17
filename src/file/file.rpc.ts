@@ -112,12 +112,9 @@ export class RPC {
   // Creates a new file in the DB.
   private async createFile(call: any, callback: any) {
     const params = call.request;
-    const partialFile: Partial<IFile> = {
-      bucket: params.bucket,
-    };
 
     FileService.create(
-      partialFile,
+      params.bucket,
       params.name,
       params.ownerID,
       params.type,

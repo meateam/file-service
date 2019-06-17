@@ -1,4 +1,3 @@
-import { Types } from 'mongoose';
 import { ObjectID } from 'mongodb';
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
@@ -7,6 +6,7 @@ import { ServerError, ClientError } from '../utils/errors/application.error';
 import { IUpload } from '../upload/upload.interface';
 import { UploadRepository } from '../upload/upload.repository';
 import { QuotaService } from '../quota/quota.service';
+import { fileModel } from './file.model';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -90,7 +90,10 @@ export class FileService {
    * @param uploadId - the id of the upload.
    */
   public static async deleteUpload(uploadId: string): Promise<void> {
-    await UploadRepository.deleteById(uploadId);
+    const deletedUpload = await UploadRepository.deleteById(uploadId);
+    if (deletedUpload) {
+      await QuotaService.updateUsed(deletedUpload.ownerID, -deletedUpload.size);
+    }
   }
 
   /**
@@ -105,7 +108,7 @@ export class FileService {
    * @param size - the size of the file.
    */
   public static async create(
-    partialFile: Partial<IFile>,
+    bucket: string,
     name: string,
     ownerID: string,
     type: string,
@@ -128,7 +131,8 @@ export class FileService {
     // If there is no parent given, create the file in the user's root folder.
     const parentID: string = folderID;
 
-    const file: IFile = Object.assign(partialFile, {
+    const file: IFile = new fileModel({
+      bucket,
       key,
       type,
       name,
@@ -141,6 +145,7 @@ export class FileService {
 
     const createdFile = await FilesRepository.create(file);
     if (createdFile) {
+      UploadRepository.getUploadByBucketAndKey(bucket, key)
       await QuotaService.updateUsed(ownerID, size);
     }
 

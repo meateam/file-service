@@ -119,6 +119,7 @@ export default class FileRepository {
    * Retrieve a file residing in a folder by its name.
    * @param parentId - the folder id.
    * @param filename - the name of the file (should be unique in the folder).
+   * @param ownerID - the id of the owner/user who made the request.
    */
   static getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
     const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
