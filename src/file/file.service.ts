@@ -145,7 +145,6 @@ export class FileService {
 
     const createdFile = await FilesRepository.create(file);
     if (createdFile) {
-      UploadRepository.getUploadByBucketAndKey(bucket, key)
       await QuotaService.updateUsed(ownerID, size);
     }
 

@@ -57,8 +57,4 @@ export class UploadRepository {
   static getMany(filter: Partial<IUpload>): Promise<IUpload[]> {
     return uploadModel.find(filter).exec();
   }
-
-  static getUploadByBucketAndKey(bucket: string, key: string): Promise<IUpload | null> {
-    return uploadModel.findOne({ bucket, key }).exec()
-  }
 }

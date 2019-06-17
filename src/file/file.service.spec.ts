@@ -269,6 +269,29 @@ describe('File Logic', () => {
       expect(newQuota.used).to.be.equal(file.size);
     });
 
+    it('should throw quota exceeded', async () => {
+      const oldQuota = await QuotaService.getByOwnerID(USER.id);
+
+      const newUpload: IUpload = await FileService.createUpload(
+        testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 99 * 1024 * 1024 * 1024)
+        .should.eventually.exist;
+        
+      expect(newUpload).to.exist;
+      expect(newUpload.bucket).to.be.equal(testUpload.bucket);
+      expect(newUpload.name).to.be.equal(testUpload.name);
+      expect(newUpload.key).to.be.equal(testUpload.key);
+      expect(newUpload.size).to.be.equal(99 * 1024 * 1024 * 1024);
+      
+      const quotaAfterCreatedUpload = await QuotaService.getByOwnerID(USER.id);
+      expect(quotaAfterCreatedUpload.used).to.be.equal(newUpload.size);
+
+      const file: IFile = await FileService.create(
+        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, 2 * 1024 * 1024 * 1024).should.eventually.be.rejectedWith(QuotaExceededError);
+
+      const quotaAfterCreateTry = await QuotaService.getByOwnerID(USER.id);
+      expect(quotaAfterCreateTry.used).to.be.equal(newUpload.size);
+    });
+
     it('should throw exceeded owner quota files size used', async () => {
       await FileService.create(
         bucket, 'file.txt', USER.id, 'text', KEY2, KEY, 101 * 1024 * 1024 * 1024)
