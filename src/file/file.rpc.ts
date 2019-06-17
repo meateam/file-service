@@ -1,6 +1,5 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
-import { IUser } from '../utils/user.interface';
 import { ObjectID } from 'mongodb';
 
 const grpc = require('grpc');
@@ -61,10 +60,16 @@ export class RPC {
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
     const name: string = call.request.name;
+    const ownerID: string = call.request.ownerID;
+    const parent: string = call.request.parent;
+    const size: number = parseInt(call.request.size);
     FileService.createUpload(
       key,
       bucket,
-      name)
+      name,
+      ownerID,
+      parent,
+      size)
       .then((upload) => {
         callback(null, upload);
       }).catch(err => callback(err));
@@ -88,18 +93,18 @@ export class RPC {
   private async getUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
     FileService.getUploadById(id)
-    .then((upload) => {
-      callback(null, upload);
-    }).catch(err => callback(err));
+      .then((upload) => {
+        callback(null, upload);
+      }).catch(err => callback(err));
   }
 
   //  Delete an upload from the DB by its id.
   private async deleteUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
     FileService.deleteUpload(id)
-    .then((upload) => {
-      callback(null, upload);
-    }).catch(err => callback(err));
+      .then((upload) => {
+        callback(null, upload);
+      }).catch(err => callback(err));
   }
 
   // ********************* FILE FUNCTIONS ********************* */
@@ -107,18 +112,15 @@ export class RPC {
   // Creates a new file in the DB.
   private async createFile(call: any, callback: any) {
     const params = call.request;
-    const partialFile: Partial<IFile> = {
-      size: params.size,
-      bucket: params.bucket,
-    };
 
     FileService.create(
-      partialFile,
+      params.bucket,
       params.name,
       params.ownerID,
       params.type,
       params.parent,
-      params.key)
+      params.key,
+      parseInt(params.size))
       .then((file) => {
         callback(null, new ResFile(file));
       })
@@ -171,7 +173,7 @@ export class RPC {
 }
 
 // Same as IFile, but changing types accordingly
-class ResFile{
+class ResFile {
   id: string;
   key: string;
   bucket: string;
@@ -181,7 +183,6 @@ class ResFile{
   type: string;
   description: string;
   ownerID: string;
-  owner: IUser;
   size: number;
   parent: ObjectID | string;
   deleted: boolean;
@@ -189,20 +190,19 @@ class ResFile{
   updatedAt: number;
 
   constructor(file: IFile) {
-    this.id              =     file.id;
-    this.key             =     file.key;
-    this.bucket          =     file.bucket;
-    this.displayName     =     file.displayName;
-    this.fullExtension   =     file.fullExtension;
-    this.name            =     file.name;
-    this.type            =     file.type;
-    this.description     =     file.description;
-    this.ownerID         =     file.ownerID;
-    this.owner           =     file.owner;
-    this.size            =     file.size;
-    this.parent          =     file.parent;
-    this.deleted         =     file.deleted;
-    this.createdAt       =     file.createdAt.getTime();
-    this.updatedAt       =     file.updatedAt.getTime();
+    this.id = file.id;
+    this.key = file.key;
+    this.bucket = file.bucket;
+    this.displayName = file.displayName;
+    this.fullExtension = file.fullExtension;
+    this.name = file.name;
+    this.type = file.type;
+    this.description = file.description;
+    this.ownerID = file.ownerID;
+    this.size = file.size;
+    this.parent = file.parent;
+    this.deleted = file.deleted;
+    this.createdAt = file.createdAt.getTime();
+    this.updatedAt = file.updatedAt.getTime();
   }
 }

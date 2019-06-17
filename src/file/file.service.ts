@@ -1,11 +1,12 @@
-import { Types } from 'mongoose';
 import { ObjectID } from 'mongodb';
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
 import { FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { IUpload } from './upload.interface';
-import { UploadRepository } from './upload.repository';
+import { IUpload } from '../upload/upload.interface';
+import { UploadRepository } from '../upload/upload.repository';
+import { QuotaService } from '../quota/quota.service';
+import { fileModel } from './file.model';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -26,7 +27,7 @@ export class FileService {
    * Generates a random key.
    */
   public static generateKey(): string {
-    const objectID : ObjectID = Types.ObjectId();
+    const objectID : ObjectID = new ObjectID();
     return this.hashKey(objectID.toHexString());
   }
 
@@ -35,11 +36,29 @@ export class FileService {
    * @param key - generated with generateKey
    * @param bucket - is the s3 bucket in the storage
    * @param name - of the file uploaded
+   * @param ownerID - the id of the file owner
+   * @param parent - the folder id in which the file resides
+   * @param size - the size of the file that is being uploaded.
    */
-  public static async createUpload(key: string, bucket: string, name: string)
-  : Promise<IUpload> {
-    const upload: Partial<IUpload> = { key, bucket, name };
-    return await UploadRepository.create(upload);
+  public static async createUpload(
+    key: string,
+    bucket: string,
+    name: string,
+    ownerID: string,
+    parent: string,
+    size: number = 0,
+  ) : Promise<IUpload> {
+    const file = await FilesRepository.getFileInFolderByName(parent, name, ownerID);
+    if (file) {
+      throw new FileExistsWithSameName();
+    }
+
+    const createdUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size });
+    if (createdUpload) {
+      await QuotaService.updateUsed(ownerID, size);
+    }
+
+    return createdUpload;
   }
 
   /**
@@ -48,7 +67,11 @@ export class FileService {
    * @param key - of the upload
    * @param bucket - together with bucket, create a unique identifier
    */
-  public static async updateUpload(uploadID: string, key: string, bucket: string) {
+  public static async updateUpload(
+    uploadID: string,
+    key: string,
+    bucket: string,
+  ): Promise<IUpload> {
     return await UploadRepository.updateByKey(key, bucket, uploadID);
   }
 
@@ -67,7 +90,10 @@ export class FileService {
    * @param uploadId - the id of the upload.
    */
   public static async deleteUpload(uploadId: string): Promise<void> {
-    await UploadRepository.deleteById(uploadId);
+    const deletedUpload = await UploadRepository.deleteById(uploadId);
+    if (deletedUpload) {
+      await QuotaService.updateUsed(deletedUpload.ownerID, -deletedUpload.size);
+    }
   }
 
   /**
@@ -79,44 +105,50 @@ export class FileService {
    * @param type - the type of the file.
    * @param folderID - id of the folder in which the file will reside (in the GUI).
    * @param key - the key of the file.
+   * @param size - the size of the file.
    */
   public static async create(
-    partialFile: Partial<IFile>,
-    name: string, ownerID: string,
-    type: string, folderID: string = '',
-    key: string = ''
+    bucket: string,
+    name: string,
+    ownerID: string,
+    type: string,
+    folderID: string = '',
+    key: string = '',
+    size: number = 0,
   ): Promise<IFile> {
-
     const isFolder: boolean = (type === FolderContentType);
-    let id: string | ObjectID;
-
-    // Create the file id (from key or new one).
-    if (key) { // if key exists reverse it to get the generated id
-      id = this.reverseString(key);
-    } else {
-      if (!isFolder) {
-        throw new ServerError('No key sent');
-      }
-      id = Types.ObjectId();
+    if (!key && !isFolder) {
+      throw new ServerError('No key sent');
     }
 
-    // If there is not parent given, create the file in the user's root folde
+    let id: string | ObjectID = new ObjectID();
+
+    // Create the file id by reversing key.
+    if (key) {
+      id = this.reverseString(key);
+    }
+
+    // If there is no parent given, create the file in the user's root folder.
     const parentID: string = folderID;
 
-    if (await this.isFileInFolder(name, parentID, ownerID)) {
-      throw new FileExistsWithSameName();
-    }
-    const file: IFile = Object.assign(partialFile, {
+    const file: IFile = new fileModel({
+      bucket,
       key,
       type,
       name,
       ownerID,
+      size,
       _id: id,
       deleted: false,
-      parent: parentID
+      parent: parentID,
     });
 
-    return await FilesRepository.create(file);
+    const createdFile = await FilesRepository.create(file);
+    if (createdFile) {
+      await QuotaService.updateUsed(ownerID, size);
+    }
+
+    return createdFile;
   }
 
   /**
@@ -183,6 +215,10 @@ export class FileService {
    * @param userID -the id of the user.
    */
   public static async isOwner(fileID: string, userID: string): Promise<boolean> {
+    // if the file is the user's root folder (which he is owner of) - return true
+    if (!fileID) {
+      return true;
+    }
     const file: IFile = await this.getById(fileID);
     return file.ownerID === userID;
   }
@@ -219,6 +255,6 @@ export class FileService {
    * @param str - the string to be reversed.
    */
   private static reverseString(str: string): string {
-    return str.split('').reverse().join('');
+    return str ? str.split('').reverse().join('') : '';
   }
 }
