@@ -73,7 +73,7 @@ fileSchema.virtual('displayName')
 
 fileSchema.virtual('fullExtension')
 .set(function () {
-  this.fullExtension = this.name ? this.name.split('.').splice(1).join('.'): '';
+  this.fullExtension = this.name ? this.name.split('.').splice(1).join('.') : '';
 }) .get(function ()  {
   return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
 });

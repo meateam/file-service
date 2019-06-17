@@ -5,8 +5,6 @@ import { MongoError } from 'mongodb';
 import { KeyAlreadyExistsError } from '../utils/errors/client.error';
 import { NextFunction } from 'connect';
 
-const ObjectId = Schema.Types.ObjectId;
-
 export const uploadSchema: Schema = new Schema(
   {
     uploadID: {
@@ -33,6 +31,11 @@ export const uploadSchema: Schema = new Schema(
     ownerID: {
       type: String,
       required: false,
+    },
+    size: {
+      type: Number,
+      required: true,
+      default: 0,
     }
   },
   {
