@@ -221,6 +221,17 @@ describe('File Logic', () => {
       await FileService.create(bucket, 'myFile', '654321', 'Other', null, KEY2, size).should.eventually.exist;
     });
 
+    it('should throw error: same owner, folder and filename', async () => {
+      await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
+      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+    });
+
+    it('should not throw error: same folder and filename, different owner', async () => {
+      await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', '654321', 'Other', null, KEY2, size).should.eventually.exist;
+    });
+
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
         bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
