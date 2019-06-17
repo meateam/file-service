@@ -1,6 +1,7 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { ObjectID } from 'mongodb';
+import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
@@ -8,7 +9,6 @@ const protoLoader = require('@grpc/proto-loader');
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
-
 const packageDefinition = protoLoader.loadSync(
   PROTO_PATH,
   {
@@ -19,6 +19,12 @@ const packageDefinition = protoLoader.loadSync(
     oneofs: true,
   });
 
+const serviceName = 'file.fileService';
+const healthCheckStatusMap = {
+  '': HealthCheckResponse.ServingStatus.SERVING,
+  serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
+};
+
 // Has the full package hierarchy
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 const file_proto = protoDescriptor.file;
@@ -28,9 +34,14 @@ const file_proto = protoDescriptor.file;
  */
 export class RPC {
   public server: any;
-
   public constructor(port: string) {
     this.server = new grpc.Server();
+
+    // Register the health service
+    const grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
+    grpcHealthCheck.setStatus(serviceName, HealthCheckResponse.ServingStatus.SERVING);
+    this.server.addService(HealthService, grpcHealthCheck);
+
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
       CreateUpload: this.createUpload,
@@ -44,6 +55,7 @@ export class RPC {
       DeleteFile: this.deleteFile,
       IsAllowed: this.isAllowed,
     });
+
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
 
@@ -62,7 +74,7 @@ export class RPC {
     const name: string = call.request.name;
     const ownerID: string = call.request.ownerID;
     const parent: string = call.request.parent;
-    const size: number = parseInt(call.request.size);
+    const size: number = parseInt(call.request.size, 10);
     FileService.createUpload(
       key,
       bucket,
@@ -120,7 +132,7 @@ export class RPC {
       params.type,
       params.parent,
       params.key,
-      parseInt(params.size))
+      parseInt(params.size, 10))
       .then((file) => {
         callback(null, new ResFile(file));
       })
