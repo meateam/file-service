@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import morgan from 'morgan';
 import session from 'express-session';
 import cors from 'cors';
-import { config } from './config';
+import { config, mongoConnectionString } from './config';
 import { RPC, serviceNames } from './file/file.rpc';
 import { GrpcHealthCheck, HealthCheckResponse } from 'grpc-ts-health-check';
 
@@ -59,7 +59,7 @@ export class Server {
 
     const mongoHost = process.env.MONGO_HOST || config.db.host;
     await mongoose.connect(
-      `mongodb://${mongoHost}:${config.db.port}/${config.db.name}`,
+      mongoConnectionString,
       { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false },
       (err) => {
         if (!err) {
@@ -67,8 +67,7 @@ export class Server {
         } else {
           setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
         }
-      }
-    );
+      });
 
     const db = mongoose.connection;
     db.on('connected', () => {
@@ -81,12 +80,11 @@ export class Server {
       setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
     });
 
-    // Insures you don't run the server twice
+    // Ensures you don't run the server twice
     if (!module.parent) {
       rpcServer.server.start();
     }
   }
-
 }
 
 if (!module.parent) {
