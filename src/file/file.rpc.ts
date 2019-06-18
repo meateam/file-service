@@ -30,9 +30,9 @@ const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 const file_proto = protoDescriptor.file;
 
 /**
- * The RPC class, containing all of the RPC methods.
+ * The FILE class, containing all of the FILE methods.
  */
-export class RPC {
+export class FILE {
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
   public constructor(port: string) {
