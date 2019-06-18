@@ -20,7 +20,7 @@ const testing: Config = {
   server: 'http://localhost',
   port: 9000,
   db: {
-    host: 'localhost',
+    host: process.env.MONGO_HOST || 'localhost',
     port: '27017',
     name: 'testingDB',
   },
@@ -32,7 +32,7 @@ const dev: Config = {
   server: 'http://40.115.124.214',
   port: 9000,
   db: {
-    host: 'localhost',
+    host: process.env.MONGO_HOST || 'localhost',
     port: '27017',
     name: 'devDB',
   },
@@ -45,7 +45,7 @@ const prod: Config = {
   server: 'https://seal.blue.com',
   port: 9000,
   db: {
-    host: 'mongo',
+    host: process.env.MONGO_HOST || 'mongo',
     port: '27017',
     name: 'prodDB',
   },
@@ -65,8 +65,7 @@ function getConfig(confType: string) : Config {
 }
 
 export const config : Config = getConfig(process.env.NODE_ENV || dev.conf_type);
-const mongoHost = process.env.MONGO_HOST || config.db.host;
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
 export const connectionString : string =
   process.env.MONGO_CONNECTION_STRING ||
-  `mongodb://${mongoHost}:${config.db.port}/${config.db.name}`;
+  `mongodb://${config.db.host}:${config.db.port}/${config.db.name}`;
