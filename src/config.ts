@@ -65,3 +65,6 @@ function getConfig(confType: string) : Config {
 }
 
 export const config : Config = getConfig(process.env.NODE_ENV || dev.conf_type);
+// example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
+export const mongoConnectionString : string =
+  process.env.MONGO_HOST || `mongodb://${config.db.host}:${config.db.port}/${config.db.name}`;

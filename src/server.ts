@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import morgan from 'morgan';
 import session from 'express-session';
 import cors from 'cors';
-import { config } from './config';
+import { config, mongoConnectionString } from './config';
 import { RPC } from './file/file.rpc';
 
 export class Server {
@@ -55,9 +55,8 @@ export class Server {
 
   // Connect mongoose to our database
   private async connectDB() {
-    const mongoHost = process.env.MONGO_HOST || config.db.host;
     await mongoose.connect(
-      `mongodb://${mongoHost}:${config.db.port}/${config.db.name}`,
+      mongoConnectionString,
       { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
     );
     const db = mongoose.connection;
@@ -67,12 +66,11 @@ export class Server {
   private listen() {
     const rpcServer: RPC = new RPC(config.rpc_port);
 
-    // Insures you don't run the server twice
+    // Ensures you don't run the server twice
     if (!module.parent) {
       rpcServer.server.start();
     }
   }
-
 }
 
 if (!module.parent) {

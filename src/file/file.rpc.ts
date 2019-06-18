@@ -62,7 +62,7 @@ export class RPC {
     const name: string = call.request.name;
     const ownerID: string = call.request.ownerID;
     const parent: string = call.request.parent;
-    const size: number = parseInt(call.request.size);
+    const size: number = parseInt(call.request.size, 10);
     FileService.createUpload(
       key,
       bucket,
@@ -120,7 +120,7 @@ export class RPC {
       params.type,
       params.parent,
       params.key,
-      parseInt(params.size))
+      parseInt(params.size, 10))
       .then((file) => {
         callback(null, new ResFile(file));
       })
