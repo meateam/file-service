@@ -62,7 +62,7 @@ export class Server {
       `mongodb://${mongoHost}:${config.db.port}/${config.db.name}`,
       { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false },
       (err) => {
-        if(!err){
+        if (!err) {
           setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.SERVING);
         } else {
           setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
@@ -94,7 +94,7 @@ if (!module.parent) {
 }
 
 function setHealthStatus(server: RPC, status: number) : void {
-  for(let i = 0 ; i < serviceNames.length ; i++){
+  for (let i = 0 ; i < serviceNames.length ; i++) {
     server.grpcHealthCheck.setStatus(serviceNames[i], status);
   }
 }
