@@ -56,8 +56,7 @@ export class Server {
   // Connect mongoose to our database
   private async connectDB() {
     const rpcServer: RPC = new RPC(config.rpc_port);
-
-    const mongoHost = process.env.MONGO_HOST || config.db.host;
+    
     await mongoose.connect(
       mongoConnectionString,
       { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false },
