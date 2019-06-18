@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import session from 'express-session';
 import cors from 'cors';
 import { config, mongoConnectionString } from './config';
-import { FILE, serviceNames } from './file/file.rpc';
+import { FileServer, serviceNames } from './file/file.rpc';
 import { HealthCheckResponse } from 'grpc-ts-health-check';
 
 export class Server {
@@ -55,7 +55,7 @@ export class Server {
 
   // Connect mongoose to our database
   private async connectDB() {
-    const fileServer: FILE = new FILE(config.rpc_port);
+    const fileServer: FileServer = new FileServer(config.rpc_port);
 
     await mongoose.connect(
       mongoConnectionString,
@@ -90,7 +90,7 @@ if (!module.parent) {
   new Server().app;
 }
 
-function setHealthStatus(server: FILE, status: number) : void {
+function setHealthStatus(server: FileServer, status: number) : void {
   for (let i = 0 ; i < serviceNames.length ; i++) {
     server.grpcHealthCheck.setStatus(serviceNames[i], status);
   }
