@@ -19,9 +19,9 @@ const packageDefinition = protoLoader.loadSync(
     oneofs: true,
   });
 
-const serviceName = 'file.fileService';
-const healthCheckStatusMap = {
-  '': HealthCheckResponse.ServingStatus.SERVING,
+export const serviceNames: string[] = ['', 'file.fileService'];
+export const healthCheckStatusMap = {
+  '': HealthCheckResponse.ServingStatus.UNKNOWN,
   serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
 };
 
@@ -34,13 +34,13 @@ const file_proto = protoDescriptor.file;
  */
 export class RPC {
   public server: any;
+  public grpcHealthCheck: GrpcHealthCheck;
   public constructor(port: string) {
     this.server = new grpc.Server();
 
     // Register the health service
-    const grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
-    grpcHealthCheck.setStatus(serviceName, HealthCheckResponse.ServingStatus.SERVING);
-    this.server.addService(HealthService, grpcHealthCheck);
+    this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
+    this.server.addService(HealthService, this.grpcHealthCheck);
 
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,

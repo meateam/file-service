@@ -5,7 +5,8 @@ import morgan from 'morgan';
 import session from 'express-session';
 import cors from 'cors';
 import { config } from './config';
-import { RPC } from './file/file.rpc';
+import { RPC, serviceNames } from './file/file.rpc';
+import { GrpcHealthCheck, HealthCheckResponse } from 'grpc-ts-health-check';
 
 export class Server {
   public app: express.Application;
@@ -19,7 +20,6 @@ export class Server {
     if (!testing) {
       this.connectDB();
       this.log();
-      this.listen();
     }
   }
 
@@ -55,17 +55,31 @@ export class Server {
 
   // Connect mongoose to our database
   private async connectDB() {
+    const rpcServer: RPC = new RPC(config.rpc_port);
+
     const mongoHost = process.env.MONGO_HOST || config.db.host;
     await mongoose.connect(
       `mongodb://${mongoHost}:${config.db.port}/${config.db.name}`,
-      { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
+      { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false },
+      (err) => {
+        if(!err){
+          setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.SERVING);
+        } else {
+          setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
+        }
+      }
     );
-    const db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-  }
 
-  private listen() {
-    const rpcServer: RPC = new RPC(config.rpc_port);
+    const db = mongoose.connection;
+    db.on('connected', () => {
+      setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.SERVING);
+    });
+    db.on('error', () => {
+      setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
+    });
+    db.on('disconnected', () => {
+      setHealthStatus(rpcServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
+    });
 
     // Insures you don't run the server twice
     if (!module.parent) {
@@ -77,4 +91,10 @@ export class Server {
 
 if (!module.parent) {
   new Server().app;
+}
+
+function setHealthStatus(server: RPC, status: number) : void {
+  for(let i = 0 ; i < serviceNames.length ; i++){
+    server.grpcHealthCheck.setStatus(serviceNames[i], status);
+  }
 }
