@@ -10,10 +10,12 @@ RUN npm install -g typescript
 COPY . .
 RUN npm run build-ts
 
-FROM astefanutti/scratch-node:10.13.0
+FROM node:10.16-alpine
+COPY --from=0 /usr/src/app/package.json /usr/src/app/package-lock.json ./
 COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 COPY --from=builder /usr/src/app/dist /dist
+COPY --from=builder /usr/src/app/proto /proto
 COPY --from=builder /usr/src/app/node_modules /node_modules
-LABEL Name=upload-service Version=0.0.1
+LABEL Name=file-service Version=0.0.1
 EXPOSE 8080
 CMD ["npm", "run", "serve"]
