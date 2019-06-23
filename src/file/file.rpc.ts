@@ -1,9 +1,24 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
+// import * as winston from 'winston';
+// import * as Elasticsearch from 'winston-elasticsearch';
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
+var winston = require('winston');
+var Elasticsearch = require('winston-elasticsearch');
 
-const grpc = require('grpc');
+var esTransportOpts = {
+  level: 'info'
+};
+var logger = winston.createLogger({
+  transports: [
+    new winston.transports.Http({ host: 'http://13.69.137.179', port:9200, level: 'info' })
+  ]
+});
+
+logger.info('My message', {});
+// console.log(logger);
+const grpc = require('grpc-middleware');
 const protoLoader = require('@grpc/proto-loader');
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
@@ -36,7 +51,7 @@ export class FileServer {
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
   public constructor(port: string) {
-    this.server = new grpc.Server();
+    this.server = new grpc.Server({}, this.mid);
 
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
@@ -57,6 +72,13 @@ export class FileServer {
     });
 
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+  }
+
+  private mid(context: any, call: any) {
+    console.log(call.metadata);
+    console.log(context);
+    console.log("hi, i'm mid!");
+    console.log(call);
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
