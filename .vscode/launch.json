@@ -14,7 +14,7 @@
 				"${workspaceFolder}/dist/**/*.js"
 			],
 			"env": {
-				"MONGO_HOST": "localhost",
+				"MONGO_HOST": "mongodb://localhost:27017/devDB",
 				"RPC_PORT": "8083",
 			}
 		}
