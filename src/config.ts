@@ -29,7 +29,7 @@ const testing: Config = {
 const dev: Config = {
   rpc_port: process.env.RPC_PORT || '8080',
   conf_type: 'dev',
-  server: 'http://40.115.124.214',
+  server: 'http://localhost',
   port: 9000,
   db: {
     host: 'localhost',
@@ -63,7 +63,13 @@ function getConfig(confType: string) : Config {
       return dev;
   }
 }
-
+const esHost = process.env.LOGGER_ELASTICSEARCH || 'http://localhost:9200';
+export const confLogger = {
+  elasticsearch: esHost && {
+    hosts: esHost.split(','),
+  },
+  indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'pandora-logs',
+};
 export const config : Config = getConfig(process.env.NODE_ENV || dev.conf_type);
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
 export const mongoConnectionString : string =

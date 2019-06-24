@@ -2,22 +2,10 @@ import { FileService } from './file.service';
 import { IFile } from './file.interface';
 // import * as winston from 'winston';
 // import * as Elasticsearch from 'winston-elasticsearch';
+import { log } from '../logger';
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
-var winston = require('winston');
-var Elasticsearch = require('winston-elasticsearch');
 
-var esTransportOpts = {
-  level: 'info'
-};
-var logger = winston.createLogger({
-  transports: [
-    new winston.transports.Http({ host: 'http://13.69.137.179', port:9200, level: 'info' })
-  ]
-});
-
-logger.info('My message', {});
-// console.log(logger);
 const grpc = require('grpc-middleware');
 const protoLoader = require('@grpc/proto-loader');
 
@@ -56,7 +44,7 @@ export class FileServer {
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
-
+    log('ok :)', 'myName', 'it works!');
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
       CreateUpload: this.createUpload,
