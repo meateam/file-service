@@ -1,8 +1,6 @@
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
-// import * as winston from 'winston';
-// import * as Elasticsearch from 'winston-elasticsearch';
-import { log } from '../logger';
+import { log } from '../utils/logger';
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 
@@ -65,14 +63,17 @@ export class FileServer {
 
   // Generates a random key for the upload.
   private generateKey(call: any, callback: any) {
-    logOnEntery('generateKey', call.request);
+    const methodName = 'generateKey';
+    logOnEntry(methodName, call.request);
     const key: string = FileService.generateKey();
+    logOnFinish(methodName);
     callback(null, { key });
   }
 
   // Creates an upload object, present while uploading a file.
   private async createUpload(call: any, callback: any) {
-    logOnEntery('createUpload', call.request);
+    const methodName = 'createUpload';
+    logOnEntry(methodName, call.request);
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
     const name: string = call.request.name;
@@ -87,17 +88,18 @@ export class FileServer {
       parent,
       size)
       .then((upload) => {
-        logOnFinish('createUpload');
+        logOnFinish(methodName);
         callback(null, upload);
       }).catch((err) => {
-        logOnError('createUpload', err);
+        logOnError(methodName, err);
         callback(err);
       });
   }
 
   // Updates the uploadID.
   private async updateUpload(call: any, callback: any) {
-    logOnEntery('updateUpload', call.request);
+    const methodName = 'updateUpload';
+    logOnEntry(methodName, call.request);
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
@@ -106,35 +108,50 @@ export class FileServer {
       key,
       bucket)
       .then((upload) => {
+        logOnFinish(methodName);
         callback(null, upload);
-      }).catch(err => callback(err));
+      }).catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
   // Get an upload metadata by its id in the DB.
   private async getUploadByID(call: any, callback: any) {
-    logOnEntery('getUploadByID', call.request);
+    const methodName = 'getUploadByID';
+    logOnEntry(methodName, call.request);
     const id = call.request.uploadID;
     FileService.getUploadById(id)
       .then((upload) => {
+        logOnFinish(methodName);
         callback(null, upload);
-      }).catch(err => callback(err));
+      }).catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
   //  Delete an upload from the DB by its id.
   private async deleteUploadByID(call: any, callback: any) {
-    logOnEntery('deleteUploadByID', call.request);
+    const methodName = 'deleteUploadByID';
+    logOnEntry(methodName, call.request);
     const id = call.request.uploadID;
     FileService.deleteUpload(id)
       .then((upload) => {
+        logOnFinish(methodName);
         callback(null, upload);
-      }).catch(err => callback(err));
+      }).catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
   // ********************* FILE FUNCTIONS ********************* */
 
   // Creates a new file in the DB.
   private async createFile(call: any, callback: any) {
-    logOnEntery('createFile', call.request);
+    const methodName = 'createFile';
+    logOnEntry(methodName, call.request);
     const params = call.request;
 
     FileService.create(
@@ -146,57 +163,91 @@ export class FileServer {
       params.key,
       parseInt(params.size, 10))
       .then((file) => {
+        logOnFinish(methodName);
         callback(null, new ResFile(file));
       })
-      .catch(err => callback(err));
+      .catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
   // Deletes a file, according to the file deletion policy.
   private async deleteFile(call: any, callback: any) {
-    logOnEntery('deleteFile', call.request);
+    const methodName = 'deleteFile';
+    logOnEntry(methodName, call.request);
     const id: string = call.request.id;
     FileService.delete(id)
-      .then(() => callback(null, { ok: true }))
-      .catch(err => callback(err));
+      .then(() => {
+        logOnFinish(methodName);
+        callback(null, { ok: true });
+      })
+      .catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
   // Retrieves a file by its id.
   private async getFileByID(call: any, callback: any) {
-    logOnEntery('getFileByID', call.request);
+    const methodName = 'getFileByID';
+    logOnEntry(methodName, call.request);
     const id: string = call.request.id;
     FileService.getById(id)
-      .then(file => callback(null, new ResFile(file)))
-      .catch(err => callback(err));
+      .then((file) => {
+        logOnFinish(methodName);
+        callback(null, new ResFile(file));
+      }).catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
   // Retrieves a file by its key.
   private async getFileByKey(call: any, callback: any) {
-    logOnEntery('getFileByKey', call.request);
+    const methodName = 'getFileByKey';
+    logOnEntry(methodName, call.request);
     const key: string = call.request.key;
     FileService.getByKey(key)
-      .then(file => callback(null, new ResFile(file)))
-      .catch(err => callback(err));
+      .then((file) => {
+        logOnFinish(methodName);
+        callback(null, new ResFile(file));
+      })
+      .catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
   // Retrieves all files residing in a given folder.
   private async getFilesByFolder(call: any, callback: any) {
-    logOnEntery('getFilesByFolder', call.request);
+    const methodName = 'getFilesByFolder';
+    logOnEntry(methodName, call.request);
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
     FileService.getFilesByFolder(folderID, ownerID)
       .then((files) => {
         const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
+        logOnFinish(methodName);
         callback(null, { files: resFiles });
-      })
-      .catch(err => callback(err));
+      }).catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
   // Checks if an operation is allowed by permission of the owner.
   private async isAllowed(call: any, callback: any) {
-    logOnEntery('isAllowed', call.request);
+    const methodName = 'isAllowed';
+    logOnEntry(methodName, call.request);
     FileService.isOwner(call.request.fileID, call.request.userID)
-      .then(res => callback(null, { allowed: res }))
-      .catch(err => callback(err));
+      .then((res) => {
+        logOnFinish(methodName);
+        callback(null, { allowed: res });
+      }).catch((err) => {
+        logOnError(methodName, err);
+        callback(err);
+      });
   }
 
 }
@@ -236,10 +287,10 @@ class ResFile {
   }
 }
 
-function logOnEntery(methodName : string, fields: any) : void {
-  var description : string = '';
+function logOnEntry(methodName : string, fields: any) : void {
+  let description : string = '';
   for (const key of Object.keys(fields)) {
-    let fieldName : string = fields[key].toString();
+    const fieldName : string = fields[key].toString();
     description += `${key} : ${fieldName}, `;
   }
   log('info', `in ${methodName}`, description);

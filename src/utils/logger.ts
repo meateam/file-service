@@ -1,8 +1,7 @@
-
 import * as winston from 'winston';
 import * as os from 'os';
 const Elasticsearch = require('winston-elasticsearch');
-import { confLogger } from './config';
+import { confLogger } from '../config';
 
 const indexTemplateMapping = require('winston-elasticsearch/index-template-mapping.json');
 indexTemplateMapping.index_patterns = `${confLogger.indexPrefix}-*`;
