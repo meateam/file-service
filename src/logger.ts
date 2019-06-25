@@ -12,7 +12,6 @@ export const logger = winston.createLogger({
 });
 
 if (confLogger.elasticsearch) {
-  console.log('elastic');
   const elasticsearch = new Elasticsearch({
     indexPrefix: confLogger.indexPrefix,
     level: 'verbose',

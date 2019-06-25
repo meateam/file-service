@@ -6,7 +6,7 @@ import { log } from '../logger';
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 
-const grpc = require('grpc-middleware');
+const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
@@ -39,12 +39,11 @@ export class FileServer {
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
   public constructor(port: string) {
-    this.server = new grpc.Server({}, this.mid);
+    this.server = new grpc.Server();
 
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
-    log('ok :)', 'myName', 'it works!');
     this.server.addService(file_proto.FileService.service, {
       GenerateKey: this.generateKey,
       CreateUpload: this.createUpload,
@@ -62,23 +61,18 @@ export class FileServer {
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
 
-  private mid(context: any, call: any) {
-    console.log(call.metadata);
-    console.log(context);
-    console.log("hi, i'm mid!");
-    console.log(call);
-  }
-
   // ******************** UPLOAD FUNCTIONS ******************** */
 
   // Generates a random key for the upload.
   private generateKey(call: any, callback: any) {
+    logOnEntery('generateKey', call.request);
     const key: string = FileService.generateKey();
     callback(null, { key });
   }
 
   // Creates an upload object, present while uploading a file.
   private async createUpload(call: any, callback: any) {
+    logOnEntery('createUpload', call.request);
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
     const name: string = call.request.name;
@@ -93,12 +87,17 @@ export class FileServer {
       parent,
       size)
       .then((upload) => {
+        logOnFinish('createUpload');
         callback(null, upload);
-      }).catch(err => callback(err));
+      }).catch((err) => {
+        logOnError('createUpload', err);
+        callback(err);
+      });
   }
 
   // Updates the uploadID.
   private async updateUpload(call: any, callback: any) {
+    logOnEntery('updateUpload', call.request);
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
@@ -113,6 +112,7 @@ export class FileServer {
 
   // Get an upload metadata by its id in the DB.
   private async getUploadByID(call: any, callback: any) {
+    logOnEntery('getUploadByID', call.request);
     const id = call.request.uploadID;
     FileService.getUploadById(id)
       .then((upload) => {
@@ -122,6 +122,7 @@ export class FileServer {
 
   //  Delete an upload from the DB by its id.
   private async deleteUploadByID(call: any, callback: any) {
+    logOnEntery('deleteUploadByID', call.request);
     const id = call.request.uploadID;
     FileService.deleteUpload(id)
       .then((upload) => {
@@ -133,6 +134,7 @@ export class FileServer {
 
   // Creates a new file in the DB.
   private async createFile(call: any, callback: any) {
+    logOnEntery('createFile', call.request);
     const params = call.request;
 
     FileService.create(
@@ -151,6 +153,7 @@ export class FileServer {
 
   // Deletes a file, according to the file deletion policy.
   private async deleteFile(call: any, callback: any) {
+    logOnEntery('deleteFile', call.request);
     const id: string = call.request.id;
     FileService.delete(id)
       .then(() => callback(null, { ok: true }))
@@ -159,6 +162,7 @@ export class FileServer {
 
   // Retrieves a file by its id.
   private async getFileByID(call: any, callback: any) {
+    logOnEntery('getFileByID', call.request);
     const id: string = call.request.id;
     FileService.getById(id)
       .then(file => callback(null, new ResFile(file)))
@@ -167,6 +171,7 @@ export class FileServer {
 
   // Retrieves a file by its key.
   private async getFileByKey(call: any, callback: any) {
+    logOnEntery('getFileByKey', call.request);
     const key: string = call.request.key;
     FileService.getByKey(key)
       .then(file => callback(null, new ResFile(file)))
@@ -175,6 +180,7 @@ export class FileServer {
 
   // Retrieves all files residing in a given folder.
   private async getFilesByFolder(call: any, callback: any) {
+    logOnEntery('getFilesByFolder', call.request);
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
     FileService.getFilesByFolder(folderID, ownerID)
@@ -187,6 +193,7 @@ export class FileServer {
 
   // Checks if an operation is allowed by permission of the owner.
   private async isAllowed(call: any, callback: any) {
+    logOnEntery('isAllowed', call.request);
     FileService.isOwner(call.request.fileID, call.request.userID)
       .then(res => callback(null, { allowed: res }))
       .catch(err => callback(err));
@@ -227,4 +234,21 @@ class ResFile {
     this.createdAt = file.createdAt.getTime();
     this.updatedAt = file.updatedAt.getTime();
   }
+}
+
+function logOnEntery(methodName : string, fields: any) : void {
+  var description : string = '';
+  for (const key of Object.keys(fields)) {
+    let fieldName : string = fields[key].toString();
+    description += `${key} : ${fieldName}, `;
+  }
+  log('info', `in ${methodName}`, description);
+}
+
+function logOnFinish(methodName : string) : void {
+  log('info', `in ${methodName}`, 'Finished successfully');
+}
+
+function logOnError(methodName : string, err: Error) : void {
+  log('error', `in ${methodName}`, err.message);
 }

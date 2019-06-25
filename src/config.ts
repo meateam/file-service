@@ -68,7 +68,7 @@ export const confLogger = {
   elasticsearch: esHost && {
     hosts: esHost.split(','),
   },
-  indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'pandora-logs',
+  indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
 };
 export const config : Config = getConfig(process.env.NODE_ENV || dev.conf_type);
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
