@@ -8,7 +8,7 @@ const apm = require('elastic-apm-node').start({
   secretToken: '',
 
   // Set custom APM Server URL (default: http://localhost:8200)
-  serverUrl: 'http://localhost:8200',
+  serverUrl: 'http://13.69.137.179:8200',
 });
 
 import { FileService } from './file.service';
@@ -31,7 +31,6 @@ const packageDefinition = protoLoader.loadSync(
     defaults: true,
     oneofs: true,
   });
-  
 
 export const serviceNames: string[] = ['', 'file.fileService'];
 export const healthCheckStatusMap = {
@@ -50,32 +49,46 @@ export class FileServer {
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
   public constructor(port: string) {
-    this.server = new grpc.Server({}, this.mid);
+    this.server = new grpc.Server({}, (context: any, call: any) => this.pre(context, call), (context: any, call: any) => this.post());
+
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
-    this.server.addService(file_proto.FileService.service, {
-      GenerateKey: this.generateKey,
-      CreateUpload: this.createUpload,
-      UpdateUploadID: this.updateUpload,
-      GetUploadByID: this.getUploadByID,
-      DeleteUploadByID: this.deleteUploadByID,
-      GetFileByID: this.getFileByID,
-      GetFileByKey: this.getFileByKey,
-      GetFilesByFolder: this.getFilesByFolder,
-      CreateFile: this.createFile,
-      DeleteFile: this.deleteFile,
-      IsAllowed: this.isAllowed,
-    });
-
+    this.server.addService(
+      file_proto.FileService.service,
+      {
+        GenerateKey: this.generateKey,
+        CreateUpload: this.createUpload,
+        UpdateUploadID: this.updateUpload,
+        GetUploadByID: this.getUploadByID,
+        DeleteUploadByID: this.deleteUploadByID,
+        GetFileByID: this.getFileByID,
+        GetFileByKey: this.getFileByKey,
+        GetFilesByFolder: this.getFilesByFolder,
+        CreateFile: this.createFile,
+        DeleteFile: this.deleteFile,
+        IsAllowed: this.isAllowed,
+      },
+      this.mid
+    );
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
+  private mid(context: any, call: any) {
+    console.log('hello');
+    console.log(call);
 
-  private mid(call: any, callback: any) {
-    const trans = apm.startTransaction('transName3', 'transType');
-    console.log('prints every time');
+  }
+  private pre(context: any, call: any) {
+    console.log(this.post.name);
+    console.log('in pre');
+    console.dir(call.metadata);
+    const trans = apm.startTransaction('transName4', 'transType');
     console.log(`1: ${trans.id}`);
-    // trans.end();
+  }
+
+  private post() {
+    console.log('post called');
+    apm.endTransaction('happy');
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
