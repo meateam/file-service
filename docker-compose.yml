@@ -2,7 +2,7 @@ version: '2.1'
 
 services:
   file-service:
-    image: file-service
+    image: file-service:latest
     build: .
     environment:
       MONGO_HOST: mongo
@@ -13,6 +13,4 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data-volume:/data/db
-volumes:
-  mongo-data-volume:
+      - ./data/db:/data/db

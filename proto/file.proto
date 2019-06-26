@@ -15,11 +15,25 @@ service FileService {
     rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
     rpc UpdateFile(UpdateFileRequest) returns (File) {}
     rpc IsAllowed(IsAllowedRequest) returns (IsAllowedResponse) {}
+    rpc GetOwnerQuota(GetOwnerQuotaRequest) returns (GetOwnerQuotaResponse) {}
+}
+
+message GetOwnerQuotaRequest {
+    string ownerID = 1;
+}
+
+message GetOwnerQuotaResponse {
+    string ownerID = 1;
+    int64 limit = 2;
+    int64 size = 3;
 }
 
 message CreateUploadRequest {
     string bucket = 1;
     string name = 2;
+    string ownerID = 3;
+    string parent = 4;
+    int64 size = 5;
 }
 
 message CreateUploadResponse {
@@ -28,7 +42,6 @@ message CreateUploadResponse {
 }
 
 message GenerateKeyRequest {
-    string bucket = 1;
 }
 
 message KeyResponse {
@@ -83,13 +96,12 @@ message GetFilesByFolderResponse {
 
 message CreateFileRequest {
     string key = 1;
-    string fullName = 2;
+    string name = 2;
     int64 size = 3;
     string type = 4;
     string ownerID = 5;
     string bucket = 6;
     string parent = 7;
-    string appID = 8;
 }
 
 message DeleteFileRequest {
@@ -101,12 +113,11 @@ message DeleteFileResponse {
 }
 
 message UpdateFileRequest {
-    string fullName = 2;
-    int64 size = 3;
-    string ownerID = 5;
-    string parent = 6;
-    string appID = 7;
-    string bucket = 11;
+    string name = 1;
+    int64 size = 2;
+    string ownerID = 3;
+    string parent = 4;
+    string bucket = 5;
 }
 
 message IsAllowedRequest {
@@ -133,7 +144,7 @@ message App {
 message File {
     string id = 1;
     string key = 2;
-    string fullName = 3;
+    string name = 3;
     string type = 4;
     string description = 5;
     string ownerID = 6;

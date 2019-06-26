@@ -4,8 +4,9 @@ import mongoose from 'mongoose';
 import morgan from 'morgan';
 import session from 'express-session';
 import cors from 'cors';
-import { config } from './config';
-import { RPC } from './file/file.rpc';
+import { config, mongoConnectionString } from './config';
+import { FileServer, serviceNames } from './file/file.rpc';
+import { HealthCheckResponse } from 'grpc-ts-health-check';
 
 export class Server {
   public app: express.Application;
@@ -19,7 +20,6 @@ export class Server {
     if (!testing) {
       this.connectDB();
       this.log();
-      this.listen();
     }
   }
 
@@ -55,26 +55,43 @@ export class Server {
 
   // Connect mongoose to our database
   private async connectDB() {
-    const mongoHost = process.env.MONGO_HOST || config.db.host;
+    const fileServer: FileServer = new FileServer(config.rpc_port);
+
     await mongoose.connect(
-      `mongodb://${mongoHost}:${config.db.port}/${config.db.name}`,
-      { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
-    );
+      mongoConnectionString,
+      { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false },
+      (err) => {
+        if (!err) {
+          setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.SERVING);
+        } else {
+          setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
+        }
+      });
+
     const db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-  }
+    db.on('connected', () => {
+      setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.SERVING);
+    });
+    db.on('error', () => {
+      setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
+    });
+    db.on('disconnected', () => {
+      setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
+    });
 
-  private listen() {
-    const rpcServer: RPC = new RPC(config.rpc_port);
-
-    // Insures you don't run the server twice
+    // Ensures you don't run the server twice
     if (!module.parent) {
-      rpcServer.server.start();
+      fileServer.server.start();
     }
   }
-
 }
 
 if (!module.parent) {
   new Server().app;
+}
+
+function setHealthStatus(server: FileServer, status: number) : void {
+  for (let i = 0 ; i < serviceNames.length ; i++) {
+    server.grpcHealthCheck.setStatus(serviceNames[i], status);
+  }
 }
