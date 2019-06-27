@@ -49,7 +49,7 @@ export class FileServer {
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
   public constructor(port: string) {
-    this.server = new grpc.Server({}, () => {}, (context: any, call: any) => this.post());
+    this.server = new grpc.Server({}, (context: any, call: any) => this.pre(), (context: any, call: any) => this.post());
 
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
@@ -73,20 +73,24 @@ export class FileServer {
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
 
-  private post() {
-    console.log('post called');
-    apm.endTransaction('successful');
+  private pre () {
   }
 
-  private wrapper(func: any) : any{
-    return (call:any,callback:any)=>{
+  private post() {
+  }
+
+  private wrapper (func: any) : any {
+    return async (call:any, callback:any) => {
       try {
         apm.startTransaction(func.name, 'monitoringFS');
-        func(call,callback);
+        const res = await func(call, callback);
+        apm.endTransaction('successful');
+        callback(null, res);
       } catch (err) {
+        apm.endTransaction('failed');
         callback(err);
       }
-    }
+    };
 
   }
 
@@ -94,8 +98,7 @@ export class FileServer {
 
   // Generates a random key for the upload.
   private generateKey(call: any, callback: any) {
-    const key: string = FileService.generateKey();
-    callback(null, { key });
+    return { key: FileService.generateKey() };
   }
 
   // Creates an upload object, present while uploading a file.
@@ -106,18 +109,7 @@ export class FileServer {
     const ownerID: string = call.request.ownerID;
     const parent: string = call.request.parent;
     const size: number = parseInt(call.request.size, 10);
-    FileService.createUpload(
-      key,
-      bucket,
-      name,
-      ownerID,
-      parent,
-      size)
-      .then((upload) => {
-        apm.endTransaction('happy');
-        // console.log(call.request.trans.id);
-        callback(null, upload);
-      }).catch(err => callback(err));
+    return await FileService.createUpload(key, bucket, name, ownerID, parent, size);
   }
 
   // Updates the uploadID.
@@ -125,31 +117,19 @@ export class FileServer {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
-    FileService.updateUpload(
-      uploadID,
-      key,
-      bucket)
-      .then((upload) => {
-        callback(null, upload);
-      }).catch(err => callback(err));
+    return await FileService.updateUpload(uploadID, key, bucket);
   }
 
   // Get an upload metadata by its id in the DB.
   private async getUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
-    FileService.getUploadById(id)
-      .then((upload) => {
-        callback(null, upload);
-      }).catch(err => callback(err));
+    return await FileService.getUploadById(id);
   }
 
   //  Delete an upload from the DB by its id.
   private async deleteUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
-    FileService.deleteUpload(id)
-      .then((upload) => {
-        callback(null, upload);
-      }).catch(err => callback(err));
+    return await FileService.deleteUpload(id);
   }
 
   // ********************* FILE FUNCTIONS ********************* */
@@ -157,62 +137,45 @@ export class FileServer {
   // Creates a new file in the DB.
   private async createFile(call: any, callback: any) {
     const params = call.request;
-
-    FileService.create(
-      params.bucket,
-      params.name,
-      params.ownerID,
-      params.type,
-      params.parent,
-      params.key,
-      parseInt(params.size, 10))
-      .then((file) => {
-        callback(null, new ResFile(file));
-      })
-      .catch(err => callback(err));
+    return new ResFile(await FileService.create(
+      params.bucket, params.name, params.ownerID, params.type,
+      params.parent, params.key, parseInt(params.size, 10))
+    );
   }
 
   // Deletes a file, according to the file deletion policy.
   private async deleteFile(call: any, callback: any) {
     const id: string = call.request.id;
-    FileService.delete(id)
-      .then(() => callback(null, { ok: true }))
-      .catch(err => callback(err));
+    await FileService.delete(id);
+    return { ok: true };
   }
 
   // Retrieves a file by its id.
   private async getFileByID(call: any, callback: any) {
     const id: string = call.request.id;
-    FileService.getById(id)
-      .then(file => callback(null, new ResFile(file)))
-      .catch(err => callback(err));
+    return new ResFile(await FileService.getById(id));
   }
 
   // Retrieves a file by its key.
   private async getFileByKey(call: any, callback: any) {
     const key: string = call.request.key;
-    FileService.getByKey(key)
-      .then(file => callback(null, new ResFile(file)))
-      .catch(err => callback(err));
+    return new ResFile(await FileService.getByKey(key));
   }
 
   // Retrieves all files residing in a given folder.
   private async getFilesByFolder(call: any, callback: any) {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
-    FileService.getFilesByFolder(folderID, ownerID)
-      .then((files) => {
-        const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
-        callback(null, { files: resFiles });
-      })
-      .catch(err => callback(err));
+    const files = await FileService.getFilesByFolder(folderID, ownerID);
+    const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
+    return { files: resFiles };
+
   }
 
   // Checks if an operation is allowed by permission of the owner.
   private async isAllowed(call: any, callback: any) {
-    FileService.isOwner(call.request.fileID, call.request.userID)
-      .then(res => callback(null, { allowed: res }))
-      .catch(err => callback(err));
+    const res = await FileService.isOwner(call.request.fileID, call.request.userID);
+    return  { allowed: res };
   }
 
 }
