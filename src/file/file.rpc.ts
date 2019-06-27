@@ -2,7 +2,7 @@
 const apm = require('elastic-apm-node').start({
     // Override service name from package.json
   // Allowed characters: a-z, A-Z, 0-9, -, _, and space
-  serviceName: 'test-sh',
+  serviceName: 'file-service',
 
   // Use if APM Server requires a token
   secretToken: '',
@@ -49,7 +49,7 @@ export class FileServer {
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
   public constructor(port: string) {
-    this.server = new grpc.Server({}, (context: any, call: any) => this.pre(context, call), (context: any, call: any) => this.post());
+    this.server = new grpc.Server({}, () => {}, (context: any, call: any) => this.post());
 
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
@@ -57,38 +57,37 @@ export class FileServer {
     this.server.addService(
       file_proto.FileService.service,
       {
-        GenerateKey: this.generateKey,
-        CreateUpload: this.createUpload,
-        UpdateUploadID: this.updateUpload,
-        GetUploadByID: this.getUploadByID,
-        DeleteUploadByID: this.deleteUploadByID,
-        GetFileByID: this.getFileByID,
-        GetFileByKey: this.getFileByKey,
-        GetFilesByFolder: this.getFilesByFolder,
-        CreateFile: this.createFile,
-        DeleteFile: this.deleteFile,
-        IsAllowed: this.isAllowed,
-      },
-      this.mid
+        GenerateKey: this.wrapper(this.generateKey),
+        CreateUpload: this.wrapper(this.createUpload),
+        UpdateUploadID: this.wrapper(this.updateUpload),
+        GetUploadByID: this.wrapper(this.getUploadByID),
+        DeleteUploadByID: this.wrapper(this.deleteUploadByID),
+        GetFileByID: this.wrapper(this.getFileByID),
+        GetFileByKey: this.wrapper(this.getFileByKey),
+        GetFilesByFolder: this.wrapper(this.getFilesByFolder),
+        CreateFile: this.wrapper(this.createFile),
+        DeleteFile: this.wrapper(this.deleteFile),
+        IsAllowed: this.wrapper(this.isAllowed),
+      }
     );
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
-  }
-  private mid(context: any, call: any) {
-    console.log('hello');
-    console.log(call);
-
-  }
-  private pre(context: any, call: any) {
-    console.log(this.post.name);
-    console.log('in pre');
-    console.dir(call.metadata);
-    const trans = apm.startTransaction('transName4', 'transType');
-    console.log(`1: ${trans.id}`);
   }
 
   private post() {
     console.log('post called');
-    apm.endTransaction('happy');
+    apm.endTransaction('successful');
+  }
+
+  private wrapper(func: any) : any{
+    return (call:any,callback:any)=>{
+      try {
+        apm.startTransaction(func.name, 'monitoringFS');
+        func(call,callback);
+      } catch (err) {
+        callback(err);
+      }
+    }
+
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
