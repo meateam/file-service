@@ -4,11 +4,11 @@ const apm = require('elastic-apm-node').start({
   serverUrl: `${elasticURL}`,
 });
 
-import { FileService } from './file.service';
-import { IFile } from './file.interface';
-import { elasticURL } from '../config'
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
+import { FileService } from './file.service';
+import { IFile } from './file.interface';
+import { elasticURL } from '../config';
 
 const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
