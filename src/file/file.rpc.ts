@@ -1,22 +1,16 @@
-// Add this to the VERY top of the first file loaded in your app
 const apm = require('elastic-apm-node').start({
-    // Override service name from package.json
-  // Allowed characters: a-z, A-Z, 0-9, -, _, and space
   serviceName: 'file-service',
-
-  // Use if APM Server requires a token
   secretToken: '',
-
-  // Set custom APM Server URL (default: http://localhost:8200)
-  serverUrl: 'http://localhost:8200',
+  serverUrl: `${elasticURL}`,
 });
 
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
+import { elasticURL } from '../config'
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 
-const grpc = require('grpc-middleware');
+const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
@@ -49,7 +43,7 @@ export class FileServer {
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
   public constructor(port: string) {
-    this.server = new grpc.Server({}, (context: any, call: any) => this.pre(), (context: any, call: any) => this.post());
+    this.server = new grpc.Server();
 
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
@@ -71,12 +65,6 @@ export class FileServer {
       }
     );
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
-  }
-
-  private pre () {
-  }
-
-  private post() {
   }
 
   private wrapper (func: any) : any {
