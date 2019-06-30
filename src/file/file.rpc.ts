@@ -1,17 +1,17 @@
-const apm = require('elastic-apm-node').start({
-  serviceName: 'file-service',
-  secretToken: '',
-  serverUrl: `${elasticURL}`,
-});
-
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
+import * as grpc from 'grpc';
+import * as protoLoader from '@grpc/proto-loader';
+import apm = require('elastic-apm-node');
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { elasticURL } from '../config';
 
-const grpc = require('grpc');
-const protoLoader = require('@grpc/proto-loader');
+apm.start({
+    serviceName: 'file-service',
+    secretToken: '',
+    serverUrl: elasticURL,
+});
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
 
@@ -26,15 +26,15 @@ const packageDefinition = protoLoader.loadSync(
     oneofs: true,
   });
 
+// Has the full package hierarchy
+const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
+const file_proto : any = protoDescriptor.file;
+
 export const serviceNames: string[] = ['', 'file.fileService'];
 export const healthCheckStatusMap = {
   '': HealthCheckResponse.ServingStatus.UNKNOWN,
   serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
 };
-
-// Has the full package hierarchy
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
-const file_proto = protoDescriptor.file;
 
 /**
  * The FileServer class, containing all of the FileServer methods.
@@ -42,36 +42,41 @@ const file_proto = protoDescriptor.file;
 export class FileServer {
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
+
   public constructor(port: string) {
     this.server = new grpc.Server();
-
-    // Register the health service
-    this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
-    this.server.addService(HealthService, this.grpcHealthCheck);
-    this.server.addService(
-      file_proto.FileService.service,
-      {
-        GenerateKey: this.wrapper(this.generateKey),
-        CreateUpload: this.wrapper(this.createUpload),
-        UpdateUploadID: this.wrapper(this.updateUpload),
-        GetUploadByID: this.wrapper(this.getUploadByID),
-        DeleteUploadByID: this.wrapper(this.deleteUploadByID),
-        GetFileByID: this.wrapper(this.getFileByID),
-        GetFileByKey: this.wrapper(this.getFileByKey),
-        GetFilesByFolder: this.wrapper(this.getFilesByFolder),
-        CreateFile: this.wrapper(this.createFile),
-        DeleteFile: this.wrapper(this.deleteFile),
-        IsAllowed: this.wrapper(this.isAllowed),
-      }
-    );
+    this.addServices();
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   }
 
-  private wrapper (func: any) : any {
+  private addServices () {
+    // Register the health service
+    this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
+    this.server.addService(HealthService, this.grpcHealthCheck);
+
+    const services = {
+      GenerateKey: this.wrapper(this.generateKey),
+      CreateUpload: this.wrapper(this.createUpload),
+      UpdateUploadID: this.wrapper(this.updateUpload),
+      GetUploadByID: this.wrapper(this.getUploadByID),
+      DeleteUploadByID: this.wrapper(this.deleteUploadByID),
+      GetFileByID: this.wrapper(this.getFileByID),
+      GetFileByKey: this.wrapper(this.getFileByKey),
+      GetFilesByFolder: this.wrapper(this.getFilesByFolder),
+      CreateFile: this.wrapper(this.createFile),
+      DeleteFile: this.wrapper(this.deleteFile),
+      IsAllowed: this.wrapper(this.isAllowed),
+    };
+
+    this.server.addService(file_proto.FileService.service, services);
+  }
+
+  private wrapper (rpcFunction: any) : any {
     return async (call:any, callback:any) => {
       try {
-        apm.startTransaction(func.name, 'monitoringFS');
-        const res = await func(call, callback);
+        // console.log(call);
+        apm.startTransaction(rpcFunction.name, 'monitoringFS');
+        const res = await rpcFunction(call, callback);
         apm.endTransaction('successful');
         callback(null, res);
       } catch (err) {
@@ -97,7 +102,7 @@ export class FileServer {
     const ownerID: string = call.request.ownerID;
     const parent: string = call.request.parent;
     const size: number = parseInt(call.request.size, 10);
-    return await FileService.createUpload(key, bucket, name, ownerID, parent, size);
+    return FileService.createUpload(key, bucket, name, ownerID, parent, size);
   }
 
   // Updates the uploadID.
@@ -105,19 +110,19 @@ export class FileServer {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
-    return await FileService.updateUpload(uploadID, key, bucket);
+    return FileService.updateUpload(uploadID, key, bucket);
   }
 
   // Get an upload metadata by its id in the DB.
   private async getUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
-    return await FileService.getUploadById(id);
+    return FileService.getUploadById(id);
   }
 
   //  Delete an upload from the DB by its id.
   private async deleteUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
-    return await FileService.deleteUpload(id);
+    return FileService.deleteUpload(id);
   }
 
   // ********************* FILE FUNCTIONS ********************* */
