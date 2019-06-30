@@ -130,10 +130,16 @@ export class FileServer {
   // Creates a new file in the DB.
   private async createFile(call: any, callback: any) {
     const params = call.request;
-    return new ResFile(await FileService.create(
-      params.bucket, params.name, params.ownerID, params.type,
-      params.parent, params.key, parseInt(params.size, 10))
+    const createdFile = await FileService.create(
+      params.bucket, 
+      params.name, 
+      params.ownerID, 
+      params.type,
+      params.parent, 
+      params.key, 
+      parseInt(params.size, 10),
     );
+    return new ResFile(createdFile);
   }
 
   // Deletes a file, according to the file deletion policy.
@@ -146,13 +152,15 @@ export class FileServer {
   // Retrieves a file by its id.
   private async getFileByID(call: any, callback: any) {
     const id: string = call.request.id;
-    return new ResFile(await FileService.getById(id));
+    const file = await FileService.getById(id);
+    return new ResFile(file);
   }
 
   // Retrieves a file by its key.
   private async getFileByKey(call: any, callback: any) {
     const key: string = call.request.key;
-    return new ResFile(await FileService.getByKey(key));
+    const file = await FileService.getByKey(key);
+    return new ResFile(file);
   }
 
   // Retrieves all files residing in a given folder.
