@@ -1,11 +1,18 @@
-import { FileService } from './file.service';
-import { IFile } from './file.interface';
-import { log } from '../utils/logger';
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
+import * as grpc from 'grpc';
+import * as protoLoader from '@grpc/proto-loader';
+import apm = require('elastic-apm-node');
+import { log } from '../utils/logger';
+import { FileService } from './file.service';
+import { IFile } from './file.interface';
+import { elasticURL } from '../config';
 
-const grpc = require('grpc');
-const protoLoader = require('@grpc/proto-loader');
+apm.start({
+  serviceName: 'file-service',
+  secretToken: '',
+  serverUrl: elasticURL,
+});
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
 
@@ -20,54 +27,75 @@ const packageDefinition = protoLoader.loadSync(
     oneofs: true,
   });
 
+// Has the full package hierarchy
+const protoDescriptor : grpc.GrpcObject = grpc.loadPackageDefinition(packageDefinition);
+const file_proto : any = protoDescriptor.file;
+
 export const serviceNames: string[] = ['', 'file.fileService'];
 export const healthCheckStatusMap = {
   '': HealthCheckResponse.ServingStatus.UNKNOWN,
   serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
 };
 
-// Has the full package hierarchy
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
-const file_proto = protoDescriptor.file;
-
 /**
  * The FileServer class, containing all of the FileServer methods.
  */
 export class FileServer {
+
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
+
   public constructor(port: string) {
     this.server = new grpc.Server();
+    this.addServices();
+    this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+  }
 
+  private addServices () {
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
-    this.server.addService(file_proto.FileService.service, {
-      GenerateKey: this.generateKey,
-      CreateUpload: this.createUpload,
-      UpdateUploadID: this.updateUpload,
-      GetUploadByID: this.getUploadByID,
-      DeleteUploadByID: this.deleteUploadByID,
-      GetFileByID: this.getFileByID,
-      GetFileByKey: this.getFileByKey,
-      GetFilesByFolder: this.getFilesByFolder,
-      CreateFile: this.createFile,
-      DeleteFile: this.deleteFile,
-      IsAllowed: this.isAllowed,
-    });
 
-    this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+    const services = {
+      GenerateKey: this.wrapper(this.generateKey),
+      CreateUpload: this.wrapper(this.createUpload),
+      UpdateUploadID: this.wrapper(this.updateUpload),
+      GetUploadByID: this.wrapper(this.getUploadByID),
+      DeleteUploadByID: this.wrapper(this.deleteUploadByID),
+      GetFileByID: this.wrapper(this.getFileByID),
+      GetFileByKey: this.wrapper(this.getFileByKey),
+      GetFilesByFolder: this.wrapper(this.getFilesByFolder),
+      CreateFile: this.wrapper(this.createFile),
+      DeleteFile: this.wrapper(this.deleteFile),
+      IsAllowed: this.wrapper(this.isAllowed),
+    };
+
+    this.server.addService(file_proto.FileService.service, services);
+  }
+
+  private wrapper (rpcFunction: any) : any {
+    return async (call:any, callback:any) => {
+      try {
+        const traceparent = call.metadata._internal_repr['elastic-apm-traceparent'];
+        const transOptions = traceparent ? { childOf: traceparent[0] } : {};
+        apm.startTransaction(rpcFunction.name, 'monitoringFS', transOptions);
+
+        const res = await rpcFunction(call, callback);
+        apm.endTransaction('successful');
+        callback(null, res);
+      } catch (err) {
+        apm.endTransaction('failed');
+        callback(err);
+      }
+    };
+
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
 
   // Generates a random key for the upload.
   private generateKey(call: any, callback: any) {
-    const methodName = 'generateKey';
-    logOnEntry(methodName, call.request);
-    const key: string = FileService.generateKey();
-    logOnFinish(methodName);
-    callback(null, { key });
+    return { key: FileService.generateKey() };
   }
 
   // Creates an upload object, present while uploading a file.
@@ -80,20 +108,7 @@ export class FileServer {
     const ownerID: string = call.request.ownerID;
     const parent: string = call.request.parent;
     const size: number = parseInt(call.request.size, 10);
-    FileService.createUpload(
-      key,
-      bucket,
-      name,
-      ownerID,
-      parent,
-      size)
-      .then((upload) => {
-        logOnFinish(methodName);
-        callback(null, upload);
-      }).catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    return FileService.createUpload(key, bucket, name, ownerID, parent, size);
   }
 
   // Updates the uploadID.
@@ -103,17 +118,7 @@ export class FileServer {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
-    FileService.updateUpload(
-      uploadID,
-      key,
-      bucket)
-      .then((upload) => {
-        logOnFinish(methodName);
-        callback(null, upload);
-      }).catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    return FileService.updateUpload(uploadID, key, bucket);
   }
 
   // Get an upload metadata by its id in the DB.
@@ -121,14 +126,7 @@ export class FileServer {
     const methodName = 'getUploadByID';
     logOnEntry(methodName, call.request);
     const id = call.request.uploadID;
-    FileService.getUploadById(id)
-      .then((upload) => {
-        logOnFinish(methodName);
-        callback(null, upload);
-      }).catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    return FileService.getUploadById(id);
   }
 
   //  Delete an upload from the DB by its id.
@@ -136,14 +134,7 @@ export class FileServer {
     const methodName = 'deleteUploadByID';
     logOnEntry(methodName, call.request);
     const id = call.request.uploadID;
-    FileService.deleteUpload(id)
-      .then((upload) => {
-        logOnFinish(methodName);
-        callback(null, upload);
-      }).catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    return FileService.deleteUpload(id);
   }
 
   // ********************* FILE FUNCTIONS ********************* */
@@ -153,23 +144,16 @@ export class FileServer {
     const methodName = 'createFile';
     logOnEntry(methodName, call.request);
     const params = call.request;
-
-    FileService.create(
+    const createdFile = await FileService.create(
       params.bucket,
       params.name,
       params.ownerID,
       params.type,
       params.parent,
       params.key,
-      parseInt(params.size, 10))
-      .then((file) => {
-        logOnFinish(methodName);
-        callback(null, new ResFile(file));
-      })
-      .catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+      parseInt(params.size, 10),
+    );
+    return new ResFile(createdFile);
   }
 
   // Deletes a file, according to the file deletion policy.
@@ -177,15 +161,8 @@ export class FileServer {
     const methodName = 'deleteFile';
     logOnEntry(methodName, call.request);
     const id: string = call.request.id;
-    FileService.delete(id)
-      .then(() => {
-        logOnFinish(methodName);
-        callback(null, { ok: true });
-      })
-      .catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    await FileService.delete(id);
+    return { ok: true };
   }
 
   // Retrieves a file by its id.
@@ -193,14 +170,8 @@ export class FileServer {
     const methodName = 'getFileByID';
     logOnEntry(methodName, call.request);
     const id: string = call.request.id;
-    FileService.getById(id)
-      .then((file) => {
-        logOnFinish(methodName);
-        callback(null, new ResFile(file));
-      }).catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    const file = await FileService.getById(id);
+    return new ResFile(file);
   }
 
   // Retrieves a file by its key.
@@ -208,15 +179,8 @@ export class FileServer {
     const methodName = 'getFileByKey';
     logOnEntry(methodName, call.request);
     const key: string = call.request.key;
-    FileService.getByKey(key)
-      .then((file) => {
-        logOnFinish(methodName);
-        callback(null, new ResFile(file));
-      })
-      .catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    const file = await FileService.getByKey(key);
+    return new ResFile(file);
   }
 
   // Retrieves all files residing in a given folder.
@@ -225,29 +189,16 @@ export class FileServer {
     logOnEntry(methodName, call.request);
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
-    FileService.getFilesByFolder(folderID, ownerID)
-      .then((files) => {
-        const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
-        logOnFinish(methodName);
-        callback(null, { files: resFiles });
-      }).catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    const files = await FileService.getFilesByFolder(folderID, ownerID);
+    const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
+    return { files: resFiles };
+
   }
 
   // Checks if an operation is allowed by permission of the owner.
   private async isAllowed(call: any, callback: any) {
-    const methodName = 'isAllowed';
-    logOnEntry(methodName, call.request);
-    FileService.isOwner(call.request.fileID, call.request.userID)
-      .then((res) => {
-        logOnFinish(methodName);
-        callback(null, { allowed: res });
-      }).catch((err) => {
-        logOnError(methodName, err);
-        callback(err);
-      });
+    const res = await FileService.isOwner(call.request.fileID, call.request.userID);
+    return  { allowed: res };
   }
 
 }
