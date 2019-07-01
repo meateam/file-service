@@ -27,7 +27,7 @@ const packageDefinition = protoLoader.loadSync(
   });
 
 // Has the full package hierarchy
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
+const protoDescriptor : grpc.GrpcObject = grpc.loadPackageDefinition(packageDefinition);
 const file_proto : any = protoDescriptor.file;
 
 export const serviceNames: string[] = ['', 'file.fileService'];
@@ -75,7 +75,10 @@ export class FileServer {
   private wrapper (rpcFunction: any) : any {
     return async (call:any, callback:any) => {
       try {
-        apm.startTransaction(rpcFunction.name, 'monitoringFS', { childOf: call.metadata._internal_repr['elastic-apm-traceparent'][0] });
+        const traceparent = call.metadata._internal_repr['elastic-apm-traceparent'];
+        const transOptions = traceparent ? { childOf: traceparent[0] } : {};
+        apm.startTransaction(rpcFunction.name, 'monitoringFS', transOptions);
+
         const res = await rpcFunction(call, callback);
         apm.endTransaction('successful');
         callback(null, res);
