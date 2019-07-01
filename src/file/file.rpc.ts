@@ -8,9 +8,9 @@ import { IFile } from './file.interface';
 import { elasticURL } from '../config';
 
 apm.start({
-    serviceName: 'file-service',
-    secretToken: '',
-    serverUrl: elasticURL,
+  serviceName: 'file-service',
+  secretToken: '',
+  serverUrl: elasticURL,
 });
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
@@ -40,6 +40,7 @@ export const healthCheckStatusMap = {
  * The FileServer class, containing all of the FileServer methods.
  */
 export class FileServer {
+
   public server: any;
   public grpcHealthCheck: GrpcHealthCheck;
 
@@ -74,8 +75,7 @@ export class FileServer {
   private wrapper (rpcFunction: any) : any {
     return async (call:any, callback:any) => {
       try {
-        // console.log(call);
-        apm.startTransaction(rpcFunction.name, 'monitoringFS');
+        apm.startTransaction(rpcFunction.name, 'monitoringFS', { childOf: call.metadata._internal_repr['elastic-apm-traceparent'][0] });
         const res = await rpcFunction(call, callback);
         apm.endTransaction('successful');
         callback(null, res);
@@ -131,12 +131,12 @@ export class FileServer {
   private async createFile(call: any, callback: any) {
     const params = call.request;
     const createdFile = await FileService.create(
-      params.bucket, 
-      params.name, 
-      params.ownerID, 
+      params.bucket,
+      params.name,
+      params.ownerID,
       params.type,
-      params.parent, 
-      params.key, 
+      params.parent,
+      params.key,
       parseInt(params.size, 10),
     );
     return new ResFile(createdFile);
