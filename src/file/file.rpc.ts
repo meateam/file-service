@@ -76,14 +76,17 @@ export class FileServer {
   private wrapper (rpcFunction: any) : any {
     return async (call:any, callback:any) => {
       try {
+        logOnEntry(rpcFunction.name, call.request);
         const traceparent = call.metadata._internal_repr['elastic-apm-traceparent'];
         const transOptions = traceparent ? { childOf: traceparent[0] } : {};
         apm.startTransaction(rpcFunction.name, 'monitoringFS', transOptions);
 
         const res = await rpcFunction(call, callback);
+        logOnFinish(rpcFunction.name);
         apm.endTransaction('successful');
         callback(null, res);
       } catch (err) {
+        logOnError(rpcFunction.name, err);
         apm.endTransaction('failed');
         callback(err);
       }
@@ -100,8 +103,6 @@ export class FileServer {
 
   // Creates an upload object, present while uploading a file.
   private async createUpload(call: any, callback: any) {
-    const methodName = 'createUpload';
-    logOnEntry(methodName, call.request);
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
     const name: string = call.request.name;
@@ -113,8 +114,6 @@ export class FileServer {
 
   // Updates the uploadID.
   private async updateUpload(call: any, callback: any) {
-    const methodName = 'updateUpload';
-    logOnEntry(methodName, call.request);
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
@@ -123,16 +122,12 @@ export class FileServer {
 
   // Get an upload metadata by its id in the DB.
   private async getUploadByID(call: any, callback: any) {
-    const methodName = 'getUploadByID';
-    logOnEntry(methodName, call.request);
     const id = call.request.uploadID;
     return FileService.getUploadById(id);
   }
 
   //  Delete an upload from the DB by its id.
   private async deleteUploadByID(call: any, callback: any) {
-    const methodName = 'deleteUploadByID';
-    logOnEntry(methodName, call.request);
     const id = call.request.uploadID;
     return FileService.deleteUpload(id);
   }
@@ -141,8 +136,6 @@ export class FileServer {
 
   // Creates a new file in the DB.
   private async createFile(call: any, callback: any) {
-    const methodName = 'createFile';
-    logOnEntry(methodName, call.request);
     const params = call.request;
     const createdFile = await FileService.create(
       params.bucket,
@@ -158,8 +151,6 @@ export class FileServer {
 
   // Deletes a file, according to the file deletion policy.
   private async deleteFile(call: any, callback: any) {
-    const methodName = 'deleteFile';
-    logOnEntry(methodName, call.request);
     const id: string = call.request.id;
     await FileService.delete(id);
     return { ok: true };
@@ -167,8 +158,6 @@ export class FileServer {
 
   // Retrieves a file by its id.
   private async getFileByID(call: any, callback: any) {
-    const methodName = 'getFileByID';
-    logOnEntry(methodName, call.request);
     const id: string = call.request.id;
     const file = await FileService.getById(id);
     return new ResFile(file);
@@ -244,13 +233,13 @@ function logOnEntry(methodName : string, fields: any) : void {
     const fieldName : string = fields[key].toString();
     description += `${key} : ${fieldName}, `;
   }
-  log('info', `in ${methodName}`, description);
+  log('info', methodName, description);
 }
 
 function logOnFinish(methodName : string) : void {
-  log('info', `in ${methodName}`, 'Finished successfully');
+  log('info', methodName, 'Finished successfully');
 }
 
 function logOnError(methodName : string, err: Error) : void {
-  log('error', `in ${methodName}`, err.message);
+  log('error', methodName, err.message);
 }
