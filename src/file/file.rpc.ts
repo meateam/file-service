@@ -76,7 +76,7 @@ export class FileServer {
     return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
       try {
         const traceparent = call.metadata.get('elastic-apm-traceparent');
-        const transOptions = (traceparent.length > 1) ? { childOf: traceparent[0].toString() } : {};
+        const transOptions = (traceparent.length > 0) ? { childOf: `${traceparent[0].toString()}` } : {};
         apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
         const res = await func(call, callback);
         apm.endTransaction('successful');
