@@ -1,8 +1,8 @@
-import { ObjectID } from 'mongodb';
-import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 import * as grpc from 'grpc';
 import * as protoLoader from '@grpc/proto-loader';
-import apm = require('elastic-apm-node');
+import apm from 'elastic-apm-node';
+import { ObjectID } from 'mongodb';
+import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { elasticURL } from '../config';
@@ -16,7 +16,7 @@ apm.start({
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
-const packageDefinition = protoLoader.loadSync(
+const packageDefinition : protoLoader.PackageDefinition = protoLoader.loadSync(
   PROTO_PATH,
   {
     keepCase: true,
@@ -41,7 +41,7 @@ export const healthCheckStatusMap = {
  */
 export class FileServer {
 
-  public server: any;
+  public server: grpc.Server;
   public grpcHealthCheck: GrpcHealthCheck;
 
   public constructor(port: string) {
@@ -77,8 +77,7 @@ export class FileServer {
       try {
         const traceparent = call.metadata.get('elastic-apm-traceparent');
         const transOptions = (traceparent.length > 1) ? { childOf: traceparent[0].toString() } : {};
-        apm.startTransaction(func.name, 'request', transOptions);
-
+        apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
         const res = await func(call, callback);
         apm.endTransaction('successful');
         callback(null, res);
