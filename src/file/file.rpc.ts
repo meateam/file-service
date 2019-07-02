@@ -55,7 +55,7 @@ export class FileServer {
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
 
-    const services = {
+    const fileService = {
       GenerateKey: this.wrapper(this.generateKey),
       CreateUpload: this.wrapper(this.createUpload),
       UpdateUploadID: this.wrapper(this.updateUpload),
@@ -69,17 +69,17 @@ export class FileServer {
       IsAllowed: this.wrapper(this.isAllowed),
     };
 
-    this.server.addService(file_proto.FileService.service, services);
+    this.server.addService(file_proto.FileService.service, fileService);
   }
 
-  private wrapper (rpcFunction: any) : any {
+  private wrapper (func: Function) : any {
     return async (call:any, callback:any) => {
       try {
         const traceparent = call.metadata._internal_repr['elastic-apm-traceparent'];
         const transOptions = traceparent ? { childOf: traceparent[0] } : {};
-        apm.startTransaction(rpcFunction.name, 'monitoringFS', transOptions);
+        apm.startTransaction(func.name, 'request', transOptions);
 
-        const res = await rpcFunction(call, callback);
+        const res = await func(call, callback);
         apm.endTransaction('successful');
         callback(null, res);
       } catch (err) {
