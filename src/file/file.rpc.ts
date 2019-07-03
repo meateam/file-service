@@ -6,6 +6,7 @@ import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-hea
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { elasticURL } from '../config';
+import { statusToString } from '../utils/errors/grpc.status';
 
 apm.start({
   serviceName: 'file-service',
@@ -35,6 +36,8 @@ export const healthCheckStatusMap = {
   '': HealthCheckResponse.ServingStatus.UNKNOWN,
   serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
 };
+
+
 
 /**
  * The FileServer class, containing all of the FileServer methods.
@@ -76,13 +79,14 @@ export class FileServer {
     return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
       try {
         const traceparent = call.metadata.get('elastic-apm-traceparent');
-        const transOptions = (traceparent.length > 0) ? { childOf: `${traceparent[0].toString()}` } : {};
+        const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
         apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
         const res = await func(call, callback);
-        apm.endTransaction('successful');
+        apm.endTransaction('OK');
         callback(null, res);
       } catch (err) {
-        apm.endTransaction('failed');
+        const errName = err.code ? statusToString(err.code) : 'UNKNOWN';
+        apm.endTransaction(errName);
         callback(err);
       }
     };
