@@ -5,14 +5,15 @@ import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 import { FileService } from './file.service';
 import { IFile } from './file.interface';
-import { elasticURL } from '../config';
+import { elasticURL, verifyServerCert, serviceName, secretToken } from '../config';
 import { statusToString, validateGrpcError } from '../utils/errors/grpc.status';
 import { ApplicationError } from '../utils/errors/application.error';
 
 apm.start({
-  serviceName: 'file-service',
-  secretToken: '',
+  serviceName,
+  secretToken,
   serverUrl: elasticURL,
+  verifyServerCert: verifyServerCert === 'true' ? true : false,
 });
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;

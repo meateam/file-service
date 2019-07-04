@@ -64,6 +64,9 @@ function getConfig(confType: string) : Config {
   }
 }
 
+export const secretToken = process.env.SECRET_TOKEN || '';
+export const verifyServerCert = process.env.ELASTIC_APM_VERIFY_SERVER_CERT || 'false';
+export const serviceName = process.env.FS_APM_SERVICE_NAME || 'file-service';
 export const elasticURL = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
 
 export const config : Config = getConfig(process.env.NODE_ENV || dev.conf_type);
