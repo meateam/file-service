@@ -134,7 +134,7 @@ enum status {
     UNAUTHENTICATED = 16,
   }
 
-export function validateGrpcError(err : Error | ApplicationError) : ApplicationError{
+export function validateGrpcError(err : Error | ApplicationError) : ApplicationError {
   const errCode = 'code' in err ? err.code : status.UNKNOWN;
   return new ApplicationError(err.message, errCode);
 }
