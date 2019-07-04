@@ -7,6 +7,7 @@ import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { elasticURL } from '../config';
 import { statusToString, validateGrpcError } from '../utils/errors/grpc.status';
+import { ApplicationError } from 'src/utils/errors/application.error';
 
 apm.start({
   serviceName: 'file-service',
@@ -84,10 +85,9 @@ export class FileServer {
         apm.endTransaction(statusToString(grpc.status.OK));
         callback(null, res);
       } catch (err) {
-        const validatedErr = validateGrpcError(err);
-        const errName = statusToString(validatedErr.code);
-        apm.endTransaction(errName);
-        callback(err);
+        const validatedErr : ApplicationError = validateGrpcError(err);
+        apm.endTransaction(validatedErr.name);
+        callback(validatedErr);
       }
     };
 

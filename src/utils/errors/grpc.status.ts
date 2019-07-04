@@ -1,6 +1,6 @@
-import * as grpc from 'grpc';
+import { ApplicationError } from './application.error';
 
-export enum status {
+enum status {
     /**
      * Not an error; returned on success
      */
@@ -134,14 +134,14 @@ export enum status {
     UNAUTHENTICATED = 16,
   }
 
-export function validateGrpcError(err : any) {
-  err.code = err.code ? err.code : 2;
-  return err;
+export function validateGrpcError(err : Error | ApplicationError) : ApplicationError{
+  const errCode = 'code' in err ? err.code : status.UNKNOWN;
+  return new ApplicationError(err.message, errCode);
 }
 
 export function statusToString(code: number) : string {
   if (!(Number.isInteger(code) && code >= 0 && code <= 16)) {
-    return status[2];
+    return status[status.UNKNOWN];
   }
   return status[code];
 }
