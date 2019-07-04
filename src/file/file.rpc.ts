@@ -7,7 +7,7 @@ import { FileService } from './file.service';
 import { IFile } from './file.interface';
 import { elasticURL } from '../config';
 import { statusToString, validateGrpcError } from '../utils/errors/grpc.status';
-import { ApplicationError } from 'src/utils/errors/application.error';
+import { ApplicationError } from '../utils/errors/application.error';
 
 apm.start({
   serviceName: 'file-service',
@@ -60,7 +60,7 @@ export class FileServer {
     const fileService = {
       GenerateKey: this.wrapper(this.GenerateKey),
       CreateUpload: this.wrapper(this.CreateUpload),
-      UpdateUploadID: this.wrapper(this.UpdateUpload),
+      UpdateUploadID: this.wrapper(this.UpdateUploadID),
       GetUploadByID: this.wrapper(this.GetUploadByID),
       DeleteUploadByID: this.wrapper(this.DeleteUploadByID),
       GetFileByID: this.wrapper(this.GetFileByID),
@@ -112,7 +112,7 @@ export class FileServer {
   }
 
   // Updates the uploadID.
-  private async UpdateUpload(call: any, callback: any) {
+  private async UpdateUploadID(call: any, callback: any) {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
