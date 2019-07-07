@@ -52,6 +52,7 @@ export class FileServer {
     this.server = new grpc.Server();
     this.addServices();
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+    log('info', 'server bind', `server listening on port: ${port}`);
   }
 
   private addServices () {
@@ -80,11 +81,13 @@ export class FileServer {
   (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => Promise<void> {
     return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
       try {
-        logOnEntry(func.name, call.request);
         const traceparent = call.metadata.get('elastic-apm-traceparent');
         const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
         apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
+        logOnEntry(func.name, call.request);
+
         const res = await func(call, callback);
+
         apm.endTransaction(statusToString(grpc.status.OK));
         logOnFinish(func.name);
         callback(null, res);
@@ -228,18 +231,23 @@ class ResFile {
 }
 
 function logOnEntry(methodName : string, fields: any) : void {
-  let description : string = '';
+  let description : string = 'request parameters: { ';
   for (const key of Object.keys(fields)) {
     const fieldName : string = fields[key].toString();
     description += `${key} : ${fieldName}, `;
   }
-  log('info', methodName, description);
+  description += ' }';
+
+  const traceId : string = apm.currentTransaction.traceparent.split('-')[1];
+  log('info', methodName, description, traceId);
 }
 
 function logOnFinish(methodName : string) : void {
-  log('info', methodName, 'Finished successfully');
+  const traceId : string = apm.currentTransaction.traceparent.split('-')[1];
+  log('info', methodName, 'Finished successfully', traceId);
 }
 
 function logOnError(methodName : string, err: Error) : void {
-  log('error', methodName, err.message);
+  const traceId : string = apm.currentTransaction.traceparent.split('-')[1];
+  log('error', methodName, err.message, traceId);
 }
