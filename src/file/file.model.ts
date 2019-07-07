@@ -56,7 +56,7 @@ export const fileSchema: Schema = new Schema(
     toJSON: {
       virtuals: true,
     }
-	}
+  }
 );
 
 fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: false });
@@ -66,26 +66,26 @@ fileSchema.virtual('id').get(function () {
 });
 
 fileSchema.virtual('displayName')
-.set(function () {
-  this.displayName = this.name ? this.name.split('.')[0] : '';
-}) .get(function ()  {
-  return (`${this.name ? this.name.split('.')[0] : ''}`);
-});
+  .set(function () {
+    this.displayName = this.name ? this.name.split('.')[0] : '';
+  }).get(function () {
+    return (`${this.name ? this.name.split('.')[0] : ''}`);
+  });
 
 fileSchema.virtual('fullExtension')
-.set(function () {
-  this.fullExtension = this.name ? this.name.split('.').splice(1).join('.') : '';
-}).get(function ()  {
-  return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
-});
+  .set(function () {
+    this.fullExtension = this.name ? this.name.split('.').splice(1).join('.') : '';
+  }).get(function () {
+    return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
+  });
 
 fileSchema.pre('save', async function (next: NextFunction) {
-	const existingFile = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
-	if (existingFile && !existingFile.deleted) {
-		next(new KeyAlreadyExistsError((<any>this).key));
-	} else {
-		next();
-	}
+  const existingFile = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
+  if (existingFile && !existingFile.deleted) {
+    next(new KeyAlreadyExistsError((<any>this).key));
+  } else {
+    next();
+  }
 });
 
 // handleE11000 is called when there is a duplicateKey Error

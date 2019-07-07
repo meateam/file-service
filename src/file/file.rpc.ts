@@ -1,15 +1,25 @@
-import { FileService } from './file.service';
-import { IFile } from './file.interface';
+import * as grpc from 'grpc';
+import * as protoLoader from '@grpc/proto-loader';
+import apm from 'elastic-apm-node';
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
+import { FileService } from './file.service';
+import { IFile } from './file.interface';
+import { apmURL, verifyServerCert, serviceName, secretToken } from '../config';
+import { statusToString, validateGrpcError } from '../utils/errors/grpc.status';
+import { ApplicationError } from '../utils/errors/application.error';
 
-const grpc = require('grpc');
-const protoLoader = require('@grpc/proto-loader');
+apm.start({
+  serviceName,
+  secretToken,
+  verifyServerCert,
+  serverUrl: apmURL,
+});
 
 const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
-const packageDefinition = protoLoader.loadSync(
+const packageDefinition : protoLoader.PackageDefinition = protoLoader.loadSync(
   PROTO_PATH,
   {
     keepCase: true,
@@ -19,167 +29,161 @@ const packageDefinition = protoLoader.loadSync(
     oneofs: true,
   });
 
+// Has the full package hierarchy
+const protoDescriptor : grpc.GrpcObject = grpc.loadPackageDefinition(packageDefinition);
+const file_proto : any = protoDescriptor.file;
+
 export const serviceNames: string[] = ['', 'file.fileService'];
 export const healthCheckStatusMap = {
   '': HealthCheckResponse.ServingStatus.UNKNOWN,
   serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
 };
 
-// Has the full package hierarchy
-const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
-const file_proto = protoDescriptor.file;
-
 /**
  * The FileServer class, containing all of the FileServer methods.
  */
 export class FileServer {
-  public server: any;
+
+  public server: grpc.Server;
   public grpcHealthCheck: GrpcHealthCheck;
+
   public constructor(port: string) {
     this.server = new grpc.Server();
+    this.addServices();
+    this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+  }
 
+  private addServices () {
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
 
-    this.server.addService(file_proto.FileService.service, {
-      GenerateKey: this.generateKey,
-      CreateUpload: this.createUpload,
-      UpdateUploadID: this.updateUpload,
-      GetUploadByID: this.getUploadByID,
-      DeleteUploadByID: this.deleteUploadByID,
-      GetFileByID: this.getFileByID,
-      GetFileByKey: this.getFileByKey,
-      GetFilesByFolder: this.getFilesByFolder,
-      CreateFile: this.createFile,
-      DeleteFile: this.deleteFile,
-      IsAllowed: this.isAllowed,
-    });
+    const fileService = {
+      GenerateKey: this.wrapper(this.GenerateKey),
+      CreateUpload: this.wrapper(this.CreateUpload),
+      UpdateUploadID: this.wrapper(this.UpdateUploadID),
+      GetUploadByID: this.wrapper(this.GetUploadByID),
+      DeleteUploadByID: this.wrapper(this.DeleteUploadByID),
+      GetFileByID: this.wrapper(this.GetFileByID),
+      GetFileByKey: this.wrapper(this.GetFileByKey),
+      GetFilesByFolder: this.wrapper(this.GetFilesByFolder),
+      CreateFile: this.wrapper(this.CreateFile),
+      DeleteFile: this.wrapper(this.DeleteFile),
+      IsAllowed: this.wrapper(this.IsAllowed),
+    };
 
-    this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+    this.server.addService(file_proto.FileService.service, fileService);
+  }
+
+  private wrapper (func: Function) :
+  (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => Promise<void> {
+    return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
+      try {
+        const traceparent = call.metadata.get('elastic-apm-traceparent');
+        const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
+        apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
+        const res = await func(call, callback);
+        apm.endTransaction(statusToString(grpc.status.OK));
+        callback(null, res);
+      } catch (err) {
+        const validatedErr : ApplicationError = validateGrpcError(err);
+        apm.endTransaction(validatedErr.name);
+        callback(validatedErr);
+      }
+    };
+
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
 
   // Generates a random key for the upload.
-  private generateKey(call: any, callback: any) {
-    const key: string = FileService.generateKey();
-    callback(null, { key });
+  private GenerateKey(call: any, callback: any) {
+    return { key: FileService.generateKey() };
   }
 
   // Creates an upload object, present while uploading a file.
-  private async createUpload(call: any, callback: any) {
+  private async CreateUpload(call: any, callback: any) {
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
     const name: string = call.request.name;
     const ownerID: string = call.request.ownerID;
     const parent: string = call.request.parent;
     const size: number = parseInt(call.request.size, 10);
-    FileService.createUpload(
-      key,
-      bucket,
-      name,
-      ownerID,
-      parent,
-      size)
-      .then((upload) => {
-        callback(null, upload);
-      }).catch(err => callback(err));
+    return FileService.createUpload(key, bucket, name, ownerID, parent, size);
   }
 
   // Updates the uploadID.
-  private async updateUpload(call: any, callback: any) {
+  private async UpdateUploadID(call: any, callback: any) {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
-    FileService.updateUpload(
-      uploadID,
-      key,
-      bucket)
-      .then((upload) => {
-        callback(null, upload);
-      }).catch(err => callback(err));
+    return FileService.updateUpload(uploadID, key, bucket);
   }
 
   // Get an upload metadata by its id in the DB.
-  private async getUploadByID(call: any, callback: any) {
+  private async GetUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
-    FileService.getUploadById(id)
-      .then((upload) => {
-        callback(null, upload);
-      }).catch(err => callback(err));
+    return FileService.getUploadById(id);
   }
 
   //  Delete an upload from the DB by its id.
-  private async deleteUploadByID(call: any, callback: any) {
+  private async DeleteUploadByID(call: any, callback: any) {
     const id = call.request.uploadID;
-    FileService.deleteUpload(id)
-      .then((upload) => {
-        callback(null, upload);
-      }).catch(err => callback(err));
+    return FileService.deleteUpload(id);
   }
 
   // ********************* FILE FUNCTIONS ********************* */
 
   // Creates a new file in the DB.
-  private async createFile(call: any, callback: any) {
+  private async CreateFile(call: any, callback: any) {
     const params = call.request;
-
-    FileService.create(
+    const createdFile = await FileService.create(
       params.bucket,
       params.name,
       params.ownerID,
       params.type,
       params.parent,
       params.key,
-      parseInt(params.size, 10))
-      .then((file) => {
-        callback(null, new ResFile(file));
-      })
-      .catch(err => callback(err));
+      parseInt(params.size, 10),
+    );
+    return new ResFile(createdFile);
   }
 
   // Deletes a file, according to the file deletion policy.
-  private async deleteFile(call: any, callback: any) {
+  private async DeleteFile(call: any, callback: any) {
     const id: string = call.request.id;
-    FileService.delete(id)
-      .then(() => callback(null, { ok: true }))
-      .catch(err => callback(err));
+    await FileService.delete(id);
+    return { ok: true };
   }
 
   // Retrieves a file by its id.
-  private async getFileByID(call: any, callback: any) {
+  private async GetFileByID(call: any, callback: any) {
     const id: string = call.request.id;
-    FileService.getById(id)
-      .then(file => callback(null, new ResFile(file)))
-      .catch(err => callback(err));
+    const file = await FileService.getById(id);
+    return new ResFile(file);
   }
 
   // Retrieves a file by its key.
-  private async getFileByKey(call: any, callback: any) {
+  private async GetFileByKey(call: any, callback: any) {
     const key: string = call.request.key;
-    FileService.getByKey(key)
-      .then(file => callback(null, new ResFile(file)))
-      .catch(err => callback(err));
+    const file = await FileService.getByKey(key);
+    return new ResFile(file);
   }
 
   // Retrieves all files residing in a given folder.
-  private async getFilesByFolder(call: any, callback: any) {
+  private async GetFilesByFolder(call: any, callback: any) {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
-    FileService.getFilesByFolder(folderID, ownerID)
-      .then((files) => {
-        const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
-        callback(null, { files: resFiles });
-      })
-      .catch(err => callback(err));
+    const files = await FileService.getFilesByFolder(folderID, ownerID);
+    const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
+    return { files: resFiles };
+
   }
 
   // Checks if an operation is allowed by permission of the owner.
-  private async isAllowed(call: any, callback: any) {
-    FileService.isOwner(call.request.fileID, call.request.userID)
-      .then(res => callback(null, { allowed: res }))
-      .catch(err => callback(err));
+  private async IsAllowed(call: any, callback: any) {
+    const res = await FileService.isOwner(call.request.fileID, call.request.userID);
+    return  { allowed: res };
   }
 
 }
