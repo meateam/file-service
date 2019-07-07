@@ -1,38 +1,36 @@
 import * as winston from 'winston';
 import * as os from 'os';
 const Elasticsearch = require('winston-elasticsearch');
-import { confLogger } from '../config';
+import { confLogger, serviceName } from '../config';
 
+// index pattern for the logger
 const indexTemplateMapping = require('winston-elasticsearch/index-template-mapping.json');
 indexTemplateMapping.index_patterns = `${confLogger.indexPrefix}-*`;
 
 export const logger = winston.createLogger({
-  defaultMeta: { service: 'file.fileService', hostname: os.hostname() },
+  defaultMeta: { service: serviceName, hostname: os.hostname() },
 });
 
-if (confLogger.elasticsearch) {
-  const elasticsearch = new Elasticsearch({
-    indexPrefix: confLogger.indexPrefix,
-    level: 'verbose',
-    clientOpts: confLogger.elasticsearch,
-    bufferLimit: 100,
-    ensureMappingTemplate: true,
-    mappingTemplate: indexTemplateMapping,
-  });
-  logger.add(elasticsearch);
-} else {
-  const winstonConsole = new winston.transports.Console({
-    level: 'silly',
-    format: winston.format.combine(
-      winston.format.timestamp({
-        format: 'YYYY-MM-DD HH:mm:ss',
-      }),
-      winston.format.json(),
-    ),
-  });
-  logger.add(winstonConsole);
-}
+// configure logger
+const elasticsearch = new Elasticsearch({
+  indexPrefix: confLogger.indexPrefix,
+  level: 'verbose',
+  clientOpts: confLogger.elasticsearch,
+  bufferLimit: 100,
+  ensureMappingTemplate: true,
+  mappingTemplate: indexTemplateMapping,
+});
+logger.add(elasticsearch);
 
+/**
+ * logs the data with its given parameters.
+ * @param severity - the kind of log created.
+ * @param name - name of the log. in our case, the function called.
+ * @param description - description in text.
+ * @param correlationId - id to correlate to if there are several logs with some connection.
+ * @param user - the user requesting for the service.
+ * @param more - additional optional information.
+ */
 export const log = (severity: string, name: string, description: string, correlationId?: string, user?: string, more?: any) => {
   logger.log(severity, { name, description, correlationId, user, ...more });
 };

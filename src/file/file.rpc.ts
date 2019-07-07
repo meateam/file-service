@@ -76,7 +76,10 @@ export class FileServer {
 
     this.server.addService(file_proto.FileService.service, fileService);
   }
-
+  /**
+   * wraps all of the service methods, creating the transaction for the apm and the logger.
+   * @param func - the method called.
+   */
   private wrapper (func: Function) :
   (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => Promise<void> {
     return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
@@ -230,6 +233,13 @@ class ResFile {
   }
 }
 
+  // ******************** LOGGING FUNCTIONS ******************** */
+
+/**
+ * logs the activity before anything is done.
+ * @param methodName - name of the method activated.
+ * @param fields - parameters sent in the request.
+ */
 function logOnEntry(methodName : string, fields: any) : void {
   let description : string = 'request parameters: { ';
   for (const key of Object.keys(fields)) {
@@ -242,11 +252,20 @@ function logOnEntry(methodName : string, fields: any) : void {
   log('info', methodName, description, traceId);
 }
 
+/**
+ * logs when the method finished without an error.
+ * @param methodName - name of the method called.
+ */
 function logOnFinish(methodName : string) : void {
   const traceId : string = apm.currentTransaction.traceparent.split('-')[1];
   log('info', methodName, 'Finished successfully', traceId);
 }
 
+/**
+ * logs when the method was thrown by an error.
+ * @param methodName - name of the method
+ * @param err - the error thrown.
+ */
 function logOnError(methodName : string, err: Error) : void {
   const traceId : string = apm.currentTransaction.traceparent.split('-')[1];
   log('error', methodName, err.message, traceId);
