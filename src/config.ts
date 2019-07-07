@@ -71,7 +71,10 @@ export const confLogger = {
   indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
 };
 
-export const elasticURL = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
+export const secretToken = process.env.APM_SECRET_TOKEN || '';
+export const verifyServerCert = process.env.ELASTIC_APM_VERIFY_SERVER_CERT ? process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true' : false;
+export const serviceName = process.env.FS_APM_SERVICE_NAME || 'file-service';
+export const apmURL = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
 
 export const config : Config = getConfig(process.env.NODE_ENV || dev.conf_type);
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'

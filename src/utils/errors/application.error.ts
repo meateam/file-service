@@ -1,9 +1,12 @@
+import { statusToString } from './grpc.status';
+
 /**
  * This file contains extended errors for the application.
  */
 
 export class ApplicationError extends Error {
   public code: number;
+  public name: string;
 
   constructor(message?: string, code?: number) {
     super();
@@ -12,6 +15,7 @@ export class ApplicationError extends Error {
     this.name = this.constructor.name;
     this.message = message || 'unknown application error';
     this.code = code || 2;
+    this.name = statusToString(code);
   }
 }
 
