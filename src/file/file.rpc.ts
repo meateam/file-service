@@ -4,7 +4,7 @@ import apm from 'elastic-apm-node';
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 import { FileService } from './file.service';
-import { log } from '../utils/logger';
+import { log, Severity } from '../utils/logger';
 import { IFile } from './file.interface';
 import { apmURL, verifyServerCert, serviceName, secretToken } from '../config';
 import { statusToString, validateGrpcError } from '../utils/errors/grpc.status';
@@ -52,7 +52,7 @@ export class FileServer {
     this.server = new grpc.Server();
     this.addServices();
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
-    log('info', 'server bind', `server listening on port: ${port}`);
+    log(Severity.INFO, 'server bind', `server listening on port: ${port}`);
   }
 
   private addServices () {
@@ -85,19 +85,20 @@ export class FileServer {
     return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
       try {
         const traceparent = call.metadata.get('elastic-apm-traceparent');
-        const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
+        const transOptions =  (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
         apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
-        logOnEntry(func.name, call.request);
+        const traceID = getCurrTraceId();
+        logOnEntry(func.name, call.request, traceID);
 
         const res = await func(call, callback);
 
         apm.endTransaction(statusToString(grpc.status.OK));
-        logOnFinish(func.name);
+        logOnFinish(func.name, traceID, res);
         callback(null, res);
       } catch (err) {
         const validatedErr : ApplicationError = validateGrpcError(err);
+        logOnError(func.name, validatedErr, getCurrTraceId());
         apm.endTransaction(validatedErr.name);
-        logOnError(func.name, validatedErr);
         callback(validatedErr);
       }
     };
@@ -239,34 +240,38 @@ class ResFile {
  * logs the activity before anything is done.
  * @param methodName - name of the method activated.
  * @param fields - parameters sent in the request.
+ * @param traceID - the current trace's id.
  */
-function logOnEntry(methodName : string, fields: any) : void {
-  let description : string = 'request parameters: { ';
-  for (const key of Object.keys(fields)) {
-    const fieldName : string = fields[key].toString();
-    description += `${key} : ${fieldName}, `;
-  }
-  description += ' }';
-
-  const traceId : string = apm.currentTransaction.traceparent.split('-')[1];
-  log('info', methodName, description, traceId);
+function logOnEntry(methodName : string, fields: any, traceID: string) : void {
+  const description = JSON.stringify(fields);
+  log(Severity.INFO, methodName, description, traceID);
 }
 
 /**
  * logs when the method finished without an error.
  * @param methodName - name of the method called.
+ * @param traceID - the current trace's id.
  */
-function logOnFinish(methodName : string) : void {
-  const traceId : string = apm.currentTransaction.traceparent.split('-')[1];
-  log('info', methodName, 'Finished successfully', traceId);
+function logOnFinish(methodName : string, traceID: string, res: any) : void {
+  JSON.stringify(res);
+  log(Severity.INFO, methodName, 'request ended', traceID, res);
 }
 
 /**
  * logs when the method was thrown by an error.
  * @param methodName - name of the method
  * @param err - the error thrown.
+ * @param traceID - the current trace's id.
  */
-function logOnError(methodName : string, err: Error) : void {
-  const traceId : string = apm.currentTransaction.traceparent.split('-')[1];
-  log('error', methodName, err.message, traceId);
+function logOnError(methodName : string, err: Error, traceID: string) : void {
+  log(Severity.ERROR, methodName, err.message, traceID);
+}
+
+function getCurrTraceId() : string {
+  try {
+    return apm.currentTransaction.traceparent.split('-')[1];
+  } catch (err) {
+    // Should never get here. The log is set after apm starts.
+    return 'NoTraceID';
+  }
 }

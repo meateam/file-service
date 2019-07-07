@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 import * as os from 'os';
-const Elasticsearch = require('winston-elasticsearch');
+import * as Elasticsearch from 'winston-elasticsearch';
 import { confLogger, serviceName } from '../config';
 
 // index pattern for the logger
@@ -12,7 +12,7 @@ export const logger = winston.createLogger({
 });
 
 // configure logger
-const elasticsearch = new Elasticsearch({
+const elasticsearch = new Elasticsearch.default({
   indexPrefix: confLogger.indexPrefix,
   level: 'verbose',
   clientOpts: confLogger.elasticsearch,
@@ -27,10 +27,19 @@ logger.add(elasticsearch);
  * @param severity - the kind of log created.
  * @param name - name of the log. in our case, the function called.
  * @param description - description in text.
- * @param correlationId - id to correlate to if there are several logs with some connection.
+ * @param traceID - id to correlate to if there are several logs with some connection.
  * @param user - the user requesting for the service.
  * @param more - additional optional information.
  */
-export const log = (severity: string, name: string, description: string, correlationId?: string, user?: string, more?: any) => {
-  logger.log(severity, { name, description, correlationId, user, ...more });
+export const log = (severity: Severity, name: string, description: string, traceID?: string, user?: string, more?: any) => {
+  logger.log(severity, { name, description, traceID, user, ...more });
 };
+
+export enum Severity {
+  ERROR = 'error',
+  WARN = 'warn',
+  INFO = 'info',
+  VERBOSE = 'verbose',
+  DEBUG = 'debug',
+  SILLY = 'silly',
+}
