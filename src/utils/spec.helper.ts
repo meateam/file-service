@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
 import * as chai from 'chai';
-import { config } from '../config';
+import { database } from '../config';
 
 const expect: Chai.ExpectStatic = chai.expect;
 dotenv.config({ path: '.env' });
@@ -40,7 +40,7 @@ export const expectError = async (func: Function, params: any[]) => {
 };
 
 before(async () => {
-  const mongoHost = process.env.MONGO_HOST || config.db.host;
+  const mongoHost = process.env.MONGO_HOST || database.host;
   await mongoose.connect(
     `mongodb://${mongoHost}:27017/file`,
     { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }

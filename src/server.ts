@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import morgan from 'morgan';
 import session from 'express-session';
 import cors from 'cors';
-import { config, mongoConnectionString } from './config';
+import { mongoConnectionString, rpcPort } from './config';
 import { FileServer, serviceNames } from './file/file.rpc';
 import { HealthCheckResponse } from 'grpc-ts-health-check';
 
@@ -55,7 +55,7 @@ export class Server {
 
   // Connect mongoose to our database
   private async connectDB() {
-    const fileServer: FileServer = new FileServer(config.rpc_port);
+    const fileServer: FileServer = new FileServer(rpcPort);
 
     await mongoose.connect(
       mongoConnectionString,
