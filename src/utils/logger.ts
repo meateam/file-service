@@ -29,10 +29,10 @@ logger.add(elasticsearch);
  * @param description - description in text.
  * @param traceID - id to correlate to if there are several logs with some connection.
  * @param user - the user requesting for the service.
- * @param more - additional optional information.
+ * @param meta - additional optional information.
  */
-export const log = (severity: Severity, name: string, description: string, traceID?: string, user?: string, more?: any) => {
-  logger.log(severity, { name, description, traceID, user, ...more });
+export const log = (severity: Severity, name: string, description: string, traceID?: string, meta?: object) => {
+  logger.log(severity, { name, description, traceID, ...<any>meta });
 };
 
 export enum Severity {

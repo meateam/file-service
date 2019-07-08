@@ -253,8 +253,7 @@ function logOnEntry(methodName : string, fields: any, traceID: string) : void {
  * @param traceID - the current trace's id.
  */
 function logOnFinish(methodName : string, traceID: string, res: any) : void {
-  JSON.stringify(res);
-  log(Severity.INFO, methodName, 'request ended', traceID, res);
+  log(Severity.INFO, methodName, 'Response', traceID);
 }
 
 /**
@@ -272,6 +271,6 @@ function getCurrTraceId() : string {
     return apm.currentTransaction.traceparent.split('-')[1];
   } catch (err) {
     // Should never get here. The log is set after apm starts.
-    return 'NoTraceID';
+    return '';
   }
 }
