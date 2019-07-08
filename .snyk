@@ -18,3 +18,34 @@ patch:
   'npm:stringstream:20180511':
     - request > stringstream:
         patched: '2019-06-04T12:05:08.229Z'
+  SNYK-JS-LODASH-450202:
+    - mocha > yargs-unparser > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > inquirer > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - mongoose > async > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > snyk-php-plugin > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > snyk-nuget-plugin > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > snyk-nodejs-lockfile-parser > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - request-promise > request-promise-core > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > snyk-config > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > snyk-mvn-plugin > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > @snyk/dep-graph > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > snyk-nodejs-lockfile-parser > graphlib > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > snyk-go-plugin > graphlib > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
+    - snyk > @snyk/dep-graph > graphlib > lodash:
+        patched: '2019-07-04T00:16:51.860Z'
