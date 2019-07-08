@@ -31,8 +31,8 @@ logger.add(elasticsearch);
  * @param user - the user requesting for the service.
  * @param meta - additional optional information.
  */
-export const log = (severity: Severity, name: string, description: string, traceID?: string, meta?: object) => {
-  logger.log(severity, { name, description, traceID, ...<any>meta });
+export const log = (level: Severity, name: string, message: string, traceID?: string, meta?: object) => {
+  logger.log({ level, name, message, traceID, ...meta });
 };
 
 export enum Severity {

@@ -85,7 +85,7 @@ export class FileServer {
     return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
       try {
         const traceparent = call.metadata.get('elastic-apm-traceparent');
-        const transOptions =  (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
+        const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
         apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
         const traceID = getCurrTraceId();
         logOnEntry(func.name, call.request, traceID);
@@ -243,8 +243,7 @@ class ResFile {
  * @param traceID - the current trace's id.
  */
 function logOnEntry(methodName : string, fields: any, traceID: string) : void {
-  const description = JSON.stringify(fields);
-  log(Severity.INFO, methodName, description, traceID);
+  log(Severity.INFO, methodName, 'request', traceID, fields);
 }
 
 /**
@@ -253,7 +252,7 @@ function logOnEntry(methodName : string, fields: any, traceID: string) : void {
  * @param traceID - the current trace's id.
  */
 function logOnFinish(methodName : string, traceID: string, res: any) : void {
-  log(Severity.INFO, methodName, 'Response', traceID);
+  log(Severity.INFO, methodName, 'response', traceID, res);
 }
 
 /**
