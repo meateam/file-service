@@ -4,6 +4,7 @@ import apm from 'elastic-apm-node';
 import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 import { FileService } from './file.service';
+import { log, Severity } from '../utils/logger';
 import { IFile } from './file.interface';
 import { apmURL, verifyServerCert, serviceName, secretToken } from '../config';
 import { statusToString, validateGrpcError } from '../utils/errors/grpc.status';
@@ -51,6 +52,7 @@ export class FileServer {
     this.server = new grpc.Server();
     this.addServices();
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+    log(Severity.INFO, 'server bind', `server listening on port: ${port}`);
   }
 
   private addServices () {
@@ -74,7 +76,10 @@ export class FileServer {
 
     this.server.addService(file_proto.FileService.service, fileService);
   }
-
+  /**
+   * wraps all of the service methods, creating the transaction for the apm and the logger.
+   * @param func - the method called.
+   */
   private wrapper (func: Function) :
   (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => Promise<void> {
     return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
@@ -82,11 +87,17 @@ export class FileServer {
         const traceparent = call.metadata.get('elastic-apm-traceparent');
         const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
         apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
+        const traceID = getCurrTraceId();
+        logOnEntry(func.name, call.request, traceID);
+
         const res = await func(call, callback);
+
         apm.endTransaction(statusToString(grpc.status.OK));
+        logOnFinish(func.name, traceID, res);
         callback(null, res);
       } catch (err) {
         const validatedErr : ApplicationError = validateGrpcError(err);
+        logOnError(func.name, validatedErr, getCurrTraceId());
         apm.endTransaction(validatedErr.name);
         callback(validatedErr);
       }
@@ -220,5 +231,45 @@ class ResFile {
     this.deleted = file.deleted;
     this.createdAt = file.createdAt.getTime();
     this.updatedAt = file.updatedAt.getTime();
+  }
+}
+
+  // ******************** LOGGING FUNCTIONS ******************** */
+
+/**
+ * logs the activity before anything is done.
+ * @param methodName - name of the method activated.
+ * @param fields - parameters sent in the request.
+ * @param traceID - the current trace's id.
+ */
+function logOnEntry(methodName : string, fields: any, traceID: string) : void {
+  log(Severity.INFO, methodName, 'request', traceID, fields);
+}
+
+/**
+ * logs when the method finished without an error.
+ * @param methodName - name of the method called.
+ * @param traceID - the current trace's id.
+ */
+function logOnFinish(methodName : string, traceID: string, res: any) : void {
+  log(Severity.INFO, methodName, 'response', traceID, res);
+}
+
+/**
+ * logs when the method was thrown by an error.
+ * @param methodName - name of the method
+ * @param err - the error thrown.
+ * @param traceID - the current trace's id.
+ */
+function logOnError(methodName : string, err: Error, traceID: string) : void {
+  log(Severity.ERROR, methodName, err.message, traceID);
+}
+
+function getCurrTraceId() : string {
+  try {
+    return apm.currentTransaction.traceparent.split('-')[1];
+  } catch (err) {
+    // Should never get here. The log is set after apm starts.
+    return '';
   }
 }

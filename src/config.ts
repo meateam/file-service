@@ -29,7 +29,7 @@ const testing: Config = {
 const dev: Config = {
   rpc_port: process.env.RPC_PORT || '8080',
   conf_type: 'dev',
-  server: 'http://40.115.124.214',
+  server: 'http://localhost',
   port: 9000,
   db: {
     host: 'localhost',
@@ -63,6 +63,13 @@ function getConfig(confType: string) : Config {
       return dev;
   }
 }
+const esHost = process.env.LOGGER_ELASTICSEARCH || 'http://localhost:9200';
+export const confLogger = {
+  elasticsearch: esHost && {
+    hosts: esHost.split(','),
+  },
+  indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
+};
 
 export const secretToken = process.env.APM_SECRET_TOKEN || '';
 export const verifyServerCert = process.env.ELASTIC_APM_VERIFY_SERVER_CERT ? process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true' : false;
