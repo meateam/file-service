@@ -1,7 +1,12 @@
 import mongoose from 'mongoose';
-import { mongoConnectionString, rpcPort, nodeEnv } from './config';
-import { FileServer, serviceNames } from './server';
 import { HealthCheckResponse } from 'grpc-ts-health-check';
+import { FileServer, serviceNames } from './server';
+import { mongoConnectionString, rpcPort, nodeEnv } from './config';
+
+// Ensures you don't run the server twice
+if (!module.parent) {
+  initServer();
+}
 
 async function initServer() {
   const fileServer: FileServer = new FileServer(rpcPort);
@@ -31,11 +36,6 @@ async function connectDB(fileServer: FileServer) {
   db.on('disconnected', () => {
     setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
   });
-}
-
-// Ensures you don't run the server twice
-if (!module.parent) {
-  initServer();
 }
 
 function setHealthStatus(server: FileServer, status: number) : void {

@@ -89,16 +89,16 @@ export class FileServer {
         const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
         apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
         const traceID: string = getCurrTraceId();
-        logOnEntry(func.name, call.request, traceID);
+        log(Severity.INFO, func.name, 'request', traceID, call.request);
 
         const res = await func(call, callback);
 
         apm.endTransaction(statusToString(grpc.status.OK));
-        logOnFinish(func.name, traceID, res);
+        log(Severity.INFO, func.name, 'response', traceID, res);
         callback(null, res);
       } catch (err) {
         const validatedErr : ApplicationError = validateGrpcError(err);
-        logOnError(func.name, validatedErr, getCurrTraceId());
+        log(Severity.ERROR, func.name, err.message, getCurrTraceId());
         apm.endTransaction(validatedErr.name);
         callback(validatedErr);
       }
@@ -235,35 +235,6 @@ class ResFile {
 }
 
   // ******************** LOGGING FUNCTIONS ******************** */
-
-/**
- * logs the activity before anything is done.
- * @param methodName - name of the method activated.
- * @param fields - parameters sent in the request.
- * @param traceID - the current trace's id.
- */
-function logOnEntry(methodName : string, fields: any, traceID: string) : void {
-  log(Severity.INFO, methodName, 'request', traceID, fields);
-}
-
-/**
- * logs when the method finished without an error.
- * @param methodName - name of the method called.
- * @param traceID - the current trace's id.
- */
-function logOnFinish(methodName : string, traceID: string, res: any) : void {
-  log(Severity.INFO, methodName, 'response', traceID, res);
-}
-
-/**
- * logs when the method was thrown by an error.
- * @param methodName - name of the method
- * @param err - the error thrown.
- * @param traceID - the current trace's id.
- */
-function logOnError(methodName : string, err: Error, traceID: string) : void {
-  log(Severity.ERROR, methodName, err.message, traceID);
-}
 
 function getCurrTraceId() : string {
   try {
