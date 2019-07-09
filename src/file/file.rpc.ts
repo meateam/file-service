@@ -9,6 +9,7 @@ import { IFile } from './file.interface';
 import { apmURL, verifyServerCert, serviceName, secretToken } from '../config';
 import { statusToString, validateGrpcError } from '../utils/errors/grpc.status';
 import { ApplicationError } from '../utils/errors/application.error';
+import { IUpload } from '../upload/upload.interface';
 
 apm.start({
   serviceName,
@@ -17,7 +18,7 @@ apm.start({
   serverUrl: apmURL,
 });
 
-const PROTO_PATH = `${__dirname}/../../proto/file.proto`;
+const PROTO_PATH: string = `${__dirname}/../../proto/file.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
 const packageDefinition : protoLoader.PackageDefinition = protoLoader.loadSync(
@@ -87,7 +88,7 @@ export class FileServer {
         const traceparent = call.metadata.get('elastic-apm-traceparent');
         const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
         apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
-        const traceID = getCurrTraceId();
+        const traceID: string = getCurrTraceId();
         logOnEntry(func.name, call.request, traceID);
 
         const res = await func(call, callback);
@@ -113,7 +114,7 @@ export class FileServer {
   }
 
   // Creates an upload object, present while uploading a file.
-  private async CreateUpload(call: any, callback: any) {
+  private async CreateUpload(call: any, callback: any): Promise<IUpload> {
     const key: string = FileService.generateKey();
     const bucket: string = call.request.bucket;
     const name: string = call.request.name;
@@ -124,7 +125,7 @@ export class FileServer {
   }
 
   // Updates the uploadID.
-  private async UpdateUploadID(call: any, callback: any) {
+  private async UpdateUploadID(call: any, callback: any): Promise<IUpload> {
     const key: string = call.request.key;
     const uploadID: string = call.request.uploadID;
     const bucket: string = call.request.bucket;
@@ -132,21 +133,21 @@ export class FileServer {
   }
 
   // Get an upload metadata by its id in the DB.
-  private async GetUploadByID(call: any, callback: any) {
-    const id = call.request.uploadID;
+  private async GetUploadByID(call: any, callback: any): Promise<IUpload> {
+    const id: string = call.request.uploadID;
     return FileService.getUploadById(id);
   }
 
   //  Delete an upload from the DB by its id.
-  private async DeleteUploadByID(call: any, callback: any) {
-    const id = call.request.uploadID;
+  private async DeleteUploadByID(call: any, callback: any): Promise<void> {
+    const id: string = call.request.uploadID;
     return FileService.deleteUpload(id);
   }
 
   // ********************* FILE FUNCTIONS ********************* */
 
   // Creates a new file in the DB.
-  private async CreateFile(call: any, callback: any) {
+  private async CreateFile(call: any, callback: any): Promise<ResFile> {
     const params = call.request;
     const createdFile = await FileService.create(
       params.bucket,
@@ -161,39 +162,38 @@ export class FileServer {
   }
 
   // Deletes a file, according to the file deletion policy.
-  private async DeleteFile(call: any, callback: any) {
+  private async DeleteFile(call: any, callback: any): Promise<{ok: boolean}> {
     const id: string = call.request.id;
     await FileService.delete(id);
     return { ok: true };
   }
 
   // Retrieves a file by its id.
-  private async GetFileByID(call: any, callback: any) {
+  private async GetFileByID(call: any, callback: any): Promise<ResFile> {
     const id: string = call.request.id;
-    const file = await FileService.getById(id);
+    const file: IFile = await FileService.getById(id);
     return new ResFile(file);
   }
 
   // Retrieves a file by its key.
-  private async GetFileByKey(call: any, callback: any) {
+  private async GetFileByKey(call: any, callback: any): Promise<ResFile> {
     const key: string = call.request.key;
-    const file = await FileService.getByKey(key);
+    const file: IFile = await FileService.getByKey(key);
     return new ResFile(file);
   }
 
   // Retrieves all files residing in a given folder.
-  private async GetFilesByFolder(call: any, callback: any) {
+  private async GetFilesByFolder(call: any, callback: any): Promise<{ files: ResFile[] }> {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
-    const files = await FileService.getFilesByFolder(folderID, ownerID);
-    const resFiles = files.length ? files.map(file => new ResFile(file)) : [];
+    const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID);
+    const resFiles: ResFile[] = files.length ? files.map(file => new ResFile(file)) : [];
     return { files: resFiles };
-
   }
 
   // Checks if an operation is allowed by permission of the owner.
-  private async IsAllowed(call: any, callback: any) {
-    const res = await FileService.isOwner(call.request.fileID, call.request.userID);
+  private async IsAllowed(call: any, callback: any): Promise<{ allowed: boolean }> {
+    const res: boolean = await FileService.isOwner(call.request.fileID, call.request.userID);
     return  { allowed: res };
   }
 

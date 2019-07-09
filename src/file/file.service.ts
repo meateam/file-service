@@ -19,7 +19,7 @@ export class FileService {
   /**
    * Explanation about upload fields:
    * uploadID: the id of the created upload. received from the client (updates later)
-   * ucket: also received from the client.
+   * bucket: also received from the client.
    * key: the key generated.
   */
 
