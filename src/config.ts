@@ -1,6 +1,3 @@
-/**
- *
- */
 type DB = {
   confType: string;
   name: string;
@@ -46,13 +43,18 @@ export const confLogger = {
   indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
 };
 
+// Used for the APM agent
 export const secretToken: string = process.env.APM_SECRET_TOKEN || '';
 export const serviceName: string = process.env.FS_APM_SERVICE_NAME || 'file-service';
-export const apmURL: string = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
-export const rpcPort: string = process.env.RPC_PORT || '8080';
-export const nodeEnv: string = process.env.NODE_ENV || 'dev';
-export const database: DB = getDB(nodeEnv) || dev;
 export const verifyServerCert: boolean = process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true';
+export const apmURL: string = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
+
+// the port for binding the server
+export const rpcPort: string = process.env.RPC_PORT || '8080';
+
+// 
+export const nodeEnv: string = process.env.NODE_ENV || 'dev';
+export const database: DB = getDB(nodeEnv);
 
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
 export const mongoConnectionString : string =

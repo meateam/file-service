@@ -1,14 +1,11 @@
 import * as grpc from 'grpc';
 import * as protoLoader from '@grpc/proto-loader';
 import apm from 'elastic-apm-node';
-import { ObjectID } from 'mongodb';
 import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
 import { FileService } from './file/file.service';
-import { log, Severity } from './utils/logger';
-import { IFile } from './file/file.interface';
+import { log, Severity, wrapper } from './utils/logger';
+import { IFile, ResFile } from './file/file.interface';
 import { apmURL, verifyServerCert, serviceName, secretToken } from './config';
-import { statusToString, validateGrpcError } from './utils/errors/grpc.status';
-import { ApplicationError } from './utils/errors/application.error';
 import { IUpload } from './upload/upload.interface';
 
 apm.start({
@@ -41,9 +38,7 @@ export const healthCheckStatusMap = {
   serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
 };
 
-/**
- * The FileServer class, containing all of the FileServer methods.
- */
+// The FileServer class, containing all of the FileServer methods.
 export class FileServer {
 
   public server: grpc.Server;
@@ -62,48 +57,20 @@ export class FileServer {
     this.server.addService(HealthService, this.grpcHealthCheck);
 
     const fileService = {
-      GenerateKey: this.wrapper(this.GenerateKey),
-      CreateUpload: this.wrapper(this.CreateUpload),
-      UpdateUploadID: this.wrapper(this.UpdateUploadID),
-      GetUploadByID: this.wrapper(this.GetUploadByID),
-      DeleteUploadByID: this.wrapper(this.DeleteUploadByID),
-      GetFileByID: this.wrapper(this.GetFileByID),
-      GetFileByKey: this.wrapper(this.GetFileByKey),
-      GetFilesByFolder: this.wrapper(this.GetFilesByFolder),
-      CreateFile: this.wrapper(this.CreateFile),
-      DeleteFile: this.wrapper(this.DeleteFile),
-      IsAllowed: this.wrapper(this.IsAllowed),
+      GenerateKey: wrapper(this.GenerateKey),
+      CreateUpload: wrapper(this.CreateUpload),
+      UpdateUploadID: wrapper(this.UpdateUploadID),
+      GetUploadByID: wrapper(this.GetUploadByID),
+      DeleteUploadByID: wrapper(this.DeleteUploadByID),
+      GetFileByID: wrapper(this.GetFileByID),
+      GetFileByKey: wrapper(this.GetFileByKey),
+      GetFilesByFolder: wrapper(this.GetFilesByFolder),
+      CreateFile: wrapper(this.CreateFile),
+      DeleteFile: wrapper(this.DeleteFile),
+      IsAllowed: wrapper(this.IsAllowed),
     };
 
     this.server.addService(file_proto.FileService.service, fileService);
-  }
-  /**
-   * wraps all of the service methods, creating the transaction for the apm and the logger.
-   * @param func - the method called.
-   */
-  private wrapper (func: Function) :
-  (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => Promise<void> {
-    return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
-      try {
-        const traceparent = call.metadata.get('elastic-apm-traceparent');
-        const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
-        apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
-        const traceID: string = getCurrTraceId();
-        log(Severity.INFO, func.name, 'request', traceID, call.request);
-
-        const res = await func(call, callback);
-
-        apm.endTransaction(statusToString(grpc.status.OK));
-        log(Severity.INFO, func.name, 'response', traceID, res);
-        callback(null, res);
-      } catch (err) {
-        const validatedErr : ApplicationError = validateGrpcError(err);
-        log(Severity.ERROR, func.name, err.message, getCurrTraceId());
-        apm.endTransaction(validatedErr.name);
-        callback(validatedErr);
-      }
-    };
-
   }
 
   // ******************** UPLOAD FUNCTIONS ******************** */
@@ -197,50 +164,4 @@ export class FileServer {
     return  { allowed: res };
   }
 
-}
-
-// Same as IFile, but changing types accordingly
-class ResFile {
-  id: string;
-  key: string;
-  bucket: string;
-  displayName: string;
-  fullExtension: string;
-  name: string;
-  type: string;
-  description: string;
-  ownerID: string;
-  size: number;
-  parent: ObjectID | string;
-  deleted: boolean;
-  createdAt: number;
-  updatedAt: number;
-
-  constructor(file: IFile) {
-    this.id = file.id;
-    this.key = file.key;
-    this.bucket = file.bucket;
-    this.displayName = file.displayName;
-    this.fullExtension = file.fullExtension;
-    this.name = file.name;
-    this.type = file.type;
-    this.description = file.description;
-    this.ownerID = file.ownerID;
-    this.size = file.size;
-    this.parent = file.parent;
-    this.deleted = file.deleted;
-    this.createdAt = file.createdAt.getTime();
-    this.updatedAt = file.updatedAt.getTime();
-  }
-}
-
-  // ******************** LOGGING FUNCTIONS ******************** */
-
-function getCurrTraceId() : string {
-  try {
-    return apm.currentTransaction.traceparent.split('-')[1];
-  } catch (err) {
-    // Should never get here. The log is set after apm starts.
-    return '';
-  }
 }
