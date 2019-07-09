@@ -9,7 +9,7 @@ import { quotaModel } from './quota.model';
 export class QuotaRepository {
   /**
    * Get the quota by its owner's id.
-   * @param ownerID - the id of the quota.
+   * @param ownerID - the id of the owner.
    */
   static getByOwnerID(ownerID: string): Promise<IQuota | null> {
     return quotaModel.findOne({ ownerID }).exec();
@@ -24,7 +24,7 @@ export class QuotaRepository {
   }
 
   /**
-   * Deletes an quota by its owner's id.
+   * Deletes a quota by its owner's id.
    * @param ownerID - the id of the quota.
    */
   static deleteById(ownerID: string): Promise<IQuota | null> {
