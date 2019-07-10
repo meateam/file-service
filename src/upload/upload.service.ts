@@ -10,26 +10,26 @@ import { QuotaService } from '../quota/quota.service';
  * uploadID: the id of the created upload. received from the client (updates later)
  * bucket: also received from the client.
  * key: the key generated.
-*/
+ */
 export class UploadService {
 
   /**
-	 * Generates a random key.
-	 */
+   * Generates a random key.
+   */
   public static generateKey(): string {
     const objectID : ObjectID = new ObjectID();
     return this.reverseString(objectID.toHexString());
   }
 
   /**
-	 * Creates a new upload object and adds it to the DB.
-	 * @param key - generated with generateKey
-	 * @param bucket - is the s3 bucket in the storage
-	 * @param name - of the file uploaded
-	 * @param ownerID - the id of the file owner
-	 * @param parent - the folder id in which the file resides
-	 * @param size - the size of the file that is being uploaded.
-	 */
+   * Creates a new upload object and adds it to the DB.
+   * @param key - generated with generateKey
+   * @param bucket - is the s3 bucket in the storage
+   * @param name - of the file uploaded
+   * @param ownerID - the id of the file owner
+   * @param parent - the folder id in which the file resides
+   * @param size - the size of the file that is being uploaded.
+   */
   public static async createUpload(
     key: string,
     bucket: string,
