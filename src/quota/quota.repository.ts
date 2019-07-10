@@ -9,7 +9,7 @@ import { quotaModel } from './quota.model';
 export class QuotaRepository {
   /**
    * Get the quota by its owner's id.
-   * @param ownerID - the id of the owner.
+   * @param ownerID - the id of the quota (same as the one of the owner).
    */
   static getByOwnerID(ownerID: string): Promise<IQuota | null> {
     return quotaModel.findOne({ ownerID }).exec();
