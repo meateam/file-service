@@ -48,14 +48,12 @@ export enum Severity {
   SILLY = 'silly',
 }
 
-
-
   /**
    * wraps all of the service methods, creating the transaction for the apm and the logger,
    * and sends them to the elastic server.
    * @param func - the method called and wrapped.
    */
-export function wrapper (func: Function) :
+export function wrapper(func: Function) :
   (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => Promise<void> {
   return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
     try {

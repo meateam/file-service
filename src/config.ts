@@ -52,7 +52,6 @@ export const apmURL: string = process.env.ELASTIC_APM_SERVER_URL || 'http://loca
 // the port for binding the server
 export const rpcPort: string = process.env.RPC_PORT || '8080';
 
-// 
 export const nodeEnv: string = process.env.NODE_ENV || 'dev';
 export const database: DB = getDB(nodeEnv);
 
