@@ -1,6 +1,6 @@
 import { ObjectID } from 'mongodb';
-
-export interface IFile {
+class PrimitiveFile
+{
   id?: string;
   key?: string;
   bucket?: string;
@@ -13,6 +13,37 @@ export interface IFile {
   size: number;
   parent?: ObjectID | string;
   deleted: boolean;
+  createdAt?: Date | number;
+  updatedAt?: Date | number;
+
+  constructor(file: PrimitiveFile) {
+    this.id = file.id;
+    this.key = file.key;
+    this.bucket = file.bucket;
+    this.displayName = file.displayName;
+    this.fullExtension = file.fullExtension;
+    this.name = file.name;
+    this.type = file.type;
+    this.description = file.description;
+    this.ownerID = file.ownerID;
+    this.size = file.size;
+    this.parent = file.parent;
+    this.deleted = file.deleted;
+  }
+}
+export class IFile extends PrimitiveFile{
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+// Same as IFile, but changing types accordingly
+export class ResFile extends PrimitiveFile {
+  createdAt: number;
+  updatedAt: number;
+
+  constructor(file: IFile) {
+    super(file);
+    this.createdAt = file.createdAt.getTime();
+    this.updatedAt = file.updatedAt.getTime();
+  }
 }
