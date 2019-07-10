@@ -1,6 +1,6 @@
 import { ObjectID } from 'mongodb';
 import FilesRepository from '../file/file.repository';
-import { FileExistsWithSameName, FileNotFoundError, UploadNotFoundError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UploadNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { UploadRepository } from '../upload/upload.repository';
 import { QuotaService } from '../quota/quota.service';
