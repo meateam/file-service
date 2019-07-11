@@ -9,6 +9,7 @@ import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { QuotaService } from '../quota/quota.service';
 import { QuotaExceededError } from '../utils/errors/quota.error';
+import { UploadService } from '../upload/upload.service';
 
 const expect: Chai.ExpectStatic = chai.expect;
 const should = chai.should();
@@ -65,7 +66,7 @@ describe('File Logic', () => {
 
   describe('#generateKey', () => {
     it('should return a string', () => {
-      const key = FileService.generateKey();
+      const key = UploadService.generateKey();
       expect(key).to.exist;
       expect(key).to.be.a('string');
     });
@@ -74,7 +75,7 @@ describe('File Logic', () => {
   describe('#createUpload', () => {
     it('should return a new upload', async () => {
       const newUpload: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null).should.eventually.exist;
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
@@ -82,19 +83,19 @@ describe('File Logic', () => {
     });
 
     it('should throw an error when {key, bucket} already exist', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
+      await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
       .should.eventually.exist;
-      await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
+      await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
       .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
     });
 
     it('should throw an error when {ownerID, parent, name} already exist', async () => {
       uploadModel.on('index', async () => { // <-- Wait for model's indexes to finish
         const newUpload1: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
         .should.eventually.exist;
         const newUpload2: IUpload =
-        await FileService.createUpload(KEY2, 'BUCKET2', 'name1',  USER.id, null)
+        await UploadService.createUpload(KEY2, 'BUCKET2', 'name1',  USER.id, null)
         .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
       });
     });
@@ -102,23 +103,23 @@ describe('File Logic', () => {
     it('should not throw an error when key already exists but bucket not', async () => {
       uploadModel.on('index', async () => { // <-- Wait for model's indexes to finish
         const newUpload1: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
         .should.eventually.exist;
         const newUpload2: IUpload =
-        await FileService.createUpload(testUpload.key, 'BUCKET2', 'name2',  '654321', null)
+        await UploadService.createUpload(testUpload.key, 'BUCKET2', 'name2',  '654321', null)
         .should.not.eventually.exist;
       });
     });
 
     it('should throw an error if file with the same name, ownerID and parent exists', async () => {
       await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY, KEY2), size;
-      await FileService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY)
+      await UploadService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY)
       .should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
 
     it('should return a new upload', async () => {
       const newUpload: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 256).should.eventually.exist;
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 256).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
@@ -128,12 +129,12 @@ describe('File Logic', () => {
     });
 
     it('should throw exceeded quota error', async () => {
-      await FileService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY, 101 * 1024 * 1024 * 1024)
+      await UploadService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY, 101 * 1024 * 1024 * 1024)
         .should.eventually.be.rejectedWith(QuotaExceededError);
     });
 
     it('should throw negative used quota', async () => {
-      await FileService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY, -256)
+      await UploadService.createUpload(KEY3, bucket, 'file.txt',  USER.id, KEY, -256)
         .should.eventually.be.rejectedWith(ServerError, 'negative used quota');
     });
 
@@ -141,7 +142,7 @@ describe('File Logic', () => {
       const oldQuota = await QuotaService.getByOwnerID(USER.id);
 
       const newUpload: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * 1024).should.eventually.exist;
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * 1024).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
@@ -154,9 +155,9 @@ describe('File Logic', () => {
 
   describe('#updateUploadID', () => {
     it('should update upload id', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null);
-      await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
-      const myUpload = await FileService.getUploadById(testUpload.uploadID);
+      await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null);
+      await UploadService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
+      const myUpload = await UploadService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
       expect(myUpload.name).to.be.equal(testUpload.name);
@@ -166,24 +167,24 @@ describe('File Logic', () => {
 
   describe('#deleteUpload', () => {
     it('should delete an existing upload', async () => {
-      await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null);
-      await FileService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
-      const myUpload = await FileService.getUploadById(testUpload.uploadID);
+      await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null);
+      await UploadService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
+      const myUpload = await UploadService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.uploadID).to.be.equal(testUpload.uploadID);
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
       expect(myUpload.name).to.be.equal(testUpload.name);
       expect(myUpload.key).to.be.equal(testUpload.key);
 
-      await FileService.deleteUpload(testUpload.uploadID).should.eventually.not.be.rejected;
+      await UploadService.deleteUpload(testUpload.uploadID).should.eventually.not.be.rejected;
 
-      await FileService.getUploadById(testUpload.uploadID)
+      await UploadService.getUploadById(testUpload.uploadID)
       .should.eventually.be.rejectedWith(ClientError, 'upload not found');
     });
 
     it('should decrease quota usage by the size of the upload', async () => {
       const newUpload: IUpload =
-        await FileService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * 1024).should.eventually.exist;
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * 1024).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
@@ -193,7 +194,7 @@ describe('File Logic', () => {
       const quotaAfterUpload = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterUpload.used).to.be.equal(6 * 1024);
 
-      await FileService.deleteUpload(newUpload.uploadID).should.eventually.not.be.rejected;
+      await UploadService.deleteUpload(newUpload.uploadID).should.eventually.not.be.rejected;
 
       const quotaAfterDelete = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterDelete.used).to.be.equal(0);
@@ -255,7 +256,7 @@ describe('File Logic', () => {
     it('should create upload with deleted big upload', async () => {
       const oldQuota = await QuotaService.getByOwnerID(USER.id);
 
-      const newUpload: IUpload = await FileService.createUpload(
+      const newUpload: IUpload = await UploadService.createUpload(
         testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 99 * 1024 * 1024 * 1024)
         .should.eventually.exist;
 
@@ -268,7 +269,7 @@ describe('File Logic', () => {
       const quotaAfterCreatedUpload = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterCreatedUpload.used).to.be.equal(newUpload.size);
 
-      await FileService.deleteUpload(newUpload.uploadID).should.eventually.not.be.rejected;
+      await UploadService.deleteUpload(newUpload.uploadID).should.eventually.not.be.rejected;
 
       const quotaAfterDelete = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterDelete.used).to.be.equal(0);
@@ -283,7 +284,7 @@ describe('File Logic', () => {
     it('should throw quota exceeded', async () => {
       const oldQuota = await QuotaService.getByOwnerID(USER.id);
 
-      const newUpload: IUpload = await FileService.createUpload(
+      const newUpload: IUpload = await UploadService.createUpload(
         testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 99 * 1024 * 1024 * 1024)
         .should.eventually.exist;
 
@@ -347,7 +348,7 @@ describe('File Logic', () => {
 
     it('should create a file at the root folder', async () => {
       const file1 = await FileService.create(bucket, 'tmp', USER.id, 'text', null, KEY);
-      const newKey = FileService.generateKey();
+      const newKey = UploadService.generateKey();
       const file2: IFile = await FileService.create(
         bucket, 'file.txt', USER.id, 'text', null, newKey);
       const filesInRoot : IFile[] = await FileService.getFilesByFolder(null, USER.id);
@@ -407,8 +408,8 @@ describe('File Logic', () => {
       expect(files).to.be.an('array').with.lengthOf(0);
     });
     it('should return all the files and folders directly under the given folder', async () => {
-      const newKey1 = FileService.generateKey();
-      const newKey2 = FileService.generateKey();
+      const newKey1 = UploadService.generateKey();
+      const newKey2 = UploadService.generateKey();
 
       const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, KEY);
 
@@ -444,8 +445,8 @@ describe('File Logic', () => {
       it('should return the items of the given user root folder', async () => {
         const filesInRoot : IFile[] = await FileService.getFilesByFolder(null, USER.id);
         expect(filesInRoot.length).to.equal(0);
-        const key2 = FileService.generateKey();
-        const key3 = FileService.generateKey();
+        const key2 = UploadService.generateKey();
+        const key3 = UploadService.generateKey();
 
         const file1 = await FileService.create(
           bucket, 'file1.txt', USER.id, 'text', null, KEY);
@@ -595,8 +596,8 @@ describe('File Logic', () => {
 });
 
 async function generateFolderStructure() : Promise<IFile[]> {
-  const key2 = FileService.generateKey();
-  const key3 = FileService.generateKey();
+  const key2 = UploadService.generateKey();
+  const key3 = UploadService.generateKey();
 
   const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, KEY);
 

@@ -96,13 +96,13 @@ export default class FileRepository {
 
   /**
    * Retrieves an array of files according to a condition.
-   * @param cond - the condiotion for the search.
+   * @param condition - the condition for the search.
    * @param populate - an option to populate the retrieved file's fields.
-   * @param select - seelect certain fields of the files.
+   * @param select - select certain fields of the files.
    */
-  static find(cond?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
+  static find(condition?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
 
-    let findPromise = fileModel.find(cond);
+    let findPromise = fileModel.find(condition);
     if (populate) {
       findPromise = findPromise.populate(populate);
     }
