@@ -42,10 +42,6 @@ export const fileSchema: Schema = new Schema(
     bucket: {
       type: String,
       required: true,
-    },
-    deleted: {
-      type: Boolean,
-      default: false,
     }
   },
   {
@@ -81,7 +77,7 @@ fileSchema.virtual('fullExtension')
 
 fileSchema.pre('save', async function (next: NextFunction) {
   const existingFile = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
-  if (existingFile && !existingFile.deleted) {
+  if (existingFile) {
     next(new KeyAlreadyExistsError((<any>this).key));
   } else {
     next();
