@@ -38,8 +38,15 @@ export class IFile extends PrimitiveFile{
 
 // Same as IFile, but changing types accordingly
 export class ResFile extends PrimitiveFile {
+  id: string;
+  key: string;
+  bucket: string;
+  description: string;
+  displayName: string;
+  fullExtension: string;
   createdAt: number;
   updatedAt: number;
+  parent: string;
 
   constructor(file: IFile) {
     super(file);
