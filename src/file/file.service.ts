@@ -73,8 +73,8 @@ export class FileService {
   /**
    * If receiving a file, deletes the file.
    * If receiving a folder:
-   * *Recursively delete all files and sub-folders in the given folder,
-   * *only then delete the folder.
+   * Recursively delete all files and sub-folders in the given folder,
+   * only then delete the folder.
    * @param fileId - the id of the file/folder
    */
   public static async delete(fileId: string): Promise<void> {

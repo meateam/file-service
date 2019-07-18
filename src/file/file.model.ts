@@ -55,7 +55,7 @@ export const fileSchema: Schema = new Schema(
   }
 );
 
-fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: false });
+fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
 
 fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
