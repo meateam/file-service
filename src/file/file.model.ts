@@ -59,7 +59,7 @@ export const fileSchema: Schema = new Schema(
   }
 );
 
-fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: false });
+fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
 
 fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
@@ -79,19 +79,29 @@ fileSchema.virtual('fullExtension')
     return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
   });
 
-fileSchema.pre('save', async function (next: NextFunction) {
-  const existingFile = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
-  if (existingFile && !existingFile.deleted) {
+fileSchema.pre('save', checkDuplicates);
+
+async function checkDuplicates(next: NextFunction) {
+  const fileByKey = await fileModel.findOne({ key: (<any>this).key });
+  const fileByTrinity = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
+  if (fileByKey) {
+    console.log('1');
     next(new KeyAlreadyExistsError((<any>this).key));
+  } else if (fileByTrinity) {
+    console.log('2');
+    next(new KeyAlreadyExistsError(
+      `name:${fileByTrinity.name}, parent:${fileByTrinity.parent}, ownerID:${fileByTrinity.ownerID}`
+      ));
   } else {
     next();
   }
-});
+}
 
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    next(new KeyAlreadyExistsError(this.key));
+    console.log('3');
+    next(new KeyAlreadyExistsError(`${this.key} OR <name:${this.name}, parent:${this.parent}, ownerID:${this.ownerID}>`));
   } else {
     next();
   }

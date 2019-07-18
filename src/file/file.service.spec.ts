@@ -209,6 +209,7 @@ describe('File Logic', () => {
 
     it('should not throw an error if key is not sent with a folder', async () => {
       await FileService.create(bucket, 'myFolder', USER.id, FolderContentType).should.eventually.exist;
+      // TODO: fix tests
     });
 
     it('should throw error: same owner, folder and filename', async () => {
