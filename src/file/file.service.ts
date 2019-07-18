@@ -95,6 +95,10 @@ export class FileService {
     return FilesRepository.updateById(fileId, partialFile);
 	}
 	
+	/**
+	 * updateMany updates a list of files.
+	 * @param files - List of files to update with their updated fields and their id.
+	 */
 	static async updateMany(files: (Partial<IFile> & { id: string })[]): Promise<{updated: string[], failed: { id: string, error: Error }[]}> {
 		const failedFiles: { id: string, error: Error }[] = [];
 		const updatedFiles: string[] = [];

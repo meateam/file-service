@@ -36,6 +36,10 @@ export class FileMethods {
     return { ok: true };
 	}
 	
+	/**
+	 * UpdateFiles updates a list of files and responses with a list of the files' id
+	 * which succeeded the operation, and a list of the files' id which the failed the operation.
+	 */
 	public static async UpdateFiles(call: ServerUnaryCall<(Partial<IFile> & { id: string })[]>) {
 		const { updated, failed } = await FileService.updateMany(call.request);
 		const traceID = getCurrTraceId();
