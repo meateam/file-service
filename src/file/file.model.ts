@@ -41,7 +41,7 @@ export const fileSchema: Schema = new Schema(
     },
     bucket: {
       type: String,
-      required: true,
+      required: false,
     },
     deleted: {
       type: Boolean,
@@ -79,23 +79,36 @@ fileSchema.virtual('fullExtension')
     return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
   });
 
-fileSchema.pre('save', async function (next: NextFunction) {
-  const existingFile = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
-  if (existingFile && !existingFile.deleted) {
-    next(new KeyAlreadyExistsError((<any>this).key));
-  } else {
-    next();
-  }
-});
+fileSchema.pre('save', handleExistingFile);
+fileSchema.pre('update', handleExistingFile);
 
-// handleE11000 is called when there is a duplicateKey Error
-const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
+/**
+ * handleE11000 is called when there is a duplicateKey Error
+ * @param error 
+ * @param _ 
+ * @param next 
+ */
+function handleE11000(error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
     next(new KeyAlreadyExistsError(this.key));
   } else {
     next();
   }
 };
+
+/**
+ * handleExistingFile handles checking that a file with the same name, parent, and owner
+ * doesn't exist already with exceptions for when the existing file is deleted.
+ * @param next
+ */
+async function handleExistingFile(next: NextFunction) {
+	const existingFile = await fileModel.findOne({ name: (<IFile>this).name, parent: (<IFile>this).parent, ownerID: (<IFile>this).ownerID });
+  if (existingFile && !existingFile.deleted) {
+    next(new KeyAlreadyExistsError((<IFile>this).key));
+  } else {
+    next();
+  }
+}
 
 fileSchema.post('save', handleE11000);
 fileSchema.post('update', handleE11000);

@@ -91,9 +91,26 @@ export class FileService {
    * @param fileId - the id of the file.
    * @param partialFile - the partial file.
    */
-  public static updateById(fileId: string, partialFile: Partial<IFile>): Promise<IFile> {
+  public static updateById(fileId: string, partialFile: Partial<IFile>): Promise<boolean> {
     return FilesRepository.updateById(fileId, partialFile);
-  }
+	}
+	
+	static async updateMany(files: (Partial<IFile> & { id: string })[]): Promise<{updated: string[], failed: { id: string, error: Error }[]}> {
+		const failedFiles: { id: string, error: Error }[] = [];
+		const updatedFiles: string[] = [];
+		for (let i = 0; i < files.length; i++) {
+			try {
+				const updatedFile = await FilesRepository.updateById(files[i].id, files[i]);
+				if (updatedFile) {
+					updatedFiles.push(files[i].id);
+				}
+			} catch (e) {
+				failedFiles.push({ id: files[i].id, error: e });
+			}
+		}
+
+		return {updated: updatedFiles, failed: failedFiles};
+	}
 
   /**
    * Get a file by its id.
@@ -142,6 +159,14 @@ export class FileService {
     return file.ownerID === userID;
   }
 
+	/**
+   * Hashes a given key.
+   * @param id - the key to be hashed.
+   */
+  public static hashKey(id: string): string {
+    return this.reverseString(id);
+	}
+	
   /**
    * Makes sure a key is not in use in the database, to preserve uniqueness.
    * @param key - the key to check.
@@ -162,18 +187,10 @@ export class FileService {
   }
 
   /**
-   * Hashes a given key.
-   * @param id - the key to be hashed.
-   */
-  public static hashKey(id: string): string {
-    return this.reverseString(id);
-  }
-
-  /**
    * Reverses a given string.
    * @param str - the string to be reversed.
    */
   private static reverseString(str: string): string {
     return str ? str.split('').reverse().join('') : '';
-  }
+	}
 }
