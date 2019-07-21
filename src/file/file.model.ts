@@ -42,10 +42,6 @@ export const fileSchema: Schema = new Schema(
     bucket: {
       type: String,
       required: true,
-    },
-    deleted: {
-      type: Boolean,
-      default: false,
     }
   },
   {
@@ -59,7 +55,7 @@ export const fileSchema: Schema = new Schema(
   }
 );
 
-fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: false });
+fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
 
 fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
@@ -78,15 +74,6 @@ fileSchema.virtual('fullExtension')
   }).get(function () {
     return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
   });
-
-fileSchema.pre('save', async function (next: NextFunction) {
-  const existingFile = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
-  if (existingFile && !existingFile.deleted) {
-    next(new KeyAlreadyExistsError((<any>this).key));
-  } else {
-    next();
-  }
-});
 
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
