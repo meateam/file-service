@@ -75,15 +75,6 @@ fileSchema.virtual('fullExtension')
     return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
   });
 
-fileSchema.pre('save', async function (next: NextFunction) {
-  const existingFile = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
-  if (existingFile) {
-    next(new KeyAlreadyExistsError((<any>this).key));
-  } else {
-    next();
-  }
-});
-
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
