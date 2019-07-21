@@ -37,7 +37,7 @@ export default class FileRepository {
   }
 
   /**
-   * Changes 'deleted' flag to true. Does not delete from th DB.
+   * Deletes a file from the DB.
    * @param id - the id of the file to be deleted.
    */
   static deleteById(id: string): Promise<IFile | null> {

@@ -365,6 +365,29 @@ describe('File Logic', () => {
 
   });
 
+  describe('#updateById', () => {
+    it('should update a file', async () => {
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
+      await FileService.updateById(file.id, { name: 'changedFile', type: 'jpg' });
+      const changedFile : IFile = await FileService.getById(file.id);
+      expect(changedFile.name).to.equal('changedFile');
+      expect(changedFile.type).to.equal('jpg');
+    });
+
+    it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
+      await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+    });
+
+    it('should throw an error when changing a file to unique properties of another (key)', async () => {
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
+      await FileService.updateById(file1.id, { key: KEY2 }).should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+    });
+
+  });
+
   describe('#getByID', () => {
     it('should get an error when file does not exist', async () => {
       await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);

@@ -76,23 +76,29 @@ fileSchema.virtual('fullExtension')
   });
 
 // handleE11000 is called when there is a duplicateKey Error
-const handleE11000 = async function (error: MongoError, _: any, next: NextFunction) {
+const handleE11000 = function (error: MongoError, _: any, next: NextFunction) : void {
   if (error.name === 'MongoError' && error.code === 11000) {
-    const fileByKey: IFile = await fileModel.findOne({ key: this.key });
-    const fileByTrinity: IFile = await fileModel.findOne({ name: this.name, parent: this.parent, ownerID: this.ownerID });
-    if (fileByKey) {
-      next(new KeyAlreadyExistsError(this.key));
-    } else if (fileByTrinity) {
-      next(new KeyAlreadyExistsError(
-        `name:${fileByTrinity.name}, parent:${fileByTrinity.parent}, ownerID:${fileByTrinity.ownerID}`
-      ));
-    } else {
-      next(new ServerError(error.message));
-    }
+    const retMessage : string = getMongoErrorIndices(error);
+    next(new KeyAlreadyExistsError(retMessage));
   } else {
     next();
   }
 };
+
+function getMongoErrorIndices(error: MongoError) : string {
+  const indicesRegex : RegExp = new RegExp(/index\:\ (?:.*\.)?\$?(?:([_a-z0-9]*)(?:_\d*)|([_a-z0-9]*))\s*dup key/i);
+  const indicesMatch : RegExpMatchArray =  error.message.match(indicesRegex);
+  let indexName = indicesMatch[1] || indicesMatch[2];
+  const re = new RegExp('_1_', 'g');
+  indexName = indexName.replace(re, ', ');
+
+  const valuesRE : RegExp = new RegExp(/{(.*?)}/);
+  const valuesMatch : RegExpMatchArray = error.message.match(valuesRE);
+  let values : string = valuesMatch[0];
+  values = values.replace(new RegExp(' : ', 'g'), ' ');
+
+  return `${indexName} : ${values}`;
+}
 
 fileSchema.post('save', handleE11000);
 fileSchema.post('update', handleE11000);
