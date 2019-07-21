@@ -79,29 +79,20 @@ fileSchema.virtual('fullExtension')
     return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
   });
 
-fileSchema.pre('save', checkDuplicates);
-
-async function checkDuplicates(next: NextFunction) {
-  const fileByKey = await fileModel.findOne({ key: (<any>this).key });
-  const fileByTrinity = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
-  if (fileByKey) {
-    console.log('1');
-    next(new KeyAlreadyExistsError((<any>this).key));
-  } else if (fileByTrinity) {
-    console.log('2');
-    next(new KeyAlreadyExistsError(
-      `name:${fileByTrinity.name}, parent:${fileByTrinity.parent}, ownerID:${fileByTrinity.ownerID}`
-      ));
-  } else {
-    next();
-  }
-}
-
 // handleE11000 is called when there is a duplicateKey Error
-const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
+const handleE11000 = async function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    console.log('3');
-    next(new KeyAlreadyExistsError(`${this.key} OR <name:${this.name}, parent:${this.parent}, ownerID:${this.ownerID}>`));
+    const fileByKey: IFile = await fileModel.findOne({ key: this.key });
+    const fileByTrinity: IFile = await fileModel.findOne({ name: this.name, parent: this.parent, ownerID: this.ownerID });
+    if (fileByKey) {
+      next(new KeyAlreadyExistsError(this.key));
+    } else if (fileByTrinity) {
+      next(new KeyAlreadyExistsError(
+        `name:${fileByTrinity.name}, parent:${fileByTrinity.parent}, ownerID:${fileByTrinity.ownerID}`
+      ));
+    } else {
+      next(new ServerError(error.message));
+    }
   } else {
     next();
   }

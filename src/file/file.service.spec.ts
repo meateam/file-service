@@ -209,7 +209,6 @@ describe('File Logic', () => {
 
     it('should not throw an error if key is not sent with a folder', async () => {
       await FileService.create(bucket, 'myFolder', USER.id, FolderContentType).should.eventually.exist;
-      // TODO: fix tests
     });
 
     it('should throw error: same owner, folder and filename', async () => {
@@ -358,7 +357,7 @@ describe('File Logic', () => {
       expect(file2.parent).to.equal(file1.parent);
     });
 
-    it('should throw an error when KEY already exist', async () => {
+    it('should throw an error when KEY already exists', async () => {
       await FileService.create(bucket, 'tmp1', USER.id, 'text', null, KEY);
       await FileService.create(bucket, 'tmp2', USER.id, 'text', null, KEY)
       .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
