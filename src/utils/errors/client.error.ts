@@ -19,9 +19,9 @@ export class MailInvalidError extends ClientError {
   }
 }
 
-export class KeyAlreadyExistsError extends ClientError {
-  constructor(key:string, message?: string) {
-    super(message || `unique key '${key}' is already in use`, grpc.status.INVALID_ARGUMENT);
+export class UniqueIndexExistsError extends ClientError {
+  constructor(uniqueIndex:string, message?: string) {
+    super(message || `unique index '${uniqueIndex}' is already in use`, grpc.status.INVALID_ARGUMENT);
   }
 }
 

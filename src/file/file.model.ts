@@ -1,7 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
-import { KeyAlreadyExistsError } from '../utils/errors/client.error';
+import { UniqueIndexExistsError } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
@@ -79,7 +79,7 @@ fileSchema.virtual('fullExtension')
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) : void {
   if (error.name === 'MongoError' && error.code === 11000) {
     const retMessage : string = getMongoErrorIndices(error);
-    next(new KeyAlreadyExistsError(retMessage));
+    next(new UniqueIndexExistsError(retMessage));
   } else {
     next();
   }
