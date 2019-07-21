@@ -328,7 +328,7 @@ describe('File Logic', () => {
       expect(file.name).to.equal('file.txt');
     });
 
-    it('should create a file without extention', async () => {
+    it('should create a file without extension', async () => {
       const file: IFile = await FileService.create(
         bucket, 'file', USER.id, 'text', null, KEY, size);
       expect(file).to.exist;
@@ -396,17 +396,20 @@ describe('File Logic', () => {
     it('should throw an error when not sending ownerID with null folder', async () => {
       await FileService.getFilesByFolder(null, null).should.eventually.be.rejectedWith(ClientError);
     });
+
     it('should return an empty array if the folder does not exists', async () => {
       const files = await FileService.getFilesByFolder(REVERSE_KEY, 'fake_id');
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
     });
+
     it('should return an empty array if the folder is empty', async () => {
       const folder = await FileService.create(bucket, 'myFolder', USER.id, FolderContentType);
       const files = await FileService.getFilesByFolder(folder.id, USER.id);
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
     });
+
     it('should return all the files and folders directly under the given folder', async () => {
       const newKey1 = UploadService.generateKey();
       const newKey2 = UploadService.generateKey();
@@ -431,17 +434,27 @@ describe('File Logic', () => {
       files.should.be.an('array').with.lengthOf(3);
       files1.should.be.an('array').with.lengthOf(1);
     });
+
+    it('should get only the folders in the father folder', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+      const folders = await FileService.getFilesByFolder(structure[0].id, null, true);
+      expect(folders).to.have.lengthOf(1);
+      expect(folders[0].id).to.equal(structure[3].id);
+    });
+
     describe('Root Folder', () => {
       it('should throw an error if the fileID and the user are null', async () => {
         await FileService.getFilesByFolder(null, null)
           .should.eventually.rejectedWith(ClientError, 'No owner id sent');
       });
+
       it('should return an empty array if the user has no root folder', async () => {
         const files = await FileService.getFilesByFolder(null, USER.id);
 
         expect(files).to.exist;
         files.should.be.an('array').with.lengthOf(0);
       });
+
       it('should return the items of the given user root folder', async () => {
         const filesInRoot : IFile[] = await FileService.getFilesByFolder(null, USER.id);
         expect(filesInRoot.length).to.equal(0);

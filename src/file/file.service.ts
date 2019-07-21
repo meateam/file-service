@@ -121,16 +121,18 @@ export class FileService {
    * @param ownerID - if received root folder (null), get by ownerID.
    * @returns {IFile[]}
   */
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null): Promise<IFile[]> {
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, foldersOnly : boolean = false): Promise<IFile[]> {
     const parent = folderID ? new ObjectID(folderID) : null;
+    let query : object = foldersOnly ? { parent, type: FolderContentType } : { parent };
     if (!ownerID) {
       if (!parent) {
         throw new ClientError('No owner id sent');
       } else {
-        return await FilesRepository.find({ parent });
+        return await FilesRepository.find(query);
       }
     }
-    return await FilesRepository.find({ ownerID, parent });
+    query = Object.assign(query, { ownerID });
+    return await FilesRepository.find(query);
   }
 
   /**
