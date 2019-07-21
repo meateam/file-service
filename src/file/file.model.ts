@@ -42,10 +42,6 @@ export const fileSchema: Schema = new Schema(
     bucket: {
       type: String,
       required: true,
-    },
-    deleted: {
-      type: Boolean,
-      default: false,
     }
   },
   {
