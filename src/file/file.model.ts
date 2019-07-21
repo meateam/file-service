@@ -88,8 +88,9 @@ const handleE11000 = function (error: MongoError, _: any, next: NextFunction) : 
 function getMongoErrorIndices(error: MongoError) : string {
   const indicesRegex : RegExp = new RegExp(/index\:\ (?:.*\.)?\$?(?:([_a-z0-9]*)(?:_\d*)|([_a-z0-9]*))\s*dup key/i);
   const indicesMatch : RegExpMatchArray =  error.message.match(indicesRegex);
-  let indexName = indicesMatch[1] || indicesMatch[2];
-  const re = new RegExp('_1_', 'g');
+  let indexName : string = indicesMatch[1] || indicesMatch[2];
+
+  const re : RegExp = new RegExp('_1_', 'g');
   indexName = indexName.replace(re, ', ');
 
   const valuesRE : RegExp = new RegExp(/{(.*?)}/);
