@@ -78,7 +78,7 @@ fileSchema.virtual('fullExtension')
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) : void {
   if (error.name === 'MongoError' && error.code === 11000) {
-    const retMessage : string = getMongoErrorIndices(error);
+    const retMessage : string = getMongoErrorIndex(error);
     next(new UniqueIndexExistsError(retMessage));
   } else {
     next();
@@ -86,24 +86,25 @@ const handleE11000 = function (error: MongoError, _: any, next: NextFunction) : 
 };
 
 /**
- * Extracts the indices names and values thrown by the duplicate key error.
+ * Extracts the unique fields names and values thrown by the duplicate key error.
  * @param error - the mongo error thrown.
- * @return string with the index names and values.
+ * @return string with the unique fields names and values.
  */
-function getMongoErrorIndices(error: MongoError) : string {
-  // extract the indices names in the MongoError
-  const indicesRegex : RegExp = new RegExp(/index\:\ (?:.*\.)?\$?(?:([_a-z0-9]*)(?:_\d*)|([_a-z0-9]*))\s*dup key/i);
-  const indicesMatch : RegExpMatchArray =  error.message.match(indicesRegex);
-  let indexName : string = indicesMatch[1] || indicesMatch[2];
+function getMongoErrorIndex(error: MongoError) : string {
+  // extract the fields names in the MongoError
+  const fieldsRegex : RegExp = new RegExp(/index\:\ (?:.*\.)?\$?(?:([_a-z0-9]*)(?:_\d*)|([_a-z0-9]*))\s*dup key/i);
+  const fieldsMatch : RegExpMatchArray =  error.message.match(fieldsRegex);
+  let indexName : string = fieldsMatch[1] || fieldsMatch[2];
 
-  // prettify indices names
-  const re : RegExp = new RegExp('_1_', 'g');
-  indexName = indexName.replace(re, ', ');
+  // prettify fields names
+  indexName = indexName.replace(new RegExp('_1_', 'g'), ', ');
 
-  // extract the indices values of the error thrown
+  // extract the fields values of the error thrown
   const valuesRE : RegExp = new RegExp(/{(.*?)}/);
   const valuesMatch : RegExpMatchArray = error.message.match(valuesRE);
   let values : string = valuesMatch[0];
+
+  // prettify fields values
   values = values.replace(new RegExp(' : ', 'g'), ' ');
 
   return `${indexName} : ${values}`;
