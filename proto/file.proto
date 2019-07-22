@@ -88,7 +88,7 @@ message GetFileByKeyRequest {
 message GetFilesByFolderRequest {
     string folderID = 1;
     string ownerID = 2;
-    bool foldersOnly = 3;
+    string query = 3;
 }
 
 message GetFilesByFolderResponse {

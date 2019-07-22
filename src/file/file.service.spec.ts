@@ -495,7 +495,7 @@ describe('File Logic', () => {
 
       it('should get only the folders in the root folder', async () => {
         const structure: IFile[] = await generateFolderStructure();
-        const folders = await FileService.getFilesByFolder(structure[0].id, null, true);
+        const folders = await FileService.getFilesByFolder(structure[0].id, null, `{ "type" : "${FolderContentType}" }`);
         expect(folders).to.have.lengthOf(2);
         expect(folders).to.containSubset([{ id: structure[3].id }]);
         expect(folders).to.containSubset([{ id: structure[4].id }]);
@@ -503,7 +503,7 @@ describe('File Logic', () => {
 
       it('should get all of the files in the root folder using the flag', async () => {
         const structure: IFile[] = await generateFolderStructure();
-        const folders = await FileService.getFilesByFolder(structure[0].id, null, false);
+        const folders = await FileService.getFilesByFolder(structure[0].id, null, '{}');
         expect(folders).to.have.lengthOf(4);
         for (let i = 1; i < structure.length - 1; i++) {
           expect(folders).to.containSubset([{ id: structure[i].id }]);
