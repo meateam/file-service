@@ -1,7 +1,7 @@
 import { ObjectID } from 'mongodb';
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
-import { FileNotFoundError } from '../utils/errors/client.error';
+import { FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel } from './file.model';
@@ -120,19 +120,33 @@ export class FileService {
    * @param ownerID - if received root folder (null), get by ownerID.
    * @returns {IFile[]}
   */
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, query : string = '{}'): Promise<IFile[]> {
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, queryString : string = '{}'): Promise<IFile[]> {
     const parent = folderID ? new ObjectID(folderID) : null;
-    let myQuery : object = JSON.parse(query);
-    myQuery = Object.assign(myQuery, { parent });
+    let query : object = {};
+
+    // verify queryString is a valid json string
+    try {
+      query = JSON.parse(queryString);
+    } catch (error) {
+      throw new QueryInvalidError(`invalid JSON query: ${queryString}`);
+    }
+
+    // add parent to the query
+    query = Object.assign(query, { parent });
+
     if (!ownerID) {
       if (!parent) {
+        // if parent is null and there is no ownerID, then the folder can't be found.
         throw new ClientError('No owner id sent');
       } else {
-        return await FilesRepository.find(myQuery);
+        // means that parent is root folder of ownerID
+        return await FilesRepository.find(query);
       }
     }
-    myQuery = Object.assign(myQuery, { ownerID });
-    return await FilesRepository.find(myQuery);
+
+    // add ownerID to the query
+    query = Object.assign(query, { ownerID });
+    return await FilesRepository.find(query);
   }
 
   /**

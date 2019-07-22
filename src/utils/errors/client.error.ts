@@ -19,6 +19,12 @@ export class MailInvalidError extends ClientError {
   }
 }
 
+export class QueryInvalidError extends ClientError {
+  constructor(message?: string) {
+    super(message || 'invalid JSON query', grpc.status.INVALID_ARGUMENT);
+  }
+}
+
 export class UniqueIndexExistsError extends ClientError {
   constructor(uniqueIndex:string, message?: string) {
     super(message || `unique index '${uniqueIndex}' is already in use`, grpc.status.INVALID_ARGUMENT);

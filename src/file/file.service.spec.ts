@@ -5,7 +5,7 @@ import chaiSubset from 'chai-subset';
 import { IFile } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { QuotaService } from '../quota/quota.service';
@@ -501,13 +501,19 @@ describe('File Logic', () => {
         expect(folders).to.containSubset([{ id: structure[4].id }]);
       });
 
-      it('should get all of the files in the root folder using the flag', async () => {
+      it('should get all of the files in the root folder using empty json', async () => {
         const structure: IFile[] = await generateFolderStructure();
         const folders = await FileService.getFilesByFolder(structure[0].id, null, '{}');
         expect(folders).to.have.lengthOf(4);
         for (let i = 1; i < structure.length - 1; i++) {
           expect(folders).to.containSubset([{ id: structure[i].id }]);
         }
+      });
+
+      it('should throw an error because of invalid query', async () => {
+        const structure: IFile[] = await generateFolderStructure();
+        await FileService.getFilesByFolder(structure[0].id, null, '{ invalid query :( }')
+        .should.eventually.be.rejectedWith(QueryInvalidError);
       });
 
     });
