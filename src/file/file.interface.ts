@@ -12,7 +12,6 @@ class PrimitiveFile
   ownerID: string;
   size: number;
   parent?: ObjectID | string;
-  deleted: boolean;
   createdAt?: Date | number;
   updatedAt?: Date | number;
 
@@ -28,7 +27,6 @@ class PrimitiveFile
     this.ownerID = file.ownerID;
     this.size = file.size;
     this.parent = file.parent;
-    this.deleted = file.deleted;
   }
 }
 export class IFile extends PrimitiveFile{

@@ -58,7 +58,6 @@ export class FileService {
       ownerID,
       size,
       _id: id,
-      deleted: false,
       parent: parentID,
     });
 
@@ -139,14 +138,19 @@ export class FileService {
   /**
    * Gets all the files in a folder by the folder id.
    * @param folderID -the given folder.
-   * @param ownerID - for permissions check.
-   * @param deleted chooses if it would send back the deleted files or not. by default retrieves non-deleted.
+   * @param ownerID - if received root folder (null), get by ownerID.
    * @returns {IFile[]}
   */
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, deleted = false): Promise<IFile[]> {
-    if (!ownerID) throw new ClientError('No owner id sent');
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null): Promise<IFile[]> {
     const parent = folderID ? new ObjectID(folderID) : null;
-    return await FilesRepository.find({ deleted, ownerID, parent });
+    if (!ownerID) {
+      if (!parent) {
+        throw new ClientError('No owner id sent');
+      } else {
+        return await FilesRepository.find({ parent });
+      }
+    }
+    return await FilesRepository.find({ ownerID, parent });
   }
 
   /**
@@ -187,7 +191,7 @@ export class FileService {
    */
   private static async isFileInFolder(name: string, folderId: string, ownerID: string): Promise<boolean> {
     const file: IFile = await FilesRepository.getFileInFolderByName(folderId, name, ownerID);
-    return (file != null && !(file.deleted));
+    return (file != null);
   }
 
   /**

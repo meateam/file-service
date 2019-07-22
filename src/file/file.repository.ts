@@ -42,11 +42,11 @@ export default class FileRepository {
   }
 
   /**
-   * Changes 'deleted' flag to true. Does not delete from th DB.
+   * Deletes a file from the DB.
    * @param id - the id of the file to be deleted.
    */
   static deleteById(id: string): Promise<IFile | null> {
-    return fileModel.findByIdAndUpdate({ _id: new ObjectID(id) }, { deleted: true }, { new: true, runValidators: true }).exec();
+    return fileModel.findByIdAndRemove({ _id: new ObjectID(id) }).exec();
   }
 
   /**
@@ -128,6 +128,6 @@ export default class FileRepository {
    */
   static getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
     const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
-    return fileModel.findOne({ ownerID, parent, name: filename, deleted: false }).exec();
-	}
+    return fileModel.findOne({ ownerID, parent, name: filename }).exec();
+  }
 }

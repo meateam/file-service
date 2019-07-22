@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { IFile } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { QuotaService } from '../quota/quota.service';
@@ -86,7 +86,7 @@ describe('File Logic', () => {
       await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
       .should.eventually.exist;
       await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
-      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should throw an error when {ownerID, parent, name} already exist', async () => {
@@ -96,7 +96,7 @@ describe('File Logic', () => {
         .should.eventually.exist;
         const newUpload2: IUpload =
         await UploadService.createUpload(KEY2, 'BUCKET2', 'name1',  USER.id, null)
-        .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+        .should.eventually.be.rejectedWith(UniqueIndexExistsError);
       });
     });
 
@@ -214,18 +214,7 @@ describe('File Logic', () => {
     it('should throw error: same owner, folder and filename', async () => {
       await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
       await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
-      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
-    });
-
-    it('should not throw error: same folder and filename, different owner', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', '654321', 'Other', null, KEY2, size).should.eventually.exist;
-    });
-
-    it('should throw error: same owner, folder and filename', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
-      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should not throw error: same folder and filename, different owner', async () => {
@@ -357,33 +346,45 @@ describe('File Logic', () => {
       expect(file2.parent).to.equal(file1.parent);
     });
 
-    it('should throw an error when KEY already exist', async () => {
+    it('should throw an error when KEY already exists', async () => {
       await FileService.create(bucket, 'tmp1', USER.id, 'text', null, KEY);
       await FileService.create(bucket, 'tmp2', USER.id, 'text', null, KEY)
-      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
-	});
-	
-	describe('#updateById', () => {
-		it('should update a file', async () => {
-			const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
-			expect(file).to.exist;
-			expect(file).to.have.property('id');
+  });
 
-			const update = {
-				name: 'updated.txt'
-			};
+  describe('#updateById', () => {
+    it('should update a file', async () => {
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
+      expect(file).to.exist;
+      expect(file).to.have.property('id');
+      
+      const update = {
+        name: 'changedFile',
+        type: 'jpg'
+      };
+      
+      const isUpdated = await FileService.updateById(file.id, update);
+      expect(isUpdated).to.be.true;
 
-			const updatedFile = await FileService.updateById(file.id, update);
-			expect(updatedFile).to.be.true;
+      const changedFile : IFile = await FileService.getById(file.id);
+      expect(changedFile.id).to.equal(file.id);
+      expect(changedFile.name).to.equal(update.name);
+      expect(changedFile.type).to.equal(update.type);
+    });
 
-			const newFile = await FileService.getById(file.id);
-			expect(newFile).to.have.property('name', update.name);
-			expect(newFile).to.have.property('id', file.id);
-			expect(newFile).to.have.property('size', file.size);
-		});
+    it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
+      await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
+    });
+
+    it('should throw an error when changing a file to unique properties of another (key)', async () => {
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
+      await FileService.updateById(file1.id, { key: KEY2 }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
+    });
 
 		it('should not update a file id', async () => {
 			const file: IFile = await FileService.create(
@@ -469,8 +470,8 @@ describe('File Logic', () => {
   });
 
   describe('#getFilesByFolder', () => {
-    it('should throw an error when not sending ownerID', async () => {
-      await FileService.getFilesByFolder(REVERSE_KEY, null).should.eventually.be.rejectedWith(ClientError);
+    it('should throw an error when not sending ownerID with null folder', async () => {
+      await FileService.getFilesByFolder(null, null).should.eventually.be.rejectedWith(ClientError);
     });
     it('should return an empty array if the folder does not exists', async () => {
       const files = await FileService.getFilesByFolder(REVERSE_KEY, 'fake_id');
@@ -573,99 +574,30 @@ describe('File Logic', () => {
   });
 
   describe('#delete', () => {
-    it('should mark a file as deleted', async () => {
+    it('should delete a file', async () => {
       const file: IFile = await FileService.create(
         bucket, 'file.txt', USER.id, 'text', null, KEY);
       const DBFile = await FileService.getById(file.id);
-      expect(DBFile.deleted).to.be.false;
+      expect(DBFile).to.exist;
       await FileService.delete(file.id);
-      const deletedFile: IFile = await FileService.getById(file.id);
-      expect(deletedFile.deleted).to.be.true;
+      await FileService.getById(file.id).should.eventually.be.rejectedWith(FileNotFoundError);
     });
 
-    it('should delete recursively a folder', async () => {
+    it('should recursively delete a folder', async () => {
       const structure: IFile[] = await generateFolderStructure();
 
       const father: IFile = structure[0];
       for (let i = 0; i < structure.length; i++) {
         const fileOrFolder: IFile = await FileService.getById(structure[i].id);
-        expect(fileOrFolder.deleted).to.equal(false);
+        expect(fileOrFolder).to.exist;
       }
 
       await FileService.delete(father.id);
 
       for (let i = 0; i < structure.length; i++) {
-        const fileOrFolder: IFile = await FileService.getById(structure[i].id);
-        expect(fileOrFolder.deleted).to.equal(true);
+        await FileService.getById(structure[i].id).should.eventually.be.rejectedWith(FileNotFoundError);
       }
-    });
-  });
-
-  describe('#getFilesByFolder & #delete integration', () => {
-    it('should separate the non-deleted files from the deleted ones', async () => {
-      const structure: IFile[] = await generateFolderStructure();
-
-      const father: IFile = structure[0];
-      const file1: IFile = structure[1];
-      const file2: IFile = structure[2];
-      const folder1: IFile = structure[3];
-      const file11: IFile = structure[4];
-
-      await FileService.delete(file1.id);
-      // get non-deleted files
-      const files = await FileService.getFilesByFolder(father.id, USER.id, false);
-      expect(files).to.exist;
-      files.should.be.an('array').with.lengthOf(2);
-      expect(files[0].key).to.equal(file2.key);
-
-      // get deleted files
-      const deletedFiles = await FileService.getFilesByFolder(father.id, USER.id, true);
-      expect(deletedFiles).to.exist;
-      deletedFiles.should.be.an('array').with.lengthOf(1);
-      expect(deletedFiles[0].key).to.equal(file1.key);
-
-      // get non-deleted files without the flag
-      const folder1FilesBD = await FileService.getFilesByFolder(folder1.id, USER.id);
-      expect(folder1FilesBD).to.exist;
-      folder1FilesBD.should.be.an('array').with.lengthOf(1);
-
-      // get non-deleted files without the flag after delete
-      await FileService.delete(file11.id);
-      const folder1FilesAD = await FileService.getFilesByFolder(folder1.id, USER.id);
-      expect(folder1FilesAD).to.exist;
-      folder1FilesAD.should.be.an('array').with.lengthOf(0);
-    });
-  });
-
-  describe('#createFile & #delete integration', () => {
-    it.skip('create a second file with the same name after first one was deleted', async () => {
-
-      // create a file
-      const v1file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', null, KEY);
-      expect(v1file).to.exist;
-      expect(v1file.deleted).to.be.false;
-
-      // delete the file
-      await FileService.delete(v1file.id);
-      const deletedFile: IFile = await FileService.getById(v1file.id);
-      expect(deletedFile.deleted).to.be.true;
-
-      // create the same file at the same location
-      const v2file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', null, KEY2);
-      expect(v2file).to.exist;
-      expect(v2file.deleted).to.be.false;
-
-      // check both deleted and not-detetad files exist
-      const v1DBFile = await FileService.getById(v1file.id);
-      expect(v1DBFile).to.exist;
-      expect(v1DBFile.deleted).to.be.true;
-
-      const v2DBFile = await FileService.getById(v2file.id);
-      expect(v2DBFile).to.exist;
-      expect(v2DBFile.deleted).to.be.false;
-
+      await FileService.getById(father.id).should.eventually.be.rejectedWith(FileNotFoundError);
     });
   });
 
@@ -675,7 +607,7 @@ async function generateFolderStructure() : Promise<IFile[]> {
   const key2 = UploadService.generateKey();
   const key3 = UploadService.generateKey();
 
-  const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, KEY);
+  const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, null);
 
   const file1: IFile = await FileService.create(
     bucket, 'file1.txt', USER.id, 'text', father.id, KEY2);
