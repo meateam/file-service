@@ -44,7 +44,7 @@ describe('File Logic', () => {
     for (const i in collections) {
       mongoose.connection.db.createCollection(collections[i], (err) => {});
     }
-    await mongoose.connection.collections['files'].createIndex({ name: 1, parent: 1, ownerID: 1 }, { unique: false });
+    await mongoose.connection.collections['files'].createIndex({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
     await mongoose.connection.collections['uploads'].createIndex({ key: 1, bucket: 1 }, { unique: true });
   });
 
