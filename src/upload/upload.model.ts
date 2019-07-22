@@ -2,7 +2,7 @@ import { Schema, Document, model } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IUpload } from './upload.interface';
 import { MongoError } from 'mongodb';
-import { KeyAlreadyExistsError } from '../utils/errors/client.error';
+import { UniqueIndexExistsError } from '../utils/errors/client.error';
 import { NextFunction } from 'connect';
 
 export const uploadSchema: Schema = new Schema(
@@ -55,7 +55,7 @@ uploadSchema.index({ key: 1, bucket: 1 }, { unique: true });
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    next(new KeyAlreadyExistsError(this.key));
+    next(new UniqueIndexExistsError(this.key));
   } else {
     next();
   }

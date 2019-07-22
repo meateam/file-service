@@ -58,7 +58,6 @@ export class FileService {
       ownerID,
       size,
       _id: id,
-      deleted: false,
       parent: parentID,
     });
 

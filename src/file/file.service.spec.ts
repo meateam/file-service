@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { IFile } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, KeyAlreadyExistsError, FileNotFoundError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { QuotaService } from '../quota/quota.service';
@@ -86,7 +86,7 @@ describe('File Logic', () => {
       await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
       .should.eventually.exist;
       await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1',  USER.id, null)
-      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should throw an error when {ownerID, parent, name} already exist', async () => {
@@ -96,7 +96,7 @@ describe('File Logic', () => {
         .should.eventually.exist;
         const newUpload2: IUpload =
         await UploadService.createUpload(KEY2, 'BUCKET2', 'name1',  USER.id, null)
-        .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+        .should.eventually.be.rejectedWith(UniqueIndexExistsError);
       });
     });
 
@@ -214,7 +214,7 @@ describe('File Logic', () => {
     it('should throw error: same owner, folder and filename', async () => {
       await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
       await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
-      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should not throw error: same folder and filename, different owner', async () => {
@@ -225,7 +225,7 @@ describe('File Logic', () => {
     it('should throw error: same owner, folder and filename', async () => {
       await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
       await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
-      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should not throw error: same folder and filename, different owner', async () => {
@@ -357,10 +357,33 @@ describe('File Logic', () => {
       expect(file2.parent).to.equal(file1.parent);
     });
 
-    it('should throw an error when KEY already exist', async () => {
+    it('should throw an error when KEY already exists', async () => {
       await FileService.create(bucket, 'tmp1', USER.id, 'text', null, KEY);
       await FileService.create(bucket, 'tmp2', USER.id, 'text', null, KEY)
-      .should.eventually.be.rejectedWith(KeyAlreadyExistsError);
+      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
+    });
+
+  });
+
+  describe('#updateById', () => {
+    it('should update a file', async () => {
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
+      await FileService.updateById(file.id, { name: 'changedFile', type: 'jpg' });
+      const changedFile : IFile = await FileService.getById(file.id);
+      expect(changedFile.name).to.equal('changedFile');
+      expect(changedFile.type).to.equal('jpg');
+    });
+
+    it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
+      await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
+    });
+
+    it('should throw an error when changing a file to unique properties of another (key)', async () => {
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
+      await FileService.updateById(file1.id, { key: KEY2 }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
   });

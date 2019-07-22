@@ -1,7 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
-import { KeyAlreadyExistsError } from '../utils/errors/client.error';
+import { UniqueIndexExistsError } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
@@ -76,13 +76,39 @@ fileSchema.virtual('fullExtension')
   });
 
 // handleE11000 is called when there is a duplicateKey Error
-const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
+const handleE11000 = function (error: MongoError, _: any, next: NextFunction) : void {
   if (error.name === 'MongoError' && error.code === 11000) {
-    next(new KeyAlreadyExistsError(this.key));
+    const retMessage : string = getMongoErrorIndex(error);
+    next(new UniqueIndexExistsError(retMessage));
   } else {
     next();
   }
 };
+
+/**
+ * Extracts the unique fields names and values thrown by the duplicate key error.
+ * @param error - the mongo error thrown.
+ * @return string with the unique fields names and values.
+ */
+function getMongoErrorIndex(error: MongoError) : string {
+  // extract the fields names in the MongoError
+  const fieldsRegex : RegExp = new RegExp(/index\:\ (?:.*\.)?\$?(?:([_a-z0-9]*)(?:_\d*)|([_a-z0-9]*))\s*dup key/i);
+  const fieldsMatch : RegExpMatchArray =  error.message.match(fieldsRegex);
+  let indexName : string = fieldsMatch[1] || fieldsMatch[2];
+
+  // prettify fields names
+  indexName = indexName.replace(new RegExp('_1_', 'g'), ', ');
+
+  // extract the fields values of the error thrown
+  const valuesRE : RegExp = new RegExp(/{(.*?)}/);
+  const valuesMatch : RegExpMatchArray = error.message.match(valuesRE);
+  let values : string = valuesMatch[0];
+
+  // prettify fields values
+  values = values.replace(new RegExp(' : ', 'g'), ' ');
+
+  return `${indexName} : ${values}`;
+}
 
 fileSchema.post('save', handleE11000);
 fileSchema.post('update', handleE11000);
