@@ -104,7 +104,7 @@ function getMongoErrorIndex(error: MongoError) : string {
   // Prettify fields names
   indexName = indexName.replace(new RegExp('_1_', 'g'), ', ');
 
-  // Rxtract the fields values of the error thrown
+  // Extract the fields values of the error thrown
   const valuesRE : RegExp = new RegExp(/{(.*?)}/);
   const valuesMatch : RegExpMatchArray = error.message.match(valuesRE);
   let values : string = valuesMatch[0];
