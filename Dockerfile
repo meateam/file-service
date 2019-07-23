@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build-ts
 
 FROM node:10.16.0-alpine
-COPY --from=0 /usr/src/app/package.json /usr/src/app/package-lock.json ./
+COPY --from=builder /usr/src/app/package.json /usr/src/app/package-lock.json ./
 COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 COPY --from=builder /usr/src/app/dist /dist
 COPY --from=builder /usr/src/app/proto /proto
