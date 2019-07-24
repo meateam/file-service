@@ -1,7 +1,7 @@
 import { ObjectID } from 'mongodb';
 import { IFile } from './file.interface';
 import FilesRepository from './file.repository';
-import { FileNotFoundError } from '../utils/errors/client.error';
+import { FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel } from './file.model';
@@ -141,16 +141,33 @@ export class FileService {
    * @param ownerID - if received root folder (null), get by ownerID.
    * @returns {IFile[]}
   */
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null): Promise<IFile[]> {
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<IFile[]> {
     const parent = folderID ? new ObjectID(folderID) : null;
-    if (!ownerID) {
-      if (!parent) {
-        throw new ClientError('No owner id sent');
-      } else {
-        return await FilesRepository.find({ parent });
+    let query : Partial<IFile> = {};
+
+    // Create the query using the partial file
+    for (const prop in queryFile) {
+      if (queryFile[prop]) {
+        query[prop] = queryFile[prop];
       }
     }
-    return await FilesRepository.find({ ownerID, parent });
+
+    // Add parent to the query
+    query = { ...query, parent };
+
+    if (!ownerID) {
+      if (!parent) {
+        // If parent is null and there is no ownerID, then the folder can't be found.
+        throw new ClientError('No owner id sent');
+      } else {
+        // Means that parent is root folder of ownerID
+        return await FilesRepository.find(query);
+      }
+    }
+
+    // Add ownerID to the query
+    query = Object.assign(query, { ownerID });
+    return await FilesRepository.find(query);
   }
 
   /**
@@ -159,7 +176,7 @@ export class FileService {
    * @param userID -the id of the user.
    */
   public static async isOwner(fileID: string, userID: string): Promise<boolean> {
-    // if the file is the user's root folder (which he is owner of) - return true
+    // If the file is the user's root folder (which he is owner of) - return true
     if (!fileID) {
       return true;
     }

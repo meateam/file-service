@@ -1,10 +1,11 @@
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import mongoose from 'mongoose';
+import chaiSubset from 'chai-subset';
 import { IFile } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { QuotaService } from '../quota/quota.service';
@@ -12,8 +13,9 @@ import { QuotaExceededError } from '../utils/errors/quota.error';
 import { UploadService } from '../upload/upload.service';
 
 const expect: Chai.ExpectStatic = chai.expect;
-const should = chai.should();
+chai.should();
 chai.use(chaiAsPromised);
+chai.use(chaiSubset);
 
 const KEY = mongoose.Types.ObjectId().toHexString();
 const KEY2 = mongoose.Types.ObjectId().toHexString();
@@ -317,7 +319,7 @@ describe('File Logic', () => {
       expect(file.name).to.equal('file.txt');
     });
 
-    it('should create a file without extention', async () => {
+    it('should create a file without extension', async () => {
       const file: IFile = await FileService.create(
         bucket, 'file', USER.id, 'text', null, KEY, size);
       expect(file).to.exist;
@@ -473,17 +475,20 @@ describe('File Logic', () => {
     it('should throw an error when not sending ownerID with null folder', async () => {
       await FileService.getFilesByFolder(null, null).should.eventually.be.rejectedWith(ClientError);
     });
+
     it('should return an empty array if the folder does not exists', async () => {
       const files = await FileService.getFilesByFolder(REVERSE_KEY, 'fake_id');
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
     });
+
     it('should return an empty array if the folder is empty', async () => {
       const folder = await FileService.create(bucket, 'myFolder', USER.id, FolderContentType);
       const files = await FileService.getFilesByFolder(folder.id, USER.id);
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
     });
+
     it('should return all the files and folders directly under the given folder', async () => {
       const newKey1 = UploadService.generateKey();
       const newKey2 = UploadService.generateKey();
@@ -508,17 +513,19 @@ describe('File Logic', () => {
       files.should.be.an('array').with.lengthOf(3);
       files1.should.be.an('array').with.lengthOf(1);
     });
+
     describe('Root Folder', () => {
       it('should throw an error if the fileID and the user are null', async () => {
         await FileService.getFilesByFolder(null, null)
-          .should.eventually.rejectedWith(ClientError, 'No owner id sent');
+        .should.eventually.rejectedWith(ClientError, 'No owner id sent');
       });
+
       it('should return an empty array if the user has no root folder', async () => {
         const files = await FileService.getFilesByFolder(null, USER.id);
-
         expect(files).to.exist;
         files.should.be.an('array').with.lengthOf(0);
       });
+
       it('should return the items of the given user root folder', async () => {
         const filesInRoot : IFile[] = await FileService.getFilesByFolder(null, USER.id);
         expect(filesInRoot.length).to.equal(0);
@@ -539,6 +546,26 @@ describe('File Logic', () => {
         expect(files).to.exist;
         files.should.be.an('array').with.lengthOf(3);
       });
+
+      it('should get only the folders in the root folder', async () => {
+        const structure: IFile[] = await generateFolderStructure();
+        const folders = await FileService.getFilesByFolder(structure[0].id, null, { type : FolderContentType });
+        expect(folders).to.have.lengthOf(2);
+        expect(folders).to.containSubset([{ id: structure[3].id }]);
+        expect(folders).to.containSubset([{ id: structure[4].id }]);
+      });
+
+      it('should get all of the files in the root folder using empty json', async () => {
+        const structure: IFile[] = await generateFolderStructure();
+        const rootChildren = await FileService.getFilesByFolder(structure[0].id, null, {});
+        expect(rootChildren).to.have.lengthOf(4);
+        for (let i = 0; i < structure.length; i++) {
+          if (String(structure[i].parent) === String(structure[0].id)) {
+            expect(rootChildren).to.containSubset([{ id: structure[i].id }]);
+          }
+        }
+      });
+
     });
   });
 
@@ -606,6 +633,7 @@ describe('File Logic', () => {
 async function generateFolderStructure() : Promise<IFile[]> {
   const key2 = UploadService.generateKey();
   const key3 = UploadService.generateKey();
+  const key4 = UploadService.generateKey();
 
   const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, null);
 
@@ -615,8 +643,10 @@ async function generateFolderStructure() : Promise<IFile[]> {
     bucket, 'file2.txt', USER.id, 'text', father.id, key2);
   const folder1: IFile = await FileService.create(
     bucket, 'folder1', USER.id, FolderContentType, father.id, KEY3);
+  const folder2: IFile = await FileService.create(
+    bucket, 'folder2', USER.id, FolderContentType, father.id, key4);
   const file11: IFile = await FileService.create(
     bucket, 'file11.txt', USER.id, 'text', folder1.id, key3, size);
 
-  return [father, file1, file2, folder1, file11];
+  return [father, file1, file2, folder1, folder2, file11];
 }

@@ -92,8 +92,9 @@ message GetFileByKeyRequest {
 }
 
 message GetFilesByFolderRequest {
-  string folderID = 1;
-  string ownerID = 2;
+    string folderID = 1;
+    string ownerID = 2;
+    File queryFile = 3;
 }
 
 message GetFilesByFolderResponse {
