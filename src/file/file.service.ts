@@ -1,5 +1,5 @@
 import { ObjectID } from 'mongodb';
-import { IFile } from './file.interface';
+import { IFile, ResFile } from './file.interface';
 import FilesRepository from './file.repository';
 import { FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
@@ -159,10 +159,10 @@ export class FileService {
    * @returns a nested IFile array of the descendants.
    */
   public static async getDescendantsByFolder
-  (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<IFile> {
+  (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<ResFile> {
     const query : Partial<IFile> = this.extractQuery(folderID, ownerID, queryFile);
-    const ancestor: IFile = await this.getById(folderID);
-    const children: IFile[] = await this.getPopulatedChildren(folderID, ownerID, query, ancestor);
+    const ancestor: ResFile = new ResFile(await this.getById(folderID));
+    const children: ResFile[] = await this.getPopulatedChildren(folderID, ownerID, query, ancestor);
     ancestor.children = children;
     return ancestor;
   }
@@ -255,9 +255,10 @@ export class FileService {
    * @param query - the conditions.
    * @param currArray - the array sent in the recursion.
    */
-  private static async getPopulatedChildren(folderID: string, ownerID: string, query: object, file: Partial<IFile>) : Promise<IFile[]> {
+  private static async getPopulatedChildren(folderID: string, ownerID: string, query: object, file: Partial<ResFile>) : Promise<ResFile[]> {
     const folderFiles: IFile[] = await this.getFilesByFolder(folderID, ownerID, query);
-    const currFile : Partial<IFile> = {};
+    const resFolderFiles: ResFile[] = [];
+    const currFile : Partial<ResFile> = {};
 
     // extract essential properties from file
     for (const prop in file) {
@@ -268,9 +269,10 @@ export class FileService {
     // use the recursion to get the file's populated children
     currFile.children = [];
     for (let i = 0 ; i < folderFiles.length ; i++) {
-      const grandChildren = await this.getPopulatedChildren(folderFiles[i].id, ownerID, query, folderFiles[i]);
-      folderFiles[i].children = grandChildren;
-      currFile.children.push(folderFiles[i]);
+      const grandChildren = await this.getPopulatedChildren(folderFiles[i].id, ownerID, query, new ResFile(folderFiles[i]));
+      resFolderFiles.push(new ResFile(folderFiles[i]));
+      resFolderFiles[i].children = grandChildren;
+      currFile.children.push(resFolderFiles[i]);
     }
     return currFile.children;
   }

@@ -92,8 +92,8 @@ export class FileMethods {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
     const queryFile: Partial<IFile> = call.request.queryFile || {};
-    const nestedFile: IFile = await FileService.getDescendantsByFolder(folderID, ownerID, queryFile);
-    return new ResFile(nestedFile);
+    const nestedFile: ResFile = await FileService.getDescendantsByFolder(folderID, ownerID, queryFile);
+    return nestedFile;
   }
 
   /**
