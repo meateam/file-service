@@ -159,10 +159,10 @@ export class FileService {
    * @returns a nested IFile array of the descendants.
    */
   public static async getDescendantsByFolder
-  (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<any> {
+  (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<IFile> {
     const query : Partial<IFile> = this.extractQuery(folderID, ownerID, queryFile);
     const ancestor: IFile = await this.getById(folderID);
-    const children = await this.gDBF_aux(folderID, ownerID, query, ancestor);
+    const children: IFile[] = await this.getPopulatedChildren(folderID, ownerID, query, ancestor);
     ancestor.children = children;
     return ancestor;
   }
@@ -255,31 +255,23 @@ export class FileService {
    * @param query - the conditions.
    * @param currArray - the array sent in the recursion.
    */
-  private static async gDBF_aux(folderID: string, ownerID: string, query: object, file: Partial<IFile>) : Promise<Partial<IFile>[]> {
+  private static async getPopulatedChildren(folderID: string, ownerID: string, query: object, file: Partial<IFile>) : Promise<IFile[]> {
     const folderFiles: IFile[] = await this.getFilesByFolder(folderID, ownerID, query);
     const currFile : Partial<IFile> = {};
-    // Create the query using the partial file
+
+    // extract essential properties from file
     for (const prop in file) {
       if (file[prop]) {
         currFile[prop] = file[prop];
       }
     }
+    // use the recursion to get the file's populated children
     currFile.children = [];
     for (let i = 0 ; i < folderFiles.length ; i++) {
-      // console.log(`in ${children[i].name}`);
-      const grandChildren = await this.gDBF_aux(folderFiles[i].id, ownerID, query, folderFiles[i]);
-      // console.log('grandChildren:');
-      // console.log(grandChildren);
+      const grandChildren = await this.getPopulatedChildren(folderFiles[i].id, ownerID, query, folderFiles[i]);
       folderFiles[i].children = grandChildren;
       currFile.children.push(folderFiles[i]);
     }
-    // if (file.name === 'father') {
-    //   console.log(`${currFile.name}:`);
-    //   console.log('the children:');
-    //   console.log(currFile.children);
-    //   console.log('the file:');
-    //   console.log(currFile);
-    // }
     return currFile.children;
   }
 

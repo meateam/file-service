@@ -78,10 +78,22 @@ export class FileMethods {
   public static async GetFilesByFolder(call: any): Promise<{ files: ResFile[] }> {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
-    const queryFile: Partial<IFile> = call.request.queryFile || {};
-    const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID, queryFile);
+    const queryFile: ResFile = call.request.queryFile || {};
+    const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID, new IFile(queryFile));
     const resFiles: ResFile[] = files.length ? files.map(file => new ResFile(file)) : [];
     return { files: resFiles };
+  }
+
+    /**
+   * Retrieves all files residing in a given folder.
+   * @param call
+   */
+  public static async GetDescendantsByFolder(call: any): Promise<Partial<ResFile>> {
+    const folderID: string = call.request.folderID;
+    const ownerID: string = call.request.ownerID;
+    const queryFile: Partial<IFile> = call.request.queryFile || {};
+    const nestedFile: IFile = await FileService.getDescendantsByFolder(folderID, ownerID, queryFile);
+    return new ResFile(nestedFile);
   }
 
   /**
@@ -92,4 +104,15 @@ export class FileMethods {
     const res: boolean = await FileService.isOwner(call.request.fileID, call.request.userID);
     return  { allowed: res };
   }
+}
+
+function convertFile(file: IFile): ResFile {
+  const resFile: any = {};
+  for (const prop in file) {
+    resFile[prop] = file[prop];
+  }
+
+  resFile.createdAt = file.createdAt.getTime();
+  resFile.updatedAt = file.updatedAt.getTime();
+  return <ResFile>resFile;
 }

@@ -1,22 +1,22 @@
 import { ObjectID } from 'mongodb';
-class PrimitiveFile
+export class PrimitiveFile
 {
-  id?: string;
-  key?: string;
-  bucket?: string;
-  name: string;
-  displayName?: string;
-  fullExtension?: string;
-  type: string;
-  description?: string;
-  ownerID: string;
-  size: number;
-  parent?: ObjectID | string;
-  createdAt?: Date | number;
-  updatedAt?: Date | number;
-  [key: string]: string | number | ObjectID | Date | object[];
+  id?: string = '';
+  key?: string = '';
+  bucket?: string = '';
+  name: string = '';
+  displayName?: string = '';
+  fullExtension?: string = '';
+  type: string = '';
+  description?: string = '';
+  ownerID: string = '';
+  size: number = 0;
+  parent?: ObjectID | string = '';
+  createdAt?: Date | number = 0;
+  updatedAt?: Date | number = 0;
+  [key: string]: string | number | ObjectID | Date | IFile[];
 
-  constructor(file: PrimitiveFile) {
+  constructor(file: Partial<PrimitiveFile>) {
     this.id = file.id;
     this.key = file.key;
     this.bucket = file.bucket;
@@ -31,9 +31,15 @@ class PrimitiveFile
   }
 }
 export class IFile extends PrimitiveFile{
-  children?: object[] = [];
-  createdAt?: Date;
-  updatedAt?: Date;
+  children?: IFile[] = [];
+  createdAt?: Date =  new Date();
+  updatedAt?: Date = new Date();
+
+  constructor(resFile: ResFile) {
+    super(resFile);
+    this.createdAt = new Date(resFile.createdAt);
+    this.updatedAt = new Date(resFile.updatedAt);
+  }
 }
 
 // Same as IFile, but changing types accordingly

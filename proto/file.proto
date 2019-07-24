@@ -11,6 +11,7 @@ service FileService {
   rpc GetFileByID(GetByFileByIDRequest) returns (File) {}
   rpc GetFileByKey(GetFileByKeyRequest) returns (File) {}
   rpc GetFilesByFolder(GetFilesByFolderRequest) returns (GetFilesByFolderResponse) {}
+  rpc GetDescendantsByFolder(GetDescendantsByFolderRequest) returns (GetDescendantsByFolderResponse) {}
   rpc CreateFile(CreateFileRequest) returns (File) {}
   rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
   rpc UpdateFile(UpdateFileRequest) returns (File) {}
@@ -98,6 +99,16 @@ message GetFilesByFolderRequest {
 }
 
 message GetFilesByFolderResponse {
+  repeated File files = 1;
+}
+
+message GetDescendantsByFolderRequest {
+  string folderID = 1;
+  string ownerID = 2;
+  File queryFile = 3;
+}
+
+message GetDescendantsByFolderResponse {
   repeated File files = 1;
 }
 

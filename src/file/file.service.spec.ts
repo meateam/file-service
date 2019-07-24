@@ -570,12 +570,55 @@ describe('File Logic', () => {
   });
 
   describe('#getDescendantsByFolder', () => {
-    it('should return recursive array', async () => {
+    it('should return a recursive json object', async () => {
       const structure: IFile[] = await generateFolderStructure();
       const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, {});
-      console.log(populated);
-      console.log('the children final:');
-      console.log(populated.children);
+
+      // First level assertion
+      expect(populated.id === structure[0].id);
+      expect(populated.children).to.have.lengthOf(4);
+
+      // Second level assertion
+      for (let i = 0; i < structure.length; i++) {
+        if (String(structure[i].parent) === String(structure[0].id)) {
+          expect(populated.children).to.containSubset([{ id: structure[i].id }]);
+        }
+      }
+
+      // Third level assertion
+      for (let j = 0; j < populated.children.length; j++) {
+        for (let i = 0; i < structure.length; i++) {
+          if (String(structure[i].parent) === String((<IFile>populated.children[j]).id)) {
+            expect((<IFile>populated.children[j]).children).to.containSubset([{ id: structure[i].id }]);
+          }
+        }
+      }
+    });
+
+    it('should return a recursive json object, only with folders', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+      const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, { type: FolderContentType });
+
+      // First level assertion
+      expect(populated.id === structure[0].id);
+      expect(populated.children).to.have.lengthOf(2);
+
+      // Second level assertion
+      for (let i = 0; i < structure.length; i++) {
+        if (String(structure[i].parent) === String(structure[0].id) && structure[i].type === FolderContentType) {
+          expect(populated.children).to.containSubset([{ id: structure[i].id }]);
+        }
+        if (!(String(structure[i].parent) === String(structure[0].id) && structure[i].type === FolderContentType)) {
+          expect(populated.children).to.not.containSubset([{ id: structure[i].id }]);
+        }
+      }
+
+      // Third level assertion - no third level folders
+      for (let j = 0; j < populated.children.length; j++) {
+        for (let i = 0; i < structure.length; i++) {
+          expect((<IFile>populated.children[j]).children).to.have.lengthOf(0);
+        }
+      }
     });
   });
 
