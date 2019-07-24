@@ -90,8 +90,29 @@ export class FileService {
    * @param fileId - the id of the file.
    * @param partialFile - the partial file.
    */
-  public static updateById(fileId: string, partialFile: Partial<IFile>): Promise<IFile> {
+  public static updateById(fileId: string, partialFile: Partial<IFile>): Promise<boolean> {
     return FilesRepository.updateById(fileId, partialFile);
+  }
+
+  /**
+   * updateMany updates a list of files.
+   * @param files - List of files to update with their updated fields and their id.
+   */
+  static async updateMany(files: (Partial<IFile> & { id: string })[]): Promise<{updated: string[], failed: { id: string, error: Error }[]}> {
+    const failedFiles: { id: string, error: Error }[] = [];
+    const updatedFiles: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const updatedFile = await FilesRepository.updateById(files[i].id, files[i]);
+        if (updatedFile) {
+          updatedFiles.push(files[i].id);
+        }
+      } catch (e) {
+        failedFiles.push({ id: files[i].id, error: e });
+      }
+    }
+
+    return { updated: updatedFiles, failed: failedFiles };
   }
 
   /**
@@ -147,6 +168,14 @@ export class FileService {
   }
 
   /**
+   * Hashes a given key.
+   * @param id - the key to be hashed.
+   */
+  public static hashKey(id: string): string {
+    return this.reverseString(id);
+  }
+
+  /**
    * Makes sure a key is not in use in the database, to preserve uniqueness.
    * @param key - the key to check.
    */
@@ -163,14 +192,6 @@ export class FileService {
   private static async isFileInFolder(name: string, folderId: string, ownerID: string): Promise<boolean> {
     const file: IFile = await FilesRepository.getFileInFolderByName(folderId, name, ownerID);
     return (file != null);
-  }
-
-  /**
-   * Hashes a given key.
-   * @param id - the key to be hashed.
-   */
-  public static hashKey(id: string): string {
-    return this.reverseString(id);
   }
 
   /**
