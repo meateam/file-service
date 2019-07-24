@@ -8,6 +8,10 @@ import { fileModel } from './file.model';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
+type NestedIFileArray = IFile | IFileArray;
+
+interface IFileArray extends Array<NestedIFileArray> { }
+
 /**
  * This server assumes the following:
  * user is a valid existing user.
@@ -139,35 +143,26 @@ export class FileService {
    * Gets all the files in a folder by the folder id.
    * @param folderID -the given folder.
    * @param ownerID - if received root folder (null), get by ownerID.
-   * @returns {IFile[]}
+   * @param queryFile - the partial file containing the conditions.
+   * @returns an array of IFile: the children of the given folder, following the condition.
   */
   public static async getFilesByFolder(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<IFile[]> {
-    const parent = folderID ? new ObjectID(folderID) : null;
-    let query : Partial<IFile> = {};
-
-    // Create the query using the partial file
-    for (const prop in queryFile) {
-      if (queryFile[prop]) {
-        query[prop] = queryFile[prop];
-      }
-    }
-
-    // Add parent to the query
-    query = { ...query, parent };
-
-    if (!ownerID) {
-      if (!parent) {
-        // If parent is null and there is no ownerID, then the folder can't be found.
-        throw new ClientError('No owner id sent');
-      } else {
-        // Means that parent is root folder of ownerID
-        return await FilesRepository.find(query);
-      }
-    }
-
-    // Add ownerID to the query
-    query = Object.assign(query, { ownerID });
+    const query : Partial<IFile> = this.extractQuery(folderID, ownerID, queryFile);
     return await FilesRepository.find(query);
+  }
+
+  /**
+   * Recursively extracts all descendants of a folder with given conditions.
+   * @param folderID - the ancestor folder.
+   * @param ownerID - owner of said folder.
+   * @param queryFile - the partial file creating the conditions.
+   * @returns a nested IFile array of the descendants.
+   */
+  public static async getDescendantsByFolder
+  (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<NestedIFileArray[]> {
+    const query : Partial<IFile> = this.extractQuery(folderID, ownerID, queryFile);
+    const ancestor: IFile = await this.getById(folderID);
+    return [ancestor, await this.gDBF_aux(folderID, ownerID, query, [])];
   }
 
   /**
@@ -218,4 +213,57 @@ export class FileService {
   private static reverseString(str: string): string {
     return str ? str.split('').reverse().join('') : '';
   }
+
+  /**
+   * Auxillary function for getFilesByFolder and getDescendantsByFolder. extracts a query by given conditions.
+   * @param folderID -the given folder.
+   * @param ownerID - if received root folder (null), get by ownerID.
+   * @param queryFile - the partial file containing the conditions.
+   * @returns the pure query for extracting from the database.
+   */
+  private static extractQuery(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Partial<IFile> {
+    const parent = folderID ? new ObjectID(folderID) : null;
+    let query : Partial<IFile> = {};
+    // Create the query using the partial file
+    for (const prop in queryFile) {
+      if (queryFile[prop]) {
+        query[prop] = queryFile[prop];
+      }
+    }
+    // Add parent to the query
+    query = { ...query, parent };
+    if (!ownerID) {
+      if (!parent) {
+        // If parent is null and there is no ownerID, then the folder can't be found.
+        throw new ClientError('No owner id sent');
+      } else {
+        // Means that parent is root folder of ownerID
+        return query;
+      }
+    }
+    // Add ownerID to the query
+    query = { ...query, ownerID };
+    return query;
+  }
+
+  /**
+   * Auxillary function for getting the nested array of files for getDescendantsByFolder.
+   * @param folderID - the ancestor folder.
+   * @param ownerID - owner of said folder.
+   * @param query - the conditions.
+   * @param currArray - the array sent in the recursion.
+   */
+  private static async gDBF_aux(folderID: string, ownerID: string, query: object, currArray: NestedIFileArray[]) {
+    const children: IFile[] = await this.getFilesByFolder(folderID, ownerID, query);
+    const array: NestedIFileArray[] = currArray;
+    for (let i = 0 ; i < children.length ; i++) {
+      array.push(children[i]);
+      const grandChildren = await this.gDBF_aux(children[i].id, ownerID, query, []);
+      if (grandChildren.length > 0) {
+        array.push(grandChildren);
+      }
+    }
+    return array;
+  }
+
 }

@@ -569,6 +569,15 @@ describe('File Logic', () => {
     });
   });
 
+  describe('#getDescendantsByFolder', () => {
+    it('should return recursive array', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+      const array = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, {});
+      console.log(array);
+      expect(array.length).to.equal(2);
+    });
+  });
+
   describe('#isOwner', () => {
     it('should throw an error if the file does not exist', async () => {
       await FileService.isOwner(REVERSE_KEY, USER.id).should.eventually.rejectedWith(FileNotFoundError);
