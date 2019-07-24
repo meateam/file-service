@@ -14,7 +14,7 @@ class PrimitiveFile
   parent?: ObjectID | string;
   createdAt?: Date | number;
   updatedAt?: Date | number;
-  [key: string]: string | number | ObjectID | Date;
+  [key: string]: string | number | ObjectID | Date | object[];
 
   constructor(file: PrimitiveFile) {
     this.id = file.id;
@@ -31,6 +31,7 @@ class PrimitiveFile
   }
 }
 export class IFile extends PrimitiveFile{
+  children?: object[] = [];
   createdAt?: Date;
   updatedAt?: Date;
 }

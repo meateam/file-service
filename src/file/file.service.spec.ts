@@ -572,9 +572,10 @@ describe('File Logic', () => {
   describe('#getDescendantsByFolder', () => {
     it('should return recursive array', async () => {
       const structure: IFile[] = await generateFolderStructure();
-      const array = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, {});
-      console.log(array);
-      expect(array.length).to.equal(2);
+      const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, {});
+      console.log(populated);
+      console.log('the children final:');
+      console.log(populated.children);
     });
   });
 
