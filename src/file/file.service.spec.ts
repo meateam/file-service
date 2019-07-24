@@ -495,7 +495,7 @@ describe('File Logic', () => {
 
       it('should get only the folders in the root folder', async () => {
         const structure: IFile[] = await generateFolderStructure();
-        const folders = await FileService.getFilesByFolder(structure[0].id, null, `{ "type" : "${FolderContentType}" }`);
+        const folders = await FileService.getFilesByFolder(structure[0].id, null, { type : FolderContentType });
         expect(folders).to.have.lengthOf(2);
         expect(folders).to.containSubset([{ id: structure[3].id }]);
         expect(folders).to.containSubset([{ id: structure[4].id }]);
@@ -503,17 +503,13 @@ describe('File Logic', () => {
 
       it('should get all of the files in the root folder using empty json', async () => {
         const structure: IFile[] = await generateFolderStructure();
-        const folders = await FileService.getFilesByFolder(structure[0].id, null, '{}');
-        expect(folders).to.have.lengthOf(4);
-        for (let i = 1; i < structure.length - 1; i++) {
-          expect(folders).to.containSubset([{ id: structure[i].id }]);
+        const rootChildren = await FileService.getFilesByFolder(structure[0].id, null, {});
+        expect(rootChildren).to.have.lengthOf(4);
+        for (let i = 0; i < structure.length; i++) {
+          if (String(structure[i].parent) === String(structure[0].id)) {
+            expect(rootChildren).to.containSubset([{ id: structure[i].id }]);
+          }
         }
-      });
-
-      it('should throw an error because of invalid query', async () => {
-        const structure: IFile[] = await generateFolderStructure();
-        await FileService.getFilesByFolder(structure[0].id, null, '{ invalid query :( }')
-        .should.eventually.be.rejectedWith(QueryInvalidError);
       });
 
     });

@@ -120,31 +120,31 @@ export class FileService {
    * @param ownerID - if received root folder (null), get by ownerID.
    * @returns {IFile[]}
   */
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, queryString : string = '{}'): Promise<IFile[]> {
+  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<IFile[]> {
     const parent = folderID ? new ObjectID(folderID) : null;
-    let query : object = {};
+    let query : Partial<IFile> = {};
 
-    // verify queryString is a valid json string
-    try {
-      query = JSON.parse(queryString);
-    } catch (error) {
-      throw new QueryInvalidError(`invalid JSON query: ${queryString}`);
+    // Create the query using the partial file
+    for (const prop in queryFile) {
+      if (queryFile[prop]) {
+        query[prop] = queryFile[prop];
+      }
     }
 
-    // add parent to the query
-    query = Object.assign(query, { parent });
+    // Add parent to the query
+    query = { ...query, parent };
 
     if (!ownerID) {
       if (!parent) {
-        // if parent is null and there is no ownerID, then the folder can't be found.
+        // If parent is null and there is no ownerID, then the folder can't be found.
         throw new ClientError('No owner id sent');
       } else {
-        // means that parent is root folder of ownerID
+        // Means that parent is root folder of ownerID
         return await FilesRepository.find(query);
       }
     }
 
-    // add ownerID to the query
+    // Add ownerID to the query
     query = Object.assign(query, { ownerID });
     return await FilesRepository.find(query);
   }
@@ -155,7 +155,7 @@ export class FileService {
    * @param userID -the id of the user.
    */
   public static async isOwner(fileID: string, userID: string): Promise<boolean> {
-    // if the file is the user's root folder (which he is owner of) - return true
+    // If the file is the user's root folder (which he is owner of) - return true
     if (!fileID) {
       return true;
     }

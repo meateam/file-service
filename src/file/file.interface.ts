@@ -14,6 +14,7 @@ class PrimitiveFile
   parent?: ObjectID | string;
   createdAt?: Date | number;
   updatedAt?: Date | number;
+  [key: string]: any;
 
   constructor(file: PrimitiveFile) {
     this.id = file.id;

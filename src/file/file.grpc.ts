@@ -45,8 +45,8 @@ export class FileMethods {
   public static async GetFilesByFolder(call: any, callback: any): Promise<{ files: ResFile[] }> {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
-    const query: string = call.request.query || '{}';
-    const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID, query);
+    const queryFile: Partial<IFile> = call.request.queryFile || {};
+    const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID, queryFile);
     const resFiles: ResFile[] = files.length ? files.map(file => new ResFile(file)) : [];
     return { files: resFiles };
   }
