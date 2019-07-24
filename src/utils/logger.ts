@@ -77,7 +77,7 @@ export function wrapper(func: Function) :
   };
 }
 
-function getCurrTraceId() : string {
+export function getCurrTraceId() : string {
   try {
     return apm.currentTransaction.traceparent.split('-')[1];
   } catch (err) {

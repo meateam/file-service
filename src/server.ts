@@ -17,7 +17,7 @@ apm.start({
 const PROTO_PATH: string = `${__dirname}/../proto/file.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
-const packageDefinition : protoLoader.PackageDefinition = protoLoader.loadSync(
+const packageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
   PROTO_PATH,
   {
     keepCase: true,
@@ -28,8 +28,8 @@ const packageDefinition : protoLoader.PackageDefinition = protoLoader.loadSync(
   });
 
 // Has the full package hierarchy
-const protoDescriptor : grpc.GrpcObject = grpc.loadPackageDefinition(packageDefinition);
-const file_proto : any = protoDescriptor.file;
+const protoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(packageDefinition);
+const file_proto: any = protoDescriptor.file;
 
 export const serviceNames: string[] = ['', 'file.fileService'];
 export const healthCheckStatusMap = {
@@ -50,7 +50,7 @@ export class FileServer {
     log(Severity.INFO, 'server bind', `server listening on port: ${port}`);
   }
 
-  private addServices () {
+  private addServices() {
     // Register the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
@@ -67,6 +67,7 @@ export class FileServer {
       CreateFile: wrapper(FileMethods.CreateFile),
       DeleteFile: wrapper(FileMethods.DeleteFile),
       IsAllowed: wrapper(FileMethods.IsAllowed),
+      UpdateFiles: wrapper(FileMethods.UpdateFiles),
     };
 
     this.server.addService(file_proto.FileService.service, fileService);

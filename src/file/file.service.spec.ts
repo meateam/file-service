@@ -224,17 +224,6 @@ describe('File Logic', () => {
       await FileService.create(bucket, 'myFile', '654321', 'Other', null, KEY2, size).should.eventually.exist;
     });
 
-    it('should throw error: same owner, folder and filename', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
-      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
-    });
-
-    it('should not throw error: same folder and filename, different owner', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', '654321', 'Other', null, KEY2, size).should.eventually.exist;
-    });
-
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
         bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
@@ -370,10 +359,21 @@ describe('File Logic', () => {
   describe('#updateById', () => {
     it('should update a file', async () => {
       const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
-      await FileService.updateById(file.id, { name: 'changedFile', type: 'jpg' });
+      expect(file).to.exist;
+      expect(file).to.have.property('id');
+
+      const update = {
+        name: 'changedFile',
+        type: 'jpg'
+      };
+
+      const isUpdated = await FileService.updateById(file.id, update);
+      expect(isUpdated).to.be.true;
+
       const changedFile : IFile = await FileService.getById(file.id);
-      expect(changedFile.name).to.equal('changedFile');
-      expect(changedFile.type).to.equal('jpg');
+      expect(changedFile.id).to.equal(file.id);
+      expect(changedFile.name).to.equal(update.name);
+      expect(changedFile.type).to.equal(update.type);
     });
 
     it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
@@ -388,6 +388,60 @@ describe('File Logic', () => {
       await FileService.updateById(file1.id, { key: KEY2 }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
+    it('should not update a file id', async () => {
+      const file: IFile = await FileService.create(
+        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
+      expect(file).to.exist;
+      expect(file).to.have.property('id');
+
+      const update = {
+        id: '123',
+        name: 'updated.txt'
+      };
+
+      const updatedFile = await FileService.updateById(file.id, update);
+      expect(updatedFile).to.be.true;
+
+      const newFile = await FileService.getById(file.id);
+      expect(newFile).to.have.property('name', update.name);
+      expect(newFile).to.have.property('id', file.id);
+      expect(newFile).to.have.property('size', file.size);
+    });
+
+    it('should throw an error when file does not exist', async () => {
+      const update = {
+        name: 'updated.txt'
+      };
+
+      await FileService.updateById(REVERSE_KEY, update).should.eventually.be.rejectedWith(FileNotFoundError);
+    });
+  });
+
+  describe('#updateMany', () => {
+    it('should update all files', async () => {
+      const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', null, UploadService.generateKey());
+      const file2: IFile = await FileService.create(
+        'asddd', 'file.txt', 'asdadsasdsadsa', 'text', null, UploadService.generateKey());
+      expect(file1).to.exist;
+      expect(file1).to.have.property('id');
+      expect(file2).to.exist;
+      expect(file2).to.have.property('id');
+
+      const updates: (Partial<IFile> & { id: string })[] = [{ id: file1.id, name: 'update1.txt' }, { id: file2.id, size: 123123 }];
+
+      const { updated, failed } = await FileService.updateMany(updates);
+      expect(updated).to.exist;
+      expect(updated).to.have.length(2);
+      expect(failed).to.have.length(0);
+
+      const updatedFile1 = await FileService.getById(file1.id);
+      expect(updatedFile1).to.have.property('id', file1.id);
+      expect(updatedFile1).to.have.property('name', updates[0].name);
+
+      const updatedFile2 = await FileService.getById(file2.id);
+      expect(updatedFile2).to.have.property('id', file2.id);
+      expect(updatedFile2).to.have.property('size', updates[1].size);
+    });
   });
 
   describe('#getByID', () => {

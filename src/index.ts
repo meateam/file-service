@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { HealthCheckResponse } from 'grpc-ts-health-check';
 import { FileServer, serviceNames } from './server';
-import { mongoConnectionString, rpcPort, nodeEnv } from './config';
+import { mongoConnectionString, rpcPort } from './config';
 
 // Ensures you don't run the server twice
 if (!module.parent) {
