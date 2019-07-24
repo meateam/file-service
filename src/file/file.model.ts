@@ -77,9 +77,9 @@ fileSchema.virtual('fullExtension')
 
 /**
  * handleE11000 is called when there is a duplicateKey Error.
- * @param error 
- * @param _ 
- * @param next 
+ * @param error
+ * @param _
+ * @param next
  */
 function handleE11000(error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
@@ -88,7 +88,7 @@ function handleE11000(error: MongoError, _: any, next: NextFunction) {
   } else {
     next();
   }
-};
+}
 
 /**
  * Extracts the unique fields names and values thrown by the duplicate key error.

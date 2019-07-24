@@ -33,12 +33,12 @@ export default class FileRepository {
    * @param id - the file id.
    * @param partialFile - the partial file containing the attributes to be changed.
    */
-  static async updateById(id: string, partialFile: Partial<IFile>): Promise<boolean> {		
-		const file = await fileModel.findById(id);
-		if (!file) throw new FileNotFoundError();
+  static async updateById(id: string, partialFile: Partial<IFile>): Promise<boolean> {
+    const file = await fileModel.findById(id);
+    if (!file) throw new FileNotFoundError();
 
-		const res = await file.updateOne(partialFile, { runValidators: true }).exec();
-		return res.n == 1 && res.nModified == 1 && res.ok == 1;
+    const res = await file.updateOne(partialFile, { runValidators: true }).exec();
+    return res.n === 1 && res.nModified === 1 && res.ok === 1;
   }
 
   /**
