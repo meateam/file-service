@@ -64,6 +64,7 @@ export class FileServer {
       GetFileByID: wrapper(FileMethods.GetFileByID),
       GetFileByKey: wrapper(FileMethods.GetFileByKey),
       GetFilesByFolder: wrapper(FileMethods.GetFilesByFolder),
+      GetDescendantsByFolder: wrapper(FileMethods.GetDescendantsByFolder),
       CreateFile: wrapper(FileMethods.CreateFile),
       DeleteFile: wrapper(FileMethods.DeleteFile),
       IsAllowed: wrapper(FileMethods.IsAllowed),
