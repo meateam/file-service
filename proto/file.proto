@@ -174,4 +174,5 @@ message File {
   string bucket = 10;
   int64 createdAt = 11;
   int64 updatedAt = 12;
+  repeated File children = 13; 
 }
