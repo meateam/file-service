@@ -572,7 +572,7 @@ describe('File Logic', () => {
   describe('#getDescendantsByFolder', () => {
     it('should return a recursive json object', async () => {
       const structure: IFile[] = await generateFolderStructure();
-      const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, {});
+      const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID);
 
       // First level assertion
       expect(populated.id === structure[0].id);

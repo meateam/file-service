@@ -1,17 +1,17 @@
 import { ObjectID } from 'mongodb';
 export class PrimitiveFile
 {
-  id?: string = '';
-  key?: string = '';
-  bucket?: string = '';
-  name: string = '';
-  displayName?: string = '';
-  fullExtension?: string = '';
-  type: string = '';
-  description?: string = '';
-  ownerID: string = '';
+  id?: string;
+  key?: string;
+  bucket?: string;
+  name: string;
+  displayName?: string;
+  fullExtension?: string;
+  type: string;
+  description?: string;
+  ownerID: string;
   size: number = 0;
-  parent?: ObjectID | string = '';
+  parent?: ObjectID | string;
   createdAt?: Date | number = 0;
   updatedAt?: Date | number = 0;
   children?: PrimitiveFile[] = [];
@@ -32,14 +32,18 @@ export class PrimitiveFile
   }
 }
 export class IFile extends PrimitiveFile{
-  children?: IFile[] = [];
-  createdAt?: Date =  new Date();
-  updatedAt?: Date = new Date();
+  children?: IFile[] = undefined;
+  createdAt?: Date;
+  updatedAt?: Date;
 
   constructor(resFile: ResFile) {
     super(resFile);
-    this.createdAt = new Date(resFile.createdAt);
-    this.updatedAt = new Date(resFile.updatedAt);
+    if (resFile.createdAt) {
+      this.createdAt = new Date(resFile.createdAt);
+    }
+    if (resFile.updatedAt) {
+      this.updatedAt = new Date(resFile.updatedAt);
+    }
     if (resFile.children) {
       for (let i = 0 ; i < resFile.children.length ; i++) {
         new IFile(resFile.children[i]);
