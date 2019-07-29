@@ -78,10 +78,22 @@ export class FileMethods {
   public static async GetFilesByFolder(call: any): Promise<{ files: ResFile[] }> {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
-    const queryFile: Partial<IFile> = call.request.queryFile || {};
-    const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID, queryFile);
+    const queryFile: ResFile = call.request.queryFile || {};
+    const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID, new IFile(queryFile));
     const resFiles: ResFile[] = files.length ? files.map(file => new ResFile(file)) : [];
     return { files: resFiles };
+  }
+
+    /**
+   * Retrieves all files residing in a given folder.
+   * @param call
+   */
+  public static async GetDescendantsByFolder(call: any): Promise<Partial<ResFile>> {
+    const folderID: string = call.request.folderID;
+    const ownerID: string = call.request.ownerID;
+    const queryFile: Partial<IFile> = call.request.queryFile || {};
+    const nestedFile: ResFile = await FileService.getDescendantsByFolder(folderID, ownerID, queryFile);
+    return nestedFile;
   }
 
   /**
