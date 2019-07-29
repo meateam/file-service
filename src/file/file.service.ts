@@ -271,12 +271,13 @@ export class FileService {
     const folderFiles: IFile[] = await this.getFilesByFolder(folderID, ownerID, query);
     const childrenArray : ResFile[] = [];
 
-    await Promise.all(folderFiles.map(async (child) => {
-      const currChild = new ResFile(child);
-      const grandChildren = await this.getPopulatedChildren_recursive(child.id, ownerID, query);
+    for (let i = 0 ; i < folderFiles.length ; i++) {
+      const currChild = new ResFile(folderFiles[i]);
+      const grandChildren = await this.getPopulatedChildren_recursive(currChild.id, ownerID, query);
       currChild.children = grandChildren;
       childrenArray.push(currChild);
-    }));
+    }
+
     return childrenArray;
   }
 
