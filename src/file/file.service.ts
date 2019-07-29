@@ -161,10 +161,7 @@ export class FileService {
   public static async getDescendantsByFolder
   (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<ResFile> {
     const query : Partial<IFile> = this.extractQuery(folderID, ownerID, queryFile);
-    const ancestor: ResFile = new ResFile(await this.getById(folderID));
-    const children: ResFile[] = await this.getPopulatedChildren(folderID, ownerID, query, ancestor);
-    ancestor.children = children;
-    return ancestor;
+    return await this.getPopulatedChildren(folderID, ownerID, query);
   }
 
   /**
@@ -237,7 +234,7 @@ export class FileService {
     if (!ownerID) {
       if (!parent) {
         // If parent is null and there is no ownerID, then the folder can't be found.
-        throw new ClientError('No owner id sent');
+        throw new ClientError('no owner id sent');
       } else {
         // Means that parent is root folder of ownerID
         return query;
@@ -249,32 +246,37 @@ export class FileService {
   }
 
   /**
-   * Auxillary function for getting the nested array of files for getDescendantsByFolder.
+   * Retrieves the populated folder with its children, recursively, as a nested object.
+   * @param folderID - the ancestor folder.
+   * @param ownerID - owner of said folder.
+   * @param query - the conditions.
+   */
+  private static async getPopulatedChildren(folderID: string, ownerID: string, query: Partial<IFile>) : Promise<ResFile> {
+    const ancestor: ResFile = new ResFile(await this.getById(folderID));
+    const children: ResFile[] = await this.getPopulatedChildren_aux(folderID, ownerID, query);
+    ancestor.children = children;
+    return ancestor;
+  }
+
+  /**
+   * Auxillary function for getting the nested array of children files for getPopulatedChildren.
    * @param folderID - the ancestor folder.
    * @param ownerID - owner of said folder.
    * @param query - the conditions.
    * @param currArray - the array sent in the recursion.
    */
-  private static async getPopulatedChildren(folderID: string, ownerID: string, query: object, file: Partial<ResFile>) : Promise<ResFile[]> {
+  private static async getPopulatedChildren_aux(folderID: string, ownerID: string, query: Partial<IFile>) : Promise<ResFile[]> {
     const folderFiles: IFile[] = await this.getFilesByFolder(folderID, ownerID, query);
-    const resFolderFiles: ResFile[] = [];
-    const currFile : Partial<ResFile> = {};
+    const childrenArray : ResFile[] = [];
 
-    // extract essential properties from file
-    for (const prop in file) {
-      if (file[prop]) {
-        currFile[prop] = file[prop];
-      }
-    }
     // use the recursion to get the file's populated children
-    currFile.children = [];
     for (let i = 0 ; i < folderFiles.length ; i++) {
-      const grandChildren = await this.getPopulatedChildren(folderFiles[i].id, ownerID, query, new ResFile(folderFiles[i]));
-      resFolderFiles.push(new ResFile(folderFiles[i]));
-      resFolderFiles[i].children = grandChildren;
-      currFile.children.push(resFolderFiles[i]);
+      const currChild = new ResFile(folderFiles[i]);
+      const grandChildren = await this.getPopulatedChildren_aux(folderFiles[i].id, ownerID, query);
+      currChild.children = grandChildren;
+      childrenArray.push(currChild);
     }
-    return currFile.children;
+    return childrenArray;
   }
 
 }

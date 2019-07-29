@@ -105,14 +105,3 @@ export class FileMethods {
     return  { allowed: res };
   }
 }
-
-function convertFile(file: IFile): ResFile {
-  const resFile: any = {};
-  for (const prop in file) {
-    resFile[prop] = file[prop];
-  }
-
-  resFile.createdAt = file.createdAt.getTime();
-  resFile.updatedAt = file.updatedAt.getTime();
-  return <ResFile>resFile;
-}

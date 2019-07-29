@@ -517,7 +517,7 @@ describe('File Logic', () => {
     describe('Root Folder', () => {
       it('should throw an error if the fileID and the user are null', async () => {
         await FileService.getFilesByFolder(null, null)
-        .should.eventually.rejectedWith(ClientError, 'No owner id sent');
+        .should.eventually.rejectedWith(ClientError, 'no owner id sent');
       });
 
       it('should return an empty array if the user has no root folder', async () => {
