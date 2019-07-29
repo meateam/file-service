@@ -223,7 +223,9 @@ export class FileService {
   private static extractQuery(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Partial<IFile> {
     const parent = folderID ? new ObjectID(folderID) : null;
     let query : Partial<IFile> = {};
-    // Create the query using the partial file
+
+    // Create the query using the partial file,
+    // and removes empty properties, indicated as default values
     for (const prop in queryFile) {
       if (queryFile[prop]) {
         query[prop] = queryFile[prop];
@@ -253,7 +255,7 @@ export class FileService {
    */
   private static async getPopulatedChildren(folderID: string, ownerID: string, query: Partial<IFile>) : Promise<ResFile> {
     const ancestor: ResFile = new ResFile(await this.getById(folderID));
-    const children: ResFile[] = await this.getPopulatedChildren_aux(folderID, ownerID, query);
+    const children: ResFile[] = await this.getPopulatedChildren_recursive(folderID, ownerID, query);
     ancestor.children = children;
     return ancestor;
   }
@@ -265,17 +267,16 @@ export class FileService {
    * @param query - the conditions.
    * @param currArray - the array sent in the recursion.
    */
-  private static async getPopulatedChildren_aux(folderID: string, ownerID: string, query: Partial<IFile>) : Promise<ResFile[]> {
+  private static async getPopulatedChildren_recursive(folderID: string, ownerID: string, query: Partial<IFile>) : Promise<ResFile[]> {
     const folderFiles: IFile[] = await this.getFilesByFolder(folderID, ownerID, query);
     const childrenArray : ResFile[] = [];
 
-    // use the recursion to get the file's populated children
-    for (let i = 0 ; i < folderFiles.length ; i++) {
-      const currChild = new ResFile(folderFiles[i]);
-      const grandChildren = await this.getPopulatedChildren_aux(folderFiles[i].id, ownerID, query);
+    await Promise.all(folderFiles.map(async (child) => {
+      const currChild = new ResFile(child);
+      const grandChildren = await this.getPopulatedChildren_recursive(child.id, ownerID, query);
       currChild.children = grandChildren;
       childrenArray.push(currChild);
-    }
+    }));
     return childrenArray;
   }
 
