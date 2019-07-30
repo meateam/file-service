@@ -88,7 +88,7 @@ export class FileMethods {
    * Retrieves all files residing in a given folder.
    * @param call
    */
-  public static async GetDescendantsByFolder(call: any): Promise<Partial<ResFile>> {
+  public static async GetDescendantsByFolder(call: any): Promise<ResFile> {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
     const queryFile: Partial<IFile> = call.request.queryFile || {};
