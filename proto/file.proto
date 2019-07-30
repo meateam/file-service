@@ -109,7 +109,7 @@ message GetDescendantsByFolderRequest {
 }
 
 message GetDescendantsByFolderResponse {
-  repeated File files = 1;
+  File file = 1;
 }
 
 message CreateFileRequest {
