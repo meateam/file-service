@@ -245,7 +245,7 @@ export class FileService {
   }
 
   /**
-   * Auxillary function for getting the nested array of children files for getPopulatedChildren.
+   * Auxillary function for recursively getting the nested array of children files for getDescendantsByFolder.
    * @param folderID - the ancestor folder.
    * @param ownerID - owner of said folder.
    * @param query - the conditions.
