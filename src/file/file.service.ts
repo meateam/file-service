@@ -147,7 +147,20 @@ export class FileService {
    * @returns an array of IFile: the children of the given folder, following the condition.
   */
   public static async getFilesByFolder(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<IFile[]> {
-    const query : Partial<IFile> = this.extractQuery(folderID, ownerID, queryFile);
+    const parent = folderID ? new ObjectID(folderID) : null;
+    let query : Partial<IFile> = this.extractQuery(queryFile);
+    // Add parent to the query
+    query = { ...query, parent };
+    if (!ownerID) {
+      if (!parent) {
+        // If parent is null and there is no ownerID, then the folder can't be found.
+        throw new ClientError('no owner id sent');
+      }
+    } else {
+      // Add ownerID to the query
+      query = { ...query, ownerID };
+    }
+
     return await FilesRepository.find(query);
   }
 
@@ -159,8 +172,8 @@ export class FileService {
    * @returns a nested IFile array of the descendants.
    */
   public static async getDescendantsByFolder
-  (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<ResFile> {
-    const query : Partial<IFile> = this.extractQuery(folderID, ownerID, queryFile);
+  (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<ResFile[]> {
+    const query : Partial<IFile> = this.extractQuery(queryFile);
     return await this.getPopulatedChildren(folderID, ownerID, query);
   }
 
@@ -220,30 +233,15 @@ export class FileService {
    * @param queryFile - the partial file containing the conditions.
    * @returns the pure query for extracting from the database.
    */
-  private static extractQuery(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Partial<IFile> {
-    const parent = folderID ? new ObjectID(folderID) : null;
-    let query : Partial<IFile> = {};
-
-    // Create the query using the partial file,
+  private static extractQuery(queryFile?: Partial<IFile>): Partial<IFile> {
+    const query : Partial<IFile> = {};
+    // Creates the query using the partial file,
     // and removes empty properties, indicated as default values
     for (const prop in queryFile) {
       if (queryFile[prop]) {
         query[prop] = queryFile[prop];
       }
     }
-    // Add parent to the query
-    query = { ...query, parent };
-    if (!ownerID) {
-      if (!parent) {
-        // If parent is null and there is no ownerID, then the folder can't be found.
-        throw new ClientError('no owner id sent');
-      } else {
-        // Means that parent is root folder of ownerID
-        return query;
-      }
-    }
-    // Add ownerID to the query
-    query = { ...query, ownerID };
     return query;
   }
 
@@ -253,11 +251,9 @@ export class FileService {
    * @param ownerID - owner of said folder.
    * @param query - the conditions.
    */
-  private static async getPopulatedChildren(folderID: string, ownerID: string, query: Partial<IFile>) : Promise<ResFile> {
-    const ancestor: ResFile = new ResFile(await this.getById(folderID));
+  private static async getPopulatedChildren(folderID: string, ownerID: string, query: Partial<IFile>) : Promise<ResFile[]> {
     const children: ResFile[] = await this.getPopulatedChildren_recursive(folderID, ownerID, query);
-    ancestor.children = children;
-    return ancestor;
+    return children;
   }
 
   /**

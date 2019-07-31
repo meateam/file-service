@@ -12,8 +12,8 @@ export class PrimitiveFile
   ownerID: string;
   size: number = 0;
   parent?: ObjectID | string;
-  createdAt?: Date | number = 0;
-  updatedAt?: Date | number = 0;
+  createdAt?: Date | number;
+  updatedAt?: Date | number;
   children?: PrimitiveFile[] = [];
   [key: string]: string | number | ObjectID | Date | PrimitiveFile[];
 
@@ -35,20 +35,23 @@ export class IFile extends PrimitiveFile{
   children?: IFile[] = undefined;
   createdAt?: Date;
   updatedAt?: Date;
+  size: number = 0;
 
   constructor(resFile: ResFile) {
     super(resFile);
-    if (resFile.createdAt) {
-      this.createdAt = new Date(resFile.createdAt);
+    // the '+' translates the string to int
+    if (+resFile.createdAt) {
+      this.createdAt = new Date(+resFile.createdAt);
     }
-    if (resFile.updatedAt) {
-      this.updatedAt = new Date(resFile.updatedAt);
+    if (+resFile.updatedAt) {
+      this.updatedAt = new Date(+resFile.updatedAt);
     }
     if (resFile.children) {
       for (let i = 0 ; i < resFile.children.length ; i++) {
         new IFile(resFile.children[i]);
       }
     }
+    this.size = +resFile.size;
   }
 }
 
