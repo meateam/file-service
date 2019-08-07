@@ -572,24 +572,23 @@ describe('File Logic', () => {
   describe('#getDescendantsByFolder', () => {
     it('should return a recursive json object', async () => {
       const structure: IFile[] = await generateFolderStructure();
-      const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID);
+      const populated: ResFile[] = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID);
 
       // First level assertion
-      expect(populated.id === structure[0].id);
-      expect(populated.children).to.have.lengthOf(4);
+      expect(populated).to.have.lengthOf(4);
 
       // Second level assertion
       for (let i = 0; i < structure.length; i++) {
         if (String(structure[i].parent) === String(structure[0].id)) {
-          expect(populated.children).to.containSubset([{ id: structure[i].id }]);
+          expect(populated).to.containSubset([{ id: structure[i].id }]);
         }
       }
 
       // Third level assertion
-      for (let j = 0; j < populated.children.length; j++) {
+      for (let j = 0; j < populated.length; j++) {
         for (let i = 0; i < structure.length; i++) {
-          if (String(structure[i].parent) === String((<ResFile>populated.children[j]).id)) {
-            expect((<ResFile>populated.children[j]).children).to.containSubset([{ id: structure[i].id }]);
+          if (String(structure[i].parent) === String((<ResFile>populated[j]).id)) {
+            expect((<ResFile>populated[j]).children).to.containSubset([{ id: structure[i].id }]);
           }
         }
       }
@@ -599,26 +598,49 @@ describe('File Logic', () => {
       const structure: IFile[] = await generateFolderStructure();
       const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, { type: FolderContentType });
       // First level assertion
-      expect(populated.id === structure[0].id);
-      expect(populated.children).to.have.lengthOf(2);
+      expect(populated).to.have.lengthOf(2);
 
       // Second level assertion
       for (let i = 0; i < structure.length; i++) {
         if (String(structure[i].parent) === String(structure[0].id) && structure[i].type === FolderContentType) {
-          expect(populated.children).to.containSubset([{ id: structure[i].id }]);
+          expect(populated).to.containSubset([{ id: structure[i].id }]);
         }
         if (!(String(structure[i].parent) === String(structure[0].id) && structure[i].type === FolderContentType)) {
-          expect(populated.children).to.not.containSubset([{ id: structure[i].id }]);
+          expect(populated).to.not.containSubset([{ id: structure[i].id }]);
         }
       }
 
       // Third level assertion - no third level folders
-      for (let j = 0; j < populated.children.length; j++) {
+      for (let j = 0; j < populated.length; j++) {
+        expect((<ResFile>populated[j]).children).to.have.lengthOf(0);
+      }
+    });
+
+    it('should return a recursive json object from the root', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+      const populated = await FileService.getDescendantsByFolder(null, structure[0].ownerID);
+
+      // First level assertion
+      expect(populated).to.have.lengthOf(1);
+      expect(populated[0].id).to.be.equal(structure[0].id);
+
+      // Second level assertion
+      for (let i = 0; i < structure.length; i++) {
+        if (structure[i].parent === null) {
+          expect(populated).to.containSubset([{ id: structure[i].id }]);
+        }
+      }
+
+      // Third level assertion
+      for (let j = 0; j < populated.length; j++) {
         for (let i = 0; i < structure.length; i++) {
-          expect((<ResFile>populated.children[j]).children).to.have.lengthOf(0);
+          if (String(structure[i].parent) === String((<ResFile>populated[j]).id)) {
+            expect(populated[j].children).to.containSubset([{ id: structure[i].id }]);
+          }
         }
       }
     });
+
   });
 
   describe('#isOwner', () => {
@@ -687,6 +709,7 @@ async function generateFolderStructure() : Promise<IFile[]> {
   const key3 = UploadService.generateKey();
   const key4 = UploadService.generateKey();
 
+  // father is a folder in the root
   const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, null);
 
   const file1: IFile = await FileService.create(
