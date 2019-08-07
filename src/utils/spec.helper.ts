@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import { database } from '../config';
+import { database, mongoConnectionString } from '../config';
 
 dotenv.config({ path: '.env' });
 
@@ -12,11 +12,11 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 before(async () => {
-  const mongoHost = process.env.MONGO_HOST || database.host;
   await mongoose.connect(
-    `mongodb://${mongoHost}:27017/file`,
+    mongoConnectionString,
     { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
   );
+  console.log(`mongo connection: ${mongoConnectionString}`);
 });
 
 after((done) => {
