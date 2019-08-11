@@ -1,5 +1,5 @@
 import { ObjectID } from 'mongodb';
-import { IFile, ResFile } from './file.interface';
+import { IFile, ResFile, deleteRes } from './file.interface';
 import FilesRepository from './file.repository';
 import { FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
@@ -80,13 +80,21 @@ export class FileService {
    * only then delete the folder.
    * @param fileId - the id of the file/folder
    */
-  public static async delete(fileId: string): Promise<void> {
+  public static async delete(fileId: string): Promise<deleteRes[]> {
     const file: IFile = await this.getById(fileId);
+    let deletedFiles: {id: string, key:string, bucket: string}[] = [];
     if (file.type === FolderContentType) {
       const files: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
-      await Promise.all(files.map(file => this.delete(file.id)));
+      await Promise.all(files.map(async (file) => {
+        const deletedChildren: deleteRes[] = await this.delete(file.id);
+        deletedFiles = deletedFiles.concat(deletedChildren);
+      }));
     }
-    await FilesRepository.deleteById(fileId);
+    const currFile: IFile = await FilesRepository.deleteById(fileId);
+    if (currFile) {
+      deletedFiles.push({ id: currFile.id, key: currFile.key, bucket: currFile.bucket });
+    }
+    return deletedFiles;
   }
 
   /**

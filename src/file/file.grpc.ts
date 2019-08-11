@@ -1,5 +1,5 @@
 import { FileService } from './file.service';
-import { ResFile, IFile } from './file.interface';
+import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 
@@ -30,10 +30,10 @@ export class FileMethods {
    * Deletes a file, according to the file deletion policy.
    * @param call
    */
-  public static async DeleteFile(call: any): Promise<{ok: boolean}> {
+  public static async DeleteFile(call: any): Promise<deleteRes[]> {
     const id: string = call.request.id;
-    await FileService.delete(id);
-    return { ok: true };
+    const deletedFiles: deleteRes[] = await FileService.delete(id);
+    return deletedFiles;
   }
 
   /**
