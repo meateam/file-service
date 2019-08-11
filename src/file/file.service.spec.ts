@@ -427,20 +427,21 @@ describe('File Logic', () => {
       expect(file2).to.exist;
       expect(file2).to.have.property('id');
 
-      const updates: (Partial<IFile> & { id: string })[] = [{ id: file1.id, name: 'update1.txt' }, { id: file2.id, size: 123123 }];
+      const partialFile: (Partial<IFile>) = { name: 'update1.txt', size: 123123 };
+      const idList: string[] = [file1.id, file2.id];
 
-      const { updated, failed } = await FileService.updateMany(updates);
+      const { updated, failed } = await FileService.updateMany(idList, partialFile);
       expect(updated).to.exist;
       expect(updated).to.have.length(2);
       expect(failed).to.have.length(0);
 
       const updatedFile1 = await FileService.getById(file1.id);
       expect(updatedFile1).to.have.property('id', file1.id);
-      expect(updatedFile1).to.have.property('name', updates[0].name);
+      expect(updatedFile1).to.have.property('name', partialFile.name);
 
       const updatedFile2 = await FileService.getById(file2.id);
       expect(updatedFile2).to.have.property('id', file2.id);
-      expect(updatedFile2).to.have.property('size', updates[1].size);
+      expect(updatedFile2).to.have.property('size', partialFile.size);
     });
   });
 
