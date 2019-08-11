@@ -227,7 +227,6 @@ describe('File Logic', () => {
         bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
-      expect(file.id).to.equal(REVERSE_KEY);
       expect(file.key).to.equal(KEY);
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('txt');
@@ -344,7 +343,6 @@ describe('File Logic', () => {
         bucket, 'file.txt', USER.id, 'text', '', KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
-      expect(file.id).to.equal(REVERSE_KEY);
       expect(file.key).to.equal(KEY);
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('txt');
@@ -356,7 +354,6 @@ describe('File Logic', () => {
         bucket, 'file', USER.id, 'text', null, KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
-      expect(file.id).to.equal(REVERSE_KEY);
       expect(file.key).to.equal(KEY);
       expect(file.displayName).to.equal('file');
       expect(file.fullExtension).to.equal('');
@@ -481,11 +478,12 @@ describe('File Logic', () => {
       await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
     });
     it('get an existing file', async () => {
-      await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
-      const file = await FileService.getById(REVERSE_KEY);
-      expect(file).to.exist;
-      expect(file.id).to.equal(REVERSE_KEY);
-      expect(file.displayName).to.equal('file');
+      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
+      const fileRetrieved = await FileService.getById(file.id);
+      expect(fileRetrieved).to.exist;
+      expect(fileRetrieved.id).to.equal(file.id);
+      expect(fileRetrieved.parent).to.equal(file.parent);
+      expect(fileRetrieved.displayName).to.equal('file');
     });
   });
 
@@ -494,12 +492,12 @@ describe('File Logic', () => {
       await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
     });
     it('get an existing file', async () => {
-      await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
-      const file = await FileService.getByKey(KEY);
-      expect(file).to.exist;
-      expect(file.id).to.equal(REVERSE_KEY);
-      expect(file.key).to.equal(KEY);
-      expect(file.displayName).to.equal('file');
+      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
+      const fileRetrieved = await FileService.getByKey(KEY);
+      expect(fileRetrieved).to.exist;
+      expect(fileRetrieved.id).to.equal(file.id);
+      expect(fileRetrieved.key).to.equal(file.key);
+      expect(fileRetrieved.displayName).to.equal('file');
     });
   });
 

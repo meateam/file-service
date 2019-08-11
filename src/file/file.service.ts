@@ -44,25 +44,20 @@ export class FileService {
       throw new ServerError('No key sent');
     }
 
-    let id: string | ObjectID = new ObjectID();
-
-    // If there is no parent given, create the file in the user's root folder.
-    const parentID: string = folderID;
-
     // basicFile is without key and bucket - in case it is a folder.
     let basicFile: IFile = {
       type,
       name,
       ownerID,
       size,
-      parent: parentID
+      parent: folderID
     };
 
     // Create the file id by reversing key, and add ket and bucket.
-    if (key) {
-      id = this.reverseString(key);
-      basicFile = { ...basicFile, bucket, key, _id: id };
+    if (key && bucket) {
+      basicFile = { ...basicFile, bucket, key };
     }
+
     const file: IFile = new fileModel(basicFile);
 
     const createdFile = await FilesRepository.create(file);
