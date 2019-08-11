@@ -81,20 +81,37 @@ export class FileService {
    * @param fileId - the id of the file/folder
    */
   public static async delete(fileId: string): Promise<deleteRes[]> {
+    const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.delete_aux(fileId, true);
+    return res.succeeded;
+  }
+
+  /**
+   * Auxillary function for delete. recursively deletes files.
+   * If a file could not be deleted. it does not delete its path.
+   * @param fileId - the id of the file/folder.
+   * @param allSucceeded - marks if the path can be deleted at the end of descendants deletion.
+   */
+  private static async delete_aux(fileId: string, allSucceeded: boolean): Promise<{ succeeded: deleteRes[], allSucceeded: boolean } > {
     const file: IFile = await this.getById(fileId);
     let deletedFiles: {id: string, key:string, bucket: string}[] = [];
+    let pathSuccess = allSucceeded;
     if (file.type === FolderContentType) {
-      const files: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
-      await Promise.all(files.map(async (file) => {
-        const deletedChildren: deleteRes[] = await this.delete(file.id);
-        deletedFiles = deletedFiles.concat(deletedChildren);
+      const children: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
+      await Promise.all(children.map(async (file) => {
+        const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.delete_aux(file.id, pathSuccess);
+        deletedFiles = deletedFiles.concat(res.succeeded);
       }));
     }
-    const currFile: IFile = await FilesRepository.deleteById(fileId);
-    if (currFile) {
-      deletedFiles.push({ id: currFile.id, key: currFile.key, bucket: currFile.bucket });
+    if (pathSuccess) {
+      const currFile: IFile = await FilesRepository.deleteById(fileId);
+      // If a file was not deleted, mark the path so it would not be deleted.
+      if (!currFile) {
+        pathSuccess = false;
+      } else {
+        deletedFiles.push({ id: currFile.id, key: currFile.key, bucket: currFile.bucket });
+      }
     }
-    return deletedFiles;
+    return { succeeded: deletedFiles, allSucceeded: pathSuccess };
   }
 
   /**
@@ -271,6 +288,10 @@ export class FileService {
     }
 
     return childrenArray;
+  }
+
+  private static isFolder(file: IFile) : boolean {
+    return (file.type === FolderContentType);
   }
 
 }
