@@ -38,17 +38,15 @@ export class FileMethods {
 
   /**
    * UpdateFiles updates a list of files and responses with a list of the files' id
-   * which succeeded the operation, and a list of the files' id which the failed the operation.
+   * which succeeded the operation.
    */
-  public static async UpdateFiles(call: ServerUnaryCall<(Partial<IFile> & { id: string })[]>) {
-    const { updated, failed } = await FileService.updateMany(call.request);
+  public static async UpdateFiles(call: ServerUnaryCall<{ partialFile: Partial<IFile>, idList: string[] }>) {
+    const { updated, failed } = await FileService.updateMany(call.request.idList, call.request.partialFile);
     const traceID = getCurrTraceId();
     for (let i = 0; i < failed.length; i++) {
       log(Severity.ERROR, 'update files error', failed[i].error.message, traceID, failed[i]);
     }
-
-    const failedIds = failed.map(file => file.id);
-    return { updated, failedIds };
+    return { updated };
   }
 
   /**
