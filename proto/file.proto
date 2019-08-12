@@ -14,10 +14,9 @@ service FileService {
   rpc GetDescendantsByFolder(GetDescendantsByFolderRequest) returns (GetDescendantsByFolderResponse) {}
   rpc CreateFile(CreateFileRequest) returns (File) {}
   rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
-  rpc UpdateFile(UpdateFileRequest) returns (File) {}
   rpc IsAllowed(IsAllowedRequest) returns (IsAllowedResponse) {}
   rpc GetOwnerQuota(GetOwnerQuotaRequest) returns (GetOwnerQuotaResponse) {}
-  rpc UpdateFiles(File) returns (UpdateFilesResponse) {}
+  rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse) {}
 }
 
 message GetOwnerQuotaRequest {
@@ -36,11 +35,6 @@ message CreateUploadRequest {
   string ownerID = 3;
   string parent = 4;
   int64 size = 5;
-}
-
-message UpdateFilesResponse {
-  repeated string updated = 1;
-  repeated string failed = 2;
 }
 
 message CreateUploadResponse {
@@ -137,14 +131,6 @@ message DeleteFileResponse {
   repeated DeletedFileObject files = 2;
 }
 
-message UpdateFileRequest {
-  string name = 1;
-  int64 size = 2;
-  string ownerID = 3;
-  string parent = 4;
-  string bucket = 5;
-}
-
 message IsAllowedRequest {
   string fileID = 1;
   string userID = 2;
@@ -182,4 +168,13 @@ message File {
   int64 createdAt = 11;
   int64 updatedAt = 12;
   repeated File children = 13; 
+}
+
+message UpdateFilesRequest {
+  repeated string idList = 1;
+  File partialFile = 2;
+}
+
+message UpdateFilesResponse {
+  repeated string updated = 1;
 }
