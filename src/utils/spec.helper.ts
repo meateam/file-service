@@ -17,6 +17,7 @@ before(async () => {
     `mongodb://${mongoHost}:27017/file`,
     { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
   );
+  console.log(`mongo connection: mongodb://${mongoHost}:27017/file`);
 });
 
 after((done) => {

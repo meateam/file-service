@@ -11,8 +11,6 @@ export const fileSchema: Schema = new Schema(
   {
     key: {
       type: String,
-      sparse: true,
-      unique: true,
     },
     name: {
       type: String,
@@ -56,6 +54,7 @@ export const fileSchema: Schema = new Schema(
 );
 
 fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
+fileSchema.index({ key: 1, bucket: 1 }, { unique: true, sparse: true });
 
 fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
