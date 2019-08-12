@@ -31,12 +31,12 @@ export class FileService {
    * @param size - the size of the file.
    */
   public static async create(
-    bucket: string,
+    bucket: string| null = null,
     name: string,
     ownerID: string,
     type: string,
     folderID: string = '',
-    key: string = '',
+    key: string | null = null,
     size: number = 0,
   ): Promise<IFile> {
     const isFolder: boolean = (type === FolderContentType);
@@ -44,32 +44,26 @@ export class FileService {
       throw new ServerError('No key sent');
     }
 
-    let id: string | ObjectID = new ObjectID();
-
-    // Create the file id by reversing key.
-    if (key) {
-      id = this.reverseString(key);
-    }
-
-    // If there is no parent given, create the file in the user's root folder.
-    const parentID: string = folderID;
-
-    const file: IFile = new fileModel({
-      bucket,
-      key,
+    // basicFile is without key and bucket - in case it is a folder.
+    let basicFile: IFile = {
       type,
       name,
       ownerID,
       size,
-      _id: id,
-      parent: parentID,
-    });
+      parent: folderID
+    };
+
+    // Create the file id by reversing key, and add ket and bucket.
+    if (key && bucket) {
+      basicFile = { ...basicFile, bucket, key };
+    }
+
+    const file: IFile = new fileModel(basicFile);
 
     const createdFile = await FilesRepository.create(file);
     if (createdFile) {
       await QuotaService.updateUsed(ownerID, size);
     }
-
     return createdFile;
   }
 
@@ -103,6 +97,7 @@ export class FileService {
    * @param files - List of files to update with their updated fields and their id.
    */
   static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{updated: string[], failed: { id: string, error: Error }[]}> {
+
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
     const failedFiles: { id: string, error: Error }[] = [];
     const updatedFiles: string[] = [];
