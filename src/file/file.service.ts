@@ -72,28 +72,30 @@ export class FileService {
    * If receiving a folder:
    * Recursively delete all files and sub-folders in the given folder,
    * only then delete the folder.
+   * Does not delete path to file if the file could not be deleted.
    * @param fileId - the id of the file/folder
    */
   public static async delete(fileId: string): Promise<deleteRes[]> {
-    const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.delete_aux(fileId, true);
+    const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.deleteRecursive(fileId, true);
     return res.succeeded;
   }
 
   /**
    * Auxillary function for delete. recursively deletes files.
-   * If a file could not be deleted. it does not delete its path.
+   * If a file could not be deleted, it does not delete its path.
    * @param fileId - the id of the file/folder.
-   * @param allSucceeded - marks if the path can be deleted at the end of descendants deletion.
+   * @param allSucceeded - marks if all the descendants of the current folder have been deleted. If false, do not delete the folder.
    */
-  private static async delete_aux(fileId: string, allSucceeded: boolean): Promise<{ succeeded: deleteRes[], allSucceeded: boolean } > {
+  private static async deleteRecursive(fileId: string, allSucceeded: boolean): Promise<{ succeeded: deleteRes[], allSucceeded: boolean } > {
     const file: IFile = await this.getById(fileId);
     let deletedFiles: {id: string, key:string, bucket: string}[] = [];
     let pathSuccess = allSucceeded;
     if (file.type === FolderContentType) {
       const children: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
       await Promise.all(children.map(async (file) => {
-        const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.delete_aux(file.id, pathSuccess);
+        const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.deleteRecursive(file.id, pathSuccess);
         deletedFiles = deletedFiles.concat(res.succeeded);
+        pathSuccess = pathSuccess && res.allSucceeded;
       }));
     }
     if (pathSuccess) {
