@@ -72,3 +72,10 @@ export class ResFile extends PrimitiveFile {
     }
   }
 }
+
+// A type for the return value of file deletion in the grpc
+export type deleteRes = {
+  id: string,
+  key: string,
+  bucket: string,
+};

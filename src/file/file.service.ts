@@ -1,5 +1,5 @@
 import { ObjectID } from 'mongodb';
-import { IFile, ResFile } from './file.interface';
+import { IFile, ResFile, deleteRes } from './file.interface';
 import FilesRepository from './file.repository';
 import { FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
@@ -72,15 +72,42 @@ export class FileService {
    * If receiving a folder:
    * Recursively delete all files and sub-folders in the given folder,
    * only then delete the folder.
+   * Does not delete path to file if the file could not be deleted.
    * @param fileId - the id of the file/folder
    */
-  public static async delete(fileId: string): Promise<void> {
+  public static async delete(fileId: string): Promise<deleteRes[]> {
+    const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.deleteRecursive(fileId, true);
+    return res.succeeded;
+  }
+
+  /**
+   * Auxillary function for delete. recursively deletes files.
+   * If a file could not be deleted, it does not delete its path.
+   * @param fileId - the id of the file/folder.
+   * @param allSucceeded - marks if all the descendants of the current folder have been deleted. If false, do not delete the folder.
+   */
+  private static async deleteRecursive(fileId: string, allSucceeded: boolean): Promise<{ succeeded: deleteRes[], allSucceeded: boolean } > {
     const file: IFile = await this.getById(fileId);
+    let deletedFiles: {id: string, key:string, bucket: string}[] = [];
+    let pathSuccess = allSucceeded;
     if (file.type === FolderContentType) {
-      const files: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
-      await Promise.all(files.map(file => this.delete(file.id)));
+      const children: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
+      await Promise.all(children.map(async (file) => {
+        const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.deleteRecursive(file.id, pathSuccess);
+        deletedFiles = deletedFiles.concat(res.succeeded);
+        pathSuccess = pathSuccess && res.allSucceeded;
+      }));
     }
-    await FilesRepository.deleteById(fileId);
+    if (pathSuccess) {
+      const currFile: IFile = await FilesRepository.deleteById(fileId);
+      // If a file was not deleted, mark the path so it would not be deleted.
+      if (!currFile) {
+        pathSuccess = false;
+      } else {
+        deletedFiles.push({ id: currFile.id, key: currFile.key, bucket: currFile.bucket });
+      }
+    }
+    return { succeeded: deletedFiles, allSucceeded: pathSuccess };
   }
 
   /**
@@ -259,6 +286,10 @@ export class FileService {
     }
 
     return childrenArray;
+  }
+
+  private static isFolder(file: IFile) : boolean {
+    return (file.type === FolderContentType);
   }
 
 }
