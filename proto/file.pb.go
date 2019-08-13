@@ -3,13 +3,14 @@
 
 package file
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
 import (
-	context "golang.org/x/net/context"
+	context "context"
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -21,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type GetOwnerQuotaRequest struct {
 	OwnerID              string   `protobuf:"bytes,1,opt,name=ownerID,proto3" json:"ownerID,omitempty"`
@@ -34,16 +35,17 @@ func (m *GetOwnerQuotaRequest) Reset()         { *m = GetOwnerQuotaRequest{} }
 func (m *GetOwnerQuotaRequest) String() string { return proto.CompactTextString(m) }
 func (*GetOwnerQuotaRequest) ProtoMessage()    {}
 func (*GetOwnerQuotaRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{0}
+	return fileDescriptor_9188e3b7e55e1162, []int{0}
 }
+
 func (m *GetOwnerQuotaRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetOwnerQuotaRequest.Unmarshal(m, b)
 }
 func (m *GetOwnerQuotaRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetOwnerQuotaRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetOwnerQuotaRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetOwnerQuotaRequest.Merge(dst, src)
+func (m *GetOwnerQuotaRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetOwnerQuotaRequest.Merge(m, src)
 }
 func (m *GetOwnerQuotaRequest) XXX_Size() int {
 	return xxx_messageInfo_GetOwnerQuotaRequest.Size(m)
@@ -74,16 +76,17 @@ func (m *GetOwnerQuotaResponse) Reset()         { *m = GetOwnerQuotaResponse{} }
 func (m *GetOwnerQuotaResponse) String() string { return proto.CompactTextString(m) }
 func (*GetOwnerQuotaResponse) ProtoMessage()    {}
 func (*GetOwnerQuotaResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{1}
+	return fileDescriptor_9188e3b7e55e1162, []int{1}
 }
+
 func (m *GetOwnerQuotaResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetOwnerQuotaResponse.Unmarshal(m, b)
 }
 func (m *GetOwnerQuotaResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetOwnerQuotaResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetOwnerQuotaResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetOwnerQuotaResponse.Merge(dst, src)
+func (m *GetOwnerQuotaResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetOwnerQuotaResponse.Merge(m, src)
 }
 func (m *GetOwnerQuotaResponse) XXX_Size() int {
 	return xxx_messageInfo_GetOwnerQuotaResponse.Size(m)
@@ -130,16 +133,17 @@ func (m *CreateUploadRequest) Reset()         { *m = CreateUploadRequest{} }
 func (m *CreateUploadRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateUploadRequest) ProtoMessage()    {}
 func (*CreateUploadRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{2}
+	return fileDescriptor_9188e3b7e55e1162, []int{2}
 }
+
 func (m *CreateUploadRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateUploadRequest.Unmarshal(m, b)
 }
 func (m *CreateUploadRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CreateUploadRequest.Marshal(b, m, deterministic)
 }
-func (dst *CreateUploadRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateUploadRequest.Merge(dst, src)
+func (m *CreateUploadRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateUploadRequest.Merge(m, src)
 }
 func (m *CreateUploadRequest) XXX_Size() int {
 	return xxx_messageInfo_CreateUploadRequest.Size(m)
@@ -197,16 +201,17 @@ func (m *CreateUploadResponse) Reset()         { *m = CreateUploadResponse{} }
 func (m *CreateUploadResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateUploadResponse) ProtoMessage()    {}
 func (*CreateUploadResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{3}
+	return fileDescriptor_9188e3b7e55e1162, []int{3}
 }
+
 func (m *CreateUploadResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateUploadResponse.Unmarshal(m, b)
 }
 func (m *CreateUploadResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CreateUploadResponse.Marshal(b, m, deterministic)
 }
-func (dst *CreateUploadResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateUploadResponse.Merge(dst, src)
+func (m *CreateUploadResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateUploadResponse.Merge(m, src)
 }
 func (m *CreateUploadResponse) XXX_Size() int {
 	return xxx_messageInfo_CreateUploadResponse.Size(m)
@@ -241,16 +246,17 @@ func (m *GenerateKeyRequest) Reset()         { *m = GenerateKeyRequest{} }
 func (m *GenerateKeyRequest) String() string { return proto.CompactTextString(m) }
 func (*GenerateKeyRequest) ProtoMessage()    {}
 func (*GenerateKeyRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{4}
+	return fileDescriptor_9188e3b7e55e1162, []int{4}
 }
+
 func (m *GenerateKeyRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GenerateKeyRequest.Unmarshal(m, b)
 }
 func (m *GenerateKeyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GenerateKeyRequest.Marshal(b, m, deterministic)
 }
-func (dst *GenerateKeyRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GenerateKeyRequest.Merge(dst, src)
+func (m *GenerateKeyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GenerateKeyRequest.Merge(m, src)
 }
 func (m *GenerateKeyRequest) XXX_Size() int {
 	return xxx_messageInfo_GenerateKeyRequest.Size(m)
@@ -272,16 +278,17 @@ func (m *KeyResponse) Reset()         { *m = KeyResponse{} }
 func (m *KeyResponse) String() string { return proto.CompactTextString(m) }
 func (*KeyResponse) ProtoMessage()    {}
 func (*KeyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{5}
+	return fileDescriptor_9188e3b7e55e1162, []int{5}
 }
+
 func (m *KeyResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_KeyResponse.Unmarshal(m, b)
 }
 func (m *KeyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_KeyResponse.Marshal(b, m, deterministic)
 }
-func (dst *KeyResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_KeyResponse.Merge(dst, src)
+func (m *KeyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeyResponse.Merge(m, src)
 }
 func (m *KeyResponse) XXX_Size() int {
 	return xxx_messageInfo_KeyResponse.Size(m)
@@ -312,16 +319,17 @@ func (m *UpdateUploadIDRequest) Reset()         { *m = UpdateUploadIDRequest{} }
 func (m *UpdateUploadIDRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateUploadIDRequest) ProtoMessage()    {}
 func (*UpdateUploadIDRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{6}
+	return fileDescriptor_9188e3b7e55e1162, []int{6}
 }
+
 func (m *UpdateUploadIDRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateUploadIDRequest.Unmarshal(m, b)
 }
 func (m *UpdateUploadIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_UpdateUploadIDRequest.Marshal(b, m, deterministic)
 }
-func (dst *UpdateUploadIDRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateUploadIDRequest.Merge(dst, src)
+func (m *UpdateUploadIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateUploadIDRequest.Merge(m, src)
 }
 func (m *UpdateUploadIDRequest) XXX_Size() int {
 	return xxx_messageInfo_UpdateUploadIDRequest.Size(m)
@@ -363,16 +371,17 @@ func (m *UpdateUploadIDResponse) Reset()         { *m = UpdateUploadIDResponse{}
 func (m *UpdateUploadIDResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateUploadIDResponse) ProtoMessage()    {}
 func (*UpdateUploadIDResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{7}
+	return fileDescriptor_9188e3b7e55e1162, []int{7}
 }
+
 func (m *UpdateUploadIDResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateUploadIDResponse.Unmarshal(m, b)
 }
 func (m *UpdateUploadIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_UpdateUploadIDResponse.Marshal(b, m, deterministic)
 }
-func (dst *UpdateUploadIDResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateUploadIDResponse.Merge(dst, src)
+func (m *UpdateUploadIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateUploadIDResponse.Merge(m, src)
 }
 func (m *UpdateUploadIDResponse) XXX_Size() int {
 	return xxx_messageInfo_UpdateUploadIDResponse.Size(m)
@@ -394,16 +403,17 @@ func (m *GetUploadByIDRequest) Reset()         { *m = GetUploadByIDRequest{} }
 func (m *GetUploadByIDRequest) String() string { return proto.CompactTextString(m) }
 func (*GetUploadByIDRequest) ProtoMessage()    {}
 func (*GetUploadByIDRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{8}
+	return fileDescriptor_9188e3b7e55e1162, []int{8}
 }
+
 func (m *GetUploadByIDRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetUploadByIDRequest.Unmarshal(m, b)
 }
 func (m *GetUploadByIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetUploadByIDRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetUploadByIDRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetUploadByIDRequest.Merge(dst, src)
+func (m *GetUploadByIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetUploadByIDRequest.Merge(m, src)
 }
 func (m *GetUploadByIDRequest) XXX_Size() int {
 	return xxx_messageInfo_GetUploadByIDRequest.Size(m)
@@ -435,16 +445,17 @@ func (m *GetUploadByIDResponse) Reset()         { *m = GetUploadByIDResponse{} }
 func (m *GetUploadByIDResponse) String() string { return proto.CompactTextString(m) }
 func (*GetUploadByIDResponse) ProtoMessage()    {}
 func (*GetUploadByIDResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{9}
+	return fileDescriptor_9188e3b7e55e1162, []int{9}
 }
+
 func (m *GetUploadByIDResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetUploadByIDResponse.Unmarshal(m, b)
 }
 func (m *GetUploadByIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetUploadByIDResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetUploadByIDResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetUploadByIDResponse.Merge(dst, src)
+func (m *GetUploadByIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetUploadByIDResponse.Merge(m, src)
 }
 func (m *GetUploadByIDResponse) XXX_Size() int {
 	return xxx_messageInfo_GetUploadByIDResponse.Size(m)
@@ -494,16 +505,17 @@ func (m *DeleteUploadByIDRequest) Reset()         { *m = DeleteUploadByIDRequest
 func (m *DeleteUploadByIDRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteUploadByIDRequest) ProtoMessage()    {}
 func (*DeleteUploadByIDRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{10}
+	return fileDescriptor_9188e3b7e55e1162, []int{10}
 }
+
 func (m *DeleteUploadByIDRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteUploadByIDRequest.Unmarshal(m, b)
 }
 func (m *DeleteUploadByIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeleteUploadByIDRequest.Marshal(b, m, deterministic)
 }
-func (dst *DeleteUploadByIDRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteUploadByIDRequest.Merge(dst, src)
+func (m *DeleteUploadByIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteUploadByIDRequest.Merge(m, src)
 }
 func (m *DeleteUploadByIDRequest) XXX_Size() int {
 	return xxx_messageInfo_DeleteUploadByIDRequest.Size(m)
@@ -531,16 +543,17 @@ func (m *DeleteUploadByIDResponse) Reset()         { *m = DeleteUploadByIDRespon
 func (m *DeleteUploadByIDResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteUploadByIDResponse) ProtoMessage()    {}
 func (*DeleteUploadByIDResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{11}
+	return fileDescriptor_9188e3b7e55e1162, []int{11}
 }
+
 func (m *DeleteUploadByIDResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteUploadByIDResponse.Unmarshal(m, b)
 }
 func (m *DeleteUploadByIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeleteUploadByIDResponse.Marshal(b, m, deterministic)
 }
-func (dst *DeleteUploadByIDResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteUploadByIDResponse.Merge(dst, src)
+func (m *DeleteUploadByIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteUploadByIDResponse.Merge(m, src)
 }
 func (m *DeleteUploadByIDResponse) XXX_Size() int {
 	return xxx_messageInfo_DeleteUploadByIDResponse.Size(m)
@@ -562,16 +575,17 @@ func (m *GetByFileByIDRequest) Reset()         { *m = GetByFileByIDRequest{} }
 func (m *GetByFileByIDRequest) String() string { return proto.CompactTextString(m) }
 func (*GetByFileByIDRequest) ProtoMessage()    {}
 func (*GetByFileByIDRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{12}
+	return fileDescriptor_9188e3b7e55e1162, []int{12}
 }
+
 func (m *GetByFileByIDRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetByFileByIDRequest.Unmarshal(m, b)
 }
 func (m *GetByFileByIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetByFileByIDRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetByFileByIDRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetByFileByIDRequest.Merge(dst, src)
+func (m *GetByFileByIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetByFileByIDRequest.Merge(m, src)
 }
 func (m *GetByFileByIDRequest) XXX_Size() int {
 	return xxx_messageInfo_GetByFileByIDRequest.Size(m)
@@ -600,16 +614,17 @@ func (m *GetFileByKeyRequest) Reset()         { *m = GetFileByKeyRequest{} }
 func (m *GetFileByKeyRequest) String() string { return proto.CompactTextString(m) }
 func (*GetFileByKeyRequest) ProtoMessage()    {}
 func (*GetFileByKeyRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{13}
+	return fileDescriptor_9188e3b7e55e1162, []int{13}
 }
+
 func (m *GetFileByKeyRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetFileByKeyRequest.Unmarshal(m, b)
 }
 func (m *GetFileByKeyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetFileByKeyRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetFileByKeyRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetFileByKeyRequest.Merge(dst, src)
+func (m *GetFileByKeyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetFileByKeyRequest.Merge(m, src)
 }
 func (m *GetFileByKeyRequest) XXX_Size() int {
 	return xxx_messageInfo_GetFileByKeyRequest.Size(m)
@@ -630,6 +645,7 @@ func (m *GetFileByKeyRequest) GetKey() string {
 type GetFilesByFolderRequest struct {
 	FolderID             string   `protobuf:"bytes,1,opt,name=folderID,proto3" json:"folderID,omitempty"`
 	OwnerID              string   `protobuf:"bytes,2,opt,name=ownerID,proto3" json:"ownerID,omitempty"`
+	QueryFile            *File    `protobuf:"bytes,3,opt,name=queryFile,proto3" json:"queryFile,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -639,16 +655,17 @@ func (m *GetFilesByFolderRequest) Reset()         { *m = GetFilesByFolderRequest
 func (m *GetFilesByFolderRequest) String() string { return proto.CompactTextString(m) }
 func (*GetFilesByFolderRequest) ProtoMessage()    {}
 func (*GetFilesByFolderRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{14}
+	return fileDescriptor_9188e3b7e55e1162, []int{14}
 }
+
 func (m *GetFilesByFolderRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetFilesByFolderRequest.Unmarshal(m, b)
 }
 func (m *GetFilesByFolderRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetFilesByFolderRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetFilesByFolderRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetFilesByFolderRequest.Merge(dst, src)
+func (m *GetFilesByFolderRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetFilesByFolderRequest.Merge(m, src)
 }
 func (m *GetFilesByFolderRequest) XXX_Size() int {
 	return xxx_messageInfo_GetFilesByFolderRequest.Size(m)
@@ -673,6 +690,13 @@ func (m *GetFilesByFolderRequest) GetOwnerID() string {
 	return ""
 }
 
+func (m *GetFilesByFolderRequest) GetQueryFile() *File {
+	if m != nil {
+		return m.QueryFile
+	}
+	return nil
+}
+
 type GetFilesByFolderResponse struct {
 	Files                []*File  `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -684,16 +708,17 @@ func (m *GetFilesByFolderResponse) Reset()         { *m = GetFilesByFolderRespon
 func (m *GetFilesByFolderResponse) String() string { return proto.CompactTextString(m) }
 func (*GetFilesByFolderResponse) ProtoMessage()    {}
 func (*GetFilesByFolderResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{15}
+	return fileDescriptor_9188e3b7e55e1162, []int{15}
 }
+
 func (m *GetFilesByFolderResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetFilesByFolderResponse.Unmarshal(m, b)
 }
 func (m *GetFilesByFolderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetFilesByFolderResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetFilesByFolderResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetFilesByFolderResponse.Merge(dst, src)
+func (m *GetFilesByFolderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetFilesByFolderResponse.Merge(m, src)
 }
 func (m *GetFilesByFolderResponse) XXX_Size() int {
 	return xxx_messageInfo_GetFilesByFolderResponse.Size(m)
@@ -705,6 +730,100 @@ func (m *GetFilesByFolderResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_GetFilesByFolderResponse proto.InternalMessageInfo
 
 func (m *GetFilesByFolderResponse) GetFiles() []*File {
+	if m != nil {
+		return m.Files
+	}
+	return nil
+}
+
+type GetDescendantsByFolderRequest struct {
+	FolderID             string   `protobuf:"bytes,1,opt,name=folderID,proto3" json:"folderID,omitempty"`
+	OwnerID              string   `protobuf:"bytes,2,opt,name=ownerID,proto3" json:"ownerID,omitempty"`
+	QueryFile            *File    `protobuf:"bytes,3,opt,name=queryFile,proto3" json:"queryFile,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetDescendantsByFolderRequest) Reset()         { *m = GetDescendantsByFolderRequest{} }
+func (m *GetDescendantsByFolderRequest) String() string { return proto.CompactTextString(m) }
+func (*GetDescendantsByFolderRequest) ProtoMessage()    {}
+func (*GetDescendantsByFolderRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9188e3b7e55e1162, []int{16}
+}
+
+func (m *GetDescendantsByFolderRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetDescendantsByFolderRequest.Unmarshal(m, b)
+}
+func (m *GetDescendantsByFolderRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetDescendantsByFolderRequest.Marshal(b, m, deterministic)
+}
+func (m *GetDescendantsByFolderRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDescendantsByFolderRequest.Merge(m, src)
+}
+func (m *GetDescendantsByFolderRequest) XXX_Size() int {
+	return xxx_messageInfo_GetDescendantsByFolderRequest.Size(m)
+}
+func (m *GetDescendantsByFolderRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetDescendantsByFolderRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetDescendantsByFolderRequest proto.InternalMessageInfo
+
+func (m *GetDescendantsByFolderRequest) GetFolderID() string {
+	if m != nil {
+		return m.FolderID
+	}
+	return ""
+}
+
+func (m *GetDescendantsByFolderRequest) GetOwnerID() string {
+	if m != nil {
+		return m.OwnerID
+	}
+	return ""
+}
+
+func (m *GetDescendantsByFolderRequest) GetQueryFile() *File {
+	if m != nil {
+		return m.QueryFile
+	}
+	return nil
+}
+
+type GetDescendantsByFolderResponse struct {
+	Files                []*File  `protobuf:"bytes,1,rep,name=files,proto3" json:"files,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetDescendantsByFolderResponse) Reset()         { *m = GetDescendantsByFolderResponse{} }
+func (m *GetDescendantsByFolderResponse) String() string { return proto.CompactTextString(m) }
+func (*GetDescendantsByFolderResponse) ProtoMessage()    {}
+func (*GetDescendantsByFolderResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9188e3b7e55e1162, []int{17}
+}
+
+func (m *GetDescendantsByFolderResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetDescendantsByFolderResponse.Unmarshal(m, b)
+}
+func (m *GetDescendantsByFolderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetDescendantsByFolderResponse.Marshal(b, m, deterministic)
+}
+func (m *GetDescendantsByFolderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDescendantsByFolderResponse.Merge(m, src)
+}
+func (m *GetDescendantsByFolderResponse) XXX_Size() int {
+	return xxx_messageInfo_GetDescendantsByFolderResponse.Size(m)
+}
+func (m *GetDescendantsByFolderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetDescendantsByFolderResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetDescendantsByFolderResponse proto.InternalMessageInfo
+
+func (m *GetDescendantsByFolderResponse) GetFiles() []*File {
 	if m != nil {
 		return m.Files
 	}
@@ -728,16 +847,17 @@ func (m *CreateFileRequest) Reset()         { *m = CreateFileRequest{} }
 func (m *CreateFileRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateFileRequest) ProtoMessage()    {}
 func (*CreateFileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{16}
+	return fileDescriptor_9188e3b7e55e1162, []int{18}
 }
+
 func (m *CreateFileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateFileRequest.Unmarshal(m, b)
 }
 func (m *CreateFileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CreateFileRequest.Marshal(b, m, deterministic)
 }
-func (dst *CreateFileRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateFileRequest.Merge(dst, src)
+func (m *CreateFileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateFileRequest.Merge(m, src)
 }
 func (m *CreateFileRequest) XXX_Size() int {
 	return xxx_messageInfo_CreateFileRequest.Size(m)
@@ -808,16 +928,17 @@ func (m *DeleteFileRequest) Reset()         { *m = DeleteFileRequest{} }
 func (m *DeleteFileRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteFileRequest) ProtoMessage()    {}
 func (*DeleteFileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{17}
+	return fileDescriptor_9188e3b7e55e1162, []int{19}
 }
+
 func (m *DeleteFileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteFileRequest.Unmarshal(m, b)
 }
 func (m *DeleteFileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeleteFileRequest.Marshal(b, m, deterministic)
 }
-func (dst *DeleteFileRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteFileRequest.Merge(dst, src)
+func (m *DeleteFileRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteFileRequest.Merge(m, src)
 }
 func (m *DeleteFileRequest) XXX_Size() int {
 	return xxx_messageInfo_DeleteFileRequest.Size(m)
@@ -846,16 +967,17 @@ func (m *DeleteFileResponse) Reset()         { *m = DeleteFileResponse{} }
 func (m *DeleteFileResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteFileResponse) ProtoMessage()    {}
 func (*DeleteFileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{18}
+	return fileDescriptor_9188e3b7e55e1162, []int{20}
 }
+
 func (m *DeleteFileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteFileResponse.Unmarshal(m, b)
 }
 func (m *DeleteFileResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeleteFileResponse.Marshal(b, m, deterministic)
 }
-func (dst *DeleteFileResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteFileResponse.Merge(dst, src)
+func (m *DeleteFileResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteFileResponse.Merge(m, src)
 }
 func (m *DeleteFileResponse) XXX_Size() int {
 	return xxx_messageInfo_DeleteFileResponse.Size(m)
@@ -873,76 +995,6 @@ func (m *DeleteFileResponse) GetOk() bool {
 	return false
 }
 
-type UpdateFileRequest struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Size                 int64    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
-	OwnerID              string   `protobuf:"bytes,3,opt,name=ownerID,proto3" json:"ownerID,omitempty"`
-	Parent               string   `protobuf:"bytes,4,opt,name=parent,proto3" json:"parent,omitempty"`
-	Bucket               string   `protobuf:"bytes,5,opt,name=bucket,proto3" json:"bucket,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateFileRequest) Reset()         { *m = UpdateFileRequest{} }
-func (m *UpdateFileRequest) String() string { return proto.CompactTextString(m) }
-func (*UpdateFileRequest) ProtoMessage()    {}
-func (*UpdateFileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{19}
-}
-func (m *UpdateFileRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateFileRequest.Unmarshal(m, b)
-}
-func (m *UpdateFileRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateFileRequest.Marshal(b, m, deterministic)
-}
-func (dst *UpdateFileRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateFileRequest.Merge(dst, src)
-}
-func (m *UpdateFileRequest) XXX_Size() int {
-	return xxx_messageInfo_UpdateFileRequest.Size(m)
-}
-func (m *UpdateFileRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateFileRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateFileRequest proto.InternalMessageInfo
-
-func (m *UpdateFileRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *UpdateFileRequest) GetSize() int64 {
-	if m != nil {
-		return m.Size
-	}
-	return 0
-}
-
-func (m *UpdateFileRequest) GetOwnerID() string {
-	if m != nil {
-		return m.OwnerID
-	}
-	return ""
-}
-
-func (m *UpdateFileRequest) GetParent() string {
-	if m != nil {
-		return m.Parent
-	}
-	return ""
-}
-
-func (m *UpdateFileRequest) GetBucket() string {
-	if m != nil {
-		return m.Bucket
-	}
-	return ""
-}
-
 type IsAllowedRequest struct {
 	FileID               string   `protobuf:"bytes,1,opt,name=fileID,proto3" json:"fileID,omitempty"`
 	UserID               string   `protobuf:"bytes,2,opt,name=userID,proto3" json:"userID,omitempty"`
@@ -955,16 +1007,17 @@ func (m *IsAllowedRequest) Reset()         { *m = IsAllowedRequest{} }
 func (m *IsAllowedRequest) String() string { return proto.CompactTextString(m) }
 func (*IsAllowedRequest) ProtoMessage()    {}
 func (*IsAllowedRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{20}
+	return fileDescriptor_9188e3b7e55e1162, []int{21}
 }
+
 func (m *IsAllowedRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_IsAllowedRequest.Unmarshal(m, b)
 }
 func (m *IsAllowedRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_IsAllowedRequest.Marshal(b, m, deterministic)
 }
-func (dst *IsAllowedRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IsAllowedRequest.Merge(dst, src)
+func (m *IsAllowedRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IsAllowedRequest.Merge(m, src)
 }
 func (m *IsAllowedRequest) XXX_Size() int {
 	return xxx_messageInfo_IsAllowedRequest.Size(m)
@@ -1000,16 +1053,17 @@ func (m *IsAllowedResponse) Reset()         { *m = IsAllowedResponse{} }
 func (m *IsAllowedResponse) String() string { return proto.CompactTextString(m) }
 func (*IsAllowedResponse) ProtoMessage()    {}
 func (*IsAllowedResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{21}
+	return fileDescriptor_9188e3b7e55e1162, []int{22}
 }
+
 func (m *IsAllowedResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_IsAllowedResponse.Unmarshal(m, b)
 }
 func (m *IsAllowedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_IsAllowedResponse.Marshal(b, m, deterministic)
 }
-func (dst *IsAllowedResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_IsAllowedResponse.Merge(dst, src)
+func (m *IsAllowedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IsAllowedResponse.Merge(m, src)
 }
 func (m *IsAllowedResponse) XXX_Size() int {
 	return xxx_messageInfo_IsAllowedResponse.Size(m)
@@ -1041,16 +1095,17 @@ func (m *User) Reset()         { *m = User{} }
 func (m *User) String() string { return proto.CompactTextString(m) }
 func (*User) ProtoMessage()    {}
 func (*User) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{22}
+	return fileDescriptor_9188e3b7e55e1162, []int{23}
 }
+
 func (m *User) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_User.Unmarshal(m, b)
 }
 func (m *User) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_User.Marshal(b, m, deterministic)
 }
-func (dst *User) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_User.Merge(dst, src)
+func (m *User) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_User.Merge(m, src)
 }
 func (m *User) XXX_Size() int {
 	return xxx_messageInfo_User.Size(m)
@@ -1101,16 +1156,17 @@ func (m *App) Reset()         { *m = App{} }
 func (m *App) String() string { return proto.CompactTextString(m) }
 func (*App) ProtoMessage()    {}
 func (*App) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{23}
+	return fileDescriptor_9188e3b7e55e1162, []int{24}
 }
+
 func (m *App) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_App.Unmarshal(m, b)
 }
 func (m *App) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_App.Marshal(b, m, deterministic)
 }
-func (dst *App) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_App.Merge(dst, src)
+func (m *App) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_App.Merge(m, src)
 }
 func (m *App) XXX_Size() int {
 	return xxx_messageInfo_App.Size(m)
@@ -1150,6 +1206,7 @@ type File struct {
 	Bucket               string          `protobuf:"bytes,10,opt,name=bucket,proto3" json:"bucket,omitempty"`
 	CreatedAt            int64           `protobuf:"varint,11,opt,name=createdAt,proto3" json:"createdAt,omitempty"`
 	UpdatedAt            int64           `protobuf:"varint,12,opt,name=updatedAt,proto3" json:"updatedAt,omitempty"`
+	Children             []*File         `protobuf:"bytes,13,rep,name=children,proto3" json:"children,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`
 	XXX_sizecache        int32           `json:"-"`
@@ -1159,16 +1216,17 @@ func (m *File) Reset()         { *m = File{} }
 func (m *File) String() string { return proto.CompactTextString(m) }
 func (*File) ProtoMessage()    {}
 func (*File) Descriptor() ([]byte, []int) {
-	return fileDescriptor_file_f1e54f84da46a47e, []int{24}
+	return fileDescriptor_9188e3b7e55e1162, []int{25}
 }
+
 func (m *File) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_File.Unmarshal(m, b)
 }
 func (m *File) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_File.Marshal(b, m, deterministic)
 }
-func (dst *File) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_File.Merge(dst, src)
+func (m *File) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_File.Merge(m, src)
 }
 func (m *File) XXX_Size() int {
 	return xxx_messageInfo_File.Size(m)
@@ -1178,27 +1236,6 @@ func (m *File) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_File proto.InternalMessageInfo
-
-type isFile_FileOrId interface {
-	isFile_FileOrId()
-}
-
-type File_Parent struct {
-	Parent string `protobuf:"bytes,8,opt,name=parent,proto3,oneof"`
-}
-type File_ParentObject struct {
-	ParentObject *File `protobuf:"bytes,9,opt,name=parentObject,proto3,oneof"`
-}
-
-func (*File_Parent) isFile_FileOrId()       {}
-func (*File_ParentObject) isFile_FileOrId() {}
-
-func (m *File) GetFileOrId() isFile_FileOrId {
-	if m != nil {
-		return m.FileOrId
-	}
-	return nil
-}
 
 func (m *File) GetId() string {
 	if m != nil {
@@ -1249,6 +1286,29 @@ func (m *File) GetSize() int64 {
 	return 0
 }
 
+type isFile_FileOrId interface {
+	isFile_FileOrId()
+}
+
+type File_Parent struct {
+	Parent string `protobuf:"bytes,8,opt,name=parent,proto3,oneof"`
+}
+
+type File_ParentObject struct {
+	ParentObject *File `protobuf:"bytes,9,opt,name=parentObject,proto3,oneof"`
+}
+
+func (*File_Parent) isFile_FileOrId() {}
+
+func (*File_ParentObject) isFile_FileOrId() {}
+
+func (m *File) GetFileOrId() isFile_FileOrId {
+	if m != nil {
+		return m.FileOrId
+	}
+	return nil
+}
+
 func (m *File) GetParent() string {
 	if x, ok := m.GetFileOrId().(*File_Parent); ok {
 		return x.Parent
@@ -1284,74 +1344,105 @@ func (m *File) GetUpdatedAt() int64 {
 	return 0
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*File) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _File_OneofMarshaler, _File_OneofUnmarshaler, _File_OneofSizer, []interface{}{
+func (m *File) GetChildren() []*File {
+	if m != nil {
+		return m.Children
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*File) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*File_Parent)(nil),
 		(*File_ParentObject)(nil),
 	}
 }
 
-func _File_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*File)
-	// fileOrId
-	switch x := m.FileOrId.(type) {
-	case *File_Parent:
-		b.EncodeVarint(8<<3 | proto.WireBytes)
-		b.EncodeStringBytes(x.Parent)
-	case *File_ParentObject:
-		b.EncodeVarint(9<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ParentObject); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("File.FileOrId has unexpected type %T", x)
+type UpdateFilesRequest struct {
+	IdList               []string `protobuf:"bytes,1,rep,name=idList,proto3" json:"idList,omitempty"`
+	PartialFile          *File    `protobuf:"bytes,2,opt,name=partialFile,proto3" json:"partialFile,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateFilesRequest) Reset()         { *m = UpdateFilesRequest{} }
+func (m *UpdateFilesRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateFilesRequest) ProtoMessage()    {}
+func (*UpdateFilesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9188e3b7e55e1162, []int{26}
+}
+
+func (m *UpdateFilesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateFilesRequest.Unmarshal(m, b)
+}
+func (m *UpdateFilesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateFilesRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateFilesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateFilesRequest.Merge(m, src)
+}
+func (m *UpdateFilesRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateFilesRequest.Size(m)
+}
+func (m *UpdateFilesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateFilesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateFilesRequest proto.InternalMessageInfo
+
+func (m *UpdateFilesRequest) GetIdList() []string {
+	if m != nil {
+		return m.IdList
 	}
 	return nil
 }
 
-func _File_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*File)
-	switch tag {
-	case 8: // fileOrId.parent
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.FileOrId = &File_Parent{x}
-		return true, err
-	case 9: // fileOrId.parentObject
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(File)
-		err := b.DecodeMessage(msg)
-		m.FileOrId = &File_ParentObject{msg}
-		return true, err
-	default:
-		return false, nil
+func (m *UpdateFilesRequest) GetPartialFile() *File {
+	if m != nil {
+		return m.PartialFile
 	}
+	return nil
 }
 
-func _File_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*File)
-	// fileOrId
-	switch x := m.FileOrId.(type) {
-	case *File_Parent:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Parent)))
-		n += len(x.Parent)
-	case *File_ParentObject:
-		s := proto.Size(x.ParentObject)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+type UpdateFilesResponse struct {
+	Updated              []string `protobuf:"bytes,1,rep,name=updated,proto3" json:"updated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateFilesResponse) Reset()         { *m = UpdateFilesResponse{} }
+func (m *UpdateFilesResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdateFilesResponse) ProtoMessage()    {}
+func (*UpdateFilesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9188e3b7e55e1162, []int{27}
+}
+
+func (m *UpdateFilesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateFilesResponse.Unmarshal(m, b)
+}
+func (m *UpdateFilesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateFilesResponse.Marshal(b, m, deterministic)
+}
+func (m *UpdateFilesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateFilesResponse.Merge(m, src)
+}
+func (m *UpdateFilesResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdateFilesResponse.Size(m)
+}
+func (m *UpdateFilesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateFilesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateFilesResponse proto.InternalMessageInfo
+
+func (m *UpdateFilesResponse) GetUpdated() []string {
+	if m != nil {
+		return m.Updated
 	}
-	return n
+	return nil
 }
 
 func init() {
@@ -1371,15 +1462,88 @@ func init() {
 	proto.RegisterType((*GetFileByKeyRequest)(nil), "file.GetFileByKeyRequest")
 	proto.RegisterType((*GetFilesByFolderRequest)(nil), "file.GetFilesByFolderRequest")
 	proto.RegisterType((*GetFilesByFolderResponse)(nil), "file.GetFilesByFolderResponse")
+	proto.RegisterType((*GetDescendantsByFolderRequest)(nil), "file.GetDescendantsByFolderRequest")
+	proto.RegisterType((*GetDescendantsByFolderResponse)(nil), "file.GetDescendantsByFolderResponse")
 	proto.RegisterType((*CreateFileRequest)(nil), "file.CreateFileRequest")
 	proto.RegisterType((*DeleteFileRequest)(nil), "file.DeleteFileRequest")
 	proto.RegisterType((*DeleteFileResponse)(nil), "file.DeleteFileResponse")
-	proto.RegisterType((*UpdateFileRequest)(nil), "file.UpdateFileRequest")
 	proto.RegisterType((*IsAllowedRequest)(nil), "file.IsAllowedRequest")
 	proto.RegisterType((*IsAllowedResponse)(nil), "file.IsAllowedResponse")
 	proto.RegisterType((*User)(nil), "file.User")
 	proto.RegisterType((*App)(nil), "file.App")
 	proto.RegisterType((*File)(nil), "file.File")
+	proto.RegisterType((*UpdateFilesRequest)(nil), "file.UpdateFilesRequest")
+	proto.RegisterType((*UpdateFilesResponse)(nil), "file.UpdateFilesResponse")
+}
+
+func init() { proto.RegisterFile("file.proto", fileDescriptor_9188e3b7e55e1162) }
+
+var fileDescriptor_9188e3b7e55e1162 = []byte{
+	// 1013 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xbc, 0x57, 0x4b, 0x6f, 0xdc, 0xd4,
+	0x17, 0xef, 0x8c, 0x27, 0x8f, 0x39, 0x93, 0x56, 0xc9, 0x4d, 0x9a, 0xb8, 0xee, 0xe3, 0x1f, 0xdd,
+	0x56, 0xfd, 0x17, 0x09, 0x4a, 0x95, 0x0a, 0xb1, 0xa9, 0x10, 0x09, 0x23, 0x42, 0x78, 0x45, 0x4c,
+	0x95, 0x0d, 0x88, 0x85, 0x33, 0xbe, 0x11, 0x26, 0xce, 0xd8, 0xb5, 0xef, 0x50, 0x0d, 0x1b, 0x96,
+	0x7c, 0x18, 0xbe, 0x1e, 0x4b, 0x16, 0xdc, 0xb7, 0x8f, 0x7d, 0x6d, 0x54, 0x36, 0xec, 0xee, 0x3d,
+	0xef, 0xd7, 0x3d, 0x3f, 0x1b, 0xe0, 0x2a, 0xcd, 0xd8, 0xf3, 0xa2, 0xcc, 0x79, 0x4e, 0x46, 0xf2,
+	0x4c, 0x5f, 0xc0, 0xde, 0x29, 0xe3, 0xe7, 0x6f, 0x17, 0xac, 0xfc, 0x6e, 0x99, 0xf3, 0x78, 0xc6,
+	0xde, 0x2c, 0x59, 0xc5, 0x49, 0x08, 0x1b, 0xb9, 0x24, 0x9e, 0x4d, 0xc3, 0xc1, 0xe1, 0xe0, 0xd9,
+	0x78, 0x66, 0xaf, 0xf4, 0x07, 0xb8, 0xdb, 0xd2, 0xa8, 0x8a, 0x7c, 0x51, 0xb1, 0x7e, 0x15, 0xb2,
+	0x07, 0x6b, 0x59, 0x7a, 0x93, 0xf2, 0x70, 0x28, 0xe8, 0xc1, 0x4c, 0x5f, 0x08, 0x81, 0x51, 0x95,
+	0xfe, 0xca, 0xc2, 0x40, 0x11, 0xd5, 0x99, 0xfe, 0x3e, 0x80, 0xdd, 0xcf, 0x4a, 0x16, 0x73, 0x76,
+	0x51, 0x64, 0x79, 0x9c, 0xd8, 0x70, 0xf6, 0x61, 0xfd, 0x72, 0x39, 0xbf, 0x66, 0xdc, 0x98, 0x36,
+	0x37, 0x69, 0x63, 0x11, 0xdf, 0x30, 0x65, 0x78, 0x3c, 0x53, 0x67, 0x1c, 0x47, 0xd0, 0x8c, 0x43,
+	0x58, 0x29, 0xe2, 0x92, 0x2d, 0x78, 0x38, 0xd2, 0x56, 0xf4, 0xcd, 0x45, 0xb2, 0x86, 0x22, 0xf9,
+	0x14, 0xf6, 0x9a, 0x81, 0x98, 0x2c, 0xb7, 0x21, 0xb8, 0x66, 0x2b, 0x13, 0x86, 0x3c, 0xa2, 0xd8,
+	0x86, 0x38, 0x36, 0xba, 0x07, 0xe4, 0x94, 0x09, 0xc7, 0xc2, 0xc6, 0x57, 0x6c, 0x65, 0x32, 0xa1,
+	0xff, 0x83, 0x89, 0xba, 0xf5, 0x99, 0xa3, 0x3f, 0xc2, 0xdd, 0x8b, 0x22, 0x71, 0x8e, 0xcf, 0xa6,
+	0xb6, 0x06, 0xbe, 0xe7, 0x08, 0x36, 0x97, 0x46, 0xc8, 0xf8, 0x76, 0x77, 0x14, 0x55, 0xd0, 0x88,
+	0x2a, 0x84, 0xfd, 0xb6, 0x79, 0x1d, 0x0a, 0x3d, 0x52, 0xa3, 0xa0, 0xc9, 0x27, 0xab, 0xda, 0x2f,
+	0xf6, 0x32, 0x68, 0x7a, 0xa1, 0x6f, 0xd4, 0x30, 0x60, 0x9d, 0x7f, 0x5b, 0xa6, 0x86, 0xf9, 0xa0,
+	0x95, 0x84, 0x6d, 0xef, 0xa8, 0x6e, 0x2f, 0xfd, 0x08, 0x0e, 0xa6, 0x2c, 0x63, 0x36, 0x81, 0x77,
+	0x8d, 0x34, 0x82, 0xd0, 0x57, 0x33, 0x99, 0x3f, 0x55, 0x99, 0x9f, 0xac, 0x3e, 0x17, 0x2f, 0x02,
+	0xdb, 0xbb, 0x03, 0xc3, 0x34, 0x31, 0x96, 0xc4, 0x89, 0xfe, 0x1f, 0x76, 0x85, 0x9c, 0x96, 0xaa,
+	0x5b, 0xda, 0xd1, 0xc3, 0x15, 0x1c, 0x18, 0xc1, 0x4a, 0x58, 0xcd, 0xb3, 0x84, 0x95, 0x28, 0xc6,
+	0x2b, 0x45, 0xa8, 0x63, 0xb4, 0x77, 0x3c, 0xb9, 0xc3, 0xe6, 0xe4, 0x3e, 0x83, 0xb1, 0x50, 0x2f,
+	0x55, 0x84, 0xaa, 0x4a, 0x93, 0x23, 0x78, 0xae, 0x1e, 0xb3, 0xa4, 0xcc, 0x6a, 0x26, 0x7d, 0x05,
+	0xa1, 0xef, 0xda, 0x34, 0xe5, 0x10, 0xd6, 0xa4, 0x4e, 0x25, 0x1c, 0x07, 0x2d, 0x0b, 0x9a, 0x41,
+	0x7f, 0x83, 0x87, 0x42, 0x7b, 0xca, 0xaa, 0x39, 0x5b, 0x24, 0xf1, 0x82, 0xff, 0xe7, 0xe1, 0x9f,
+	0xc0, 0xa3, 0xbe, 0x00, 0xde, 0x39, 0x89, 0x3f, 0x06, 0xb0, 0xa3, 0xdf, 0xae, 0xa2, 0xf6, 0x3e,
+	0x9f, 0xae, 0xe5, 0xd1, 0xb1, 0x94, 0x24, 0x8d, 0xaf, 0x0a, 0x37, 0x85, 0xf2, 0x8c, 0x73, 0x5d,
+	0xf3, 0x96, 0x8c, 0x99, 0xf3, 0xf5, 0xc6, 0x9c, 0xd7, 0xcb, 0x67, 0x03, 0x2f, 0x1f, 0xfa, 0x18,
+	0x76, 0xf4, 0x60, 0xe2, 0x60, 0xdb, 0x93, 0xf7, 0x04, 0x08, 0x16, 0x32, 0xa5, 0x10, 0x52, 0xf9,
+	0xb5, 0x92, 0xda, 0x9c, 0x89, 0x93, 0x28, 0xde, 0xf6, 0x59, 0x75, 0x9c, 0x65, 0xf9, 0x5b, 0x86,
+	0x37, 0xa7, 0xac, 0x8a, 0x6b, 0x97, 0xb9, 0x49, 0xfa, 0xb2, 0x42, 0xbd, 0x32, 0x37, 0xfa, 0x01,
+	0xec, 0x20, 0x1b, 0xf5, 0x6a, 0x8f, 0x35, 0xc9, 0x78, 0xb3, 0x57, 0x9a, 0xc0, 0xe8, 0x42, 0x28,
+	0xb6, 0x03, 0x26, 0x0f, 0x60, 0x7c, 0x95, 0x96, 0x15, 0xff, 0xb6, 0x2e, 0x70, 0x4d, 0x90, 0x53,
+	0x94, 0xc5, 0x86, 0x69, 0xde, 0xbc, 0xbd, 0xcb, 0x6a, 0xdf, 0xc4, 0x69, 0x66, 0xab, 0x2d, 0xcf,
+	0xf4, 0x3d, 0x08, 0x8e, 0x8b, 0xc2, 0x73, 0xd2, 0xd1, 0x40, 0xfa, 0xe7, 0x10, 0x46, 0xb2, 0x48,
+	0x9e, 0xb0, 0xe9, 0xff, 0xd0, 0xef, 0x7f, 0xd0, 0xec, 0xbf, 0xd7, 0xeb, 0x43, 0x98, 0x24, 0x62,
+	0x20, 0xcb, 0xb4, 0xe0, 0x69, 0xbe, 0x30, 0xfd, 0xc6, 0x24, 0x3c, 0x0d, 0xeb, 0xcd, 0x69, 0xb0,
+	0xf3, 0xb4, 0x81, 0xe6, 0x29, 0x74, 0x93, 0xb0, 0x29, 0x85, 0xbf, 0xb8, 0xe5, 0x80, 0xe8, 0x05,
+	0x6c, 0xe9, 0xd3, 0xf9, 0xe5, 0xcf, 0x6c, 0xce, 0xc3, 0x71, 0xfb, 0xa9, 0x08, 0xd9, 0x86, 0x04,
+	0x9a, 0x36, 0x68, 0x4c, 0x9b, 0xa8, 0xff, 0x5c, 0x3d, 0x81, 0xe4, 0x98, 0x87, 0x13, 0xe5, 0xbc,
+	0x26, 0x48, 0xee, 0x52, 0x81, 0x80, 0xe4, 0x6e, 0x69, 0xae, 0x23, 0x90, 0xa7, 0xb0, 0x39, 0xff,
+	0x29, 0xcd, 0x12, 0xe1, 0x26, 0xbc, 0xed, 0x3d, 0x32, 0xc7, 0x3b, 0x01, 0xb1, 0x0b, 0x04, 0xe5,
+	0xbc, 0x3c, 0x4b, 0xe8, 0xf7, 0x40, 0x34, 0xac, 0xa8, 0xcd, 0x83, 0x86, 0x2f, 0x4d, 0xbe, 0x4e,
+	0x2b, 0xae, 0x1e, 0xab, 0x88, 0x4e, 0xdf, 0xc8, 0xfb, 0x30, 0x11, 0x59, 0xf0, 0x34, 0xce, 0xd4,
+	0x46, 0x18, 0x7a, 0x1b, 0x01, 0xb3, 0xe9, 0x87, 0xb0, 0xdb, 0xb0, 0x5d, 0x0f, 0xa5, 0x89, 0xd9,
+	0x58, 0xb7, 0xd7, 0xa3, 0xbf, 0x36, 0x60, 0x22, 0x65, 0x5f, 0xb3, 0xf2, 0x97, 0x74, 0xce, 0xc8,
+	0x2b, 0x98, 0x20, 0x24, 0x26, 0xa1, 0x76, 0xe4, 0x83, 0x73, 0xb4, 0xa3, 0x39, 0x08, 0xa0, 0xe9,
+	0x2d, 0x72, 0x0a, 0x5b, 0xf8, 0x4b, 0x80, 0xdc, 0xd3, 0x42, 0x1d, 0x9f, 0x29, 0x51, 0xd4, 0xc5,
+	0x72, 0x86, 0xbe, 0x81, 0x3b, 0x4d, 0xe8, 0x25, 0xf7, 0xb5, 0x7c, 0x27, 0xde, 0x47, 0x0f, 0xba,
+	0x99, 0xce, 0xdc, 0x97, 0x70, 0xbb, 0x81, 0xbd, 0x24, 0xb2, 0x79, 0xf9, 0x20, 0x1e, 0xdd, 0xef,
+	0xe4, 0x39, 0x5b, 0xaf, 0x61, 0xbb, 0x8d, 0x8e, 0xe4, 0xa1, 0x56, 0xe9, 0x01, 0xdb, 0xe8, 0x51,
+	0x1f, 0xdb, 0x19, 0xfd, 0x58, 0x96, 0x9d, 0x5b, 0x50, 0x45, 0xe1, 0x79, 0x48, 0x1b, 0xa1, 0xde,
+	0x2b, 0xc5, 0x2d, 0x8c, 0xb3, 0xb6, 0xe2, 0x1d, 0xd8, 0xdb, 0x52, 0x14, 0x69, 0xb4, 0xc1, 0xcf,
+	0xa6, 0xd1, 0x83, 0xc7, 0x36, 0x8d, 0x3e, 0xcc, 0x14, 0x46, 0x19, 0xec, 0x77, 0x43, 0x12, 0x79,
+	0xec, 0x74, 0xfb, 0x11, 0x33, 0x7a, 0xf2, 0xcf, 0x42, 0xce, 0xcd, 0x4b, 0x80, 0x1a, 0xb4, 0xc8,
+	0x01, 0x9e, 0x24, 0x84, 0x0c, 0xad, 0x84, 0x8f, 0x01, 0x6a, 0x5c, 0xb0, 0x4a, 0x1e, 0x9c, 0x44,
+	0xa1, 0xcf, 0x70, 0x7e, 0x3f, 0x81, 0xb1, 0x5b, 0xf8, 0x64, 0x5f, 0x0b, 0xb6, 0x51, 0x24, 0x3a,
+	0xf0, 0xe8, 0xad, 0x31, 0xac, 0xff, 0x07, 0x50, 0x9f, 0xbd, 0xdf, 0x0a, 0x34, 0x86, 0xfe, 0x0f,
+	0x84, 0xb0, 0x35, 0x85, 0x09, 0x7a, 0xe9, 0xf6, 0xa1, 0xfa, 0x8b, 0x25, 0xba, 0xd7, 0xc1, 0xb1,
+	0x56, 0x2e, 0xd7, 0xd5, 0x0f, 0xce, 0xcb, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0x8d, 0x48, 0x47,
+	0x71, 0xee, 0x0c, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1402,11 +1566,12 @@ type FileServiceClient interface {
 	GetFileByID(ctx context.Context, in *GetByFileByIDRequest, opts ...grpc.CallOption) (*File, error)
 	GetFileByKey(ctx context.Context, in *GetFileByKeyRequest, opts ...grpc.CallOption) (*File, error)
 	GetFilesByFolder(ctx context.Context, in *GetFilesByFolderRequest, opts ...grpc.CallOption) (*GetFilesByFolderResponse, error)
+	GetDescendantsByFolder(ctx context.Context, in *GetDescendantsByFolderRequest, opts ...grpc.CallOption) (*GetDescendantsByFolderResponse, error)
 	CreateFile(ctx context.Context, in *CreateFileRequest, opts ...grpc.CallOption) (*File, error)
 	DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*DeleteFileResponse, error)
-	UpdateFile(ctx context.Context, in *UpdateFileRequest, opts ...grpc.CallOption) (*File, error)
 	IsAllowed(ctx context.Context, in *IsAllowedRequest, opts ...grpc.CallOption) (*IsAllowedResponse, error)
 	GetOwnerQuota(ctx context.Context, in *GetOwnerQuotaRequest, opts ...grpc.CallOption) (*GetOwnerQuotaResponse, error)
+	UpdateFiles(ctx context.Context, in *UpdateFilesRequest, opts ...grpc.CallOption) (*UpdateFilesResponse, error)
 }
 
 type fileServiceClient struct {
@@ -1489,6 +1654,15 @@ func (c *fileServiceClient) GetFilesByFolder(ctx context.Context, in *GetFilesBy
 	return out, nil
 }
 
+func (c *fileServiceClient) GetDescendantsByFolder(ctx context.Context, in *GetDescendantsByFolderRequest, opts ...grpc.CallOption) (*GetDescendantsByFolderResponse, error) {
+	out := new(GetDescendantsByFolderResponse)
+	err := c.cc.Invoke(ctx, "/file.FileService/GetDescendantsByFolder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *fileServiceClient) CreateFile(ctx context.Context, in *CreateFileRequest, opts ...grpc.CallOption) (*File, error) {
 	out := new(File)
 	err := c.cc.Invoke(ctx, "/file.FileService/CreateFile", in, out, opts...)
@@ -1501,15 +1675,6 @@ func (c *fileServiceClient) CreateFile(ctx context.Context, in *CreateFileReques
 func (c *fileServiceClient) DeleteFile(ctx context.Context, in *DeleteFileRequest, opts ...grpc.CallOption) (*DeleteFileResponse, error) {
 	out := new(DeleteFileResponse)
 	err := c.cc.Invoke(ctx, "/file.FileService/DeleteFile", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *fileServiceClient) UpdateFile(ctx context.Context, in *UpdateFileRequest, opts ...grpc.CallOption) (*File, error) {
-	out := new(File)
-	err := c.cc.Invoke(ctx, "/file.FileService/UpdateFile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1534,6 +1699,15 @@ func (c *fileServiceClient) GetOwnerQuota(ctx context.Context, in *GetOwnerQuota
 	return out, nil
 }
 
+func (c *fileServiceClient) UpdateFiles(ctx context.Context, in *UpdateFilesRequest, opts ...grpc.CallOption) (*UpdateFilesResponse, error) {
+	out := new(UpdateFilesResponse)
+	err := c.cc.Invoke(ctx, "/file.FileService/UpdateFiles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FileServiceServer is the server API for FileService service.
 type FileServiceServer interface {
 	GenerateKey(context.Context, *GenerateKeyRequest) (*KeyResponse, error)
@@ -1544,11 +1718,59 @@ type FileServiceServer interface {
 	GetFileByID(context.Context, *GetByFileByIDRequest) (*File, error)
 	GetFileByKey(context.Context, *GetFileByKeyRequest) (*File, error)
 	GetFilesByFolder(context.Context, *GetFilesByFolderRequest) (*GetFilesByFolderResponse, error)
+	GetDescendantsByFolder(context.Context, *GetDescendantsByFolderRequest) (*GetDescendantsByFolderResponse, error)
 	CreateFile(context.Context, *CreateFileRequest) (*File, error)
 	DeleteFile(context.Context, *DeleteFileRequest) (*DeleteFileResponse, error)
-	UpdateFile(context.Context, *UpdateFileRequest) (*File, error)
 	IsAllowed(context.Context, *IsAllowedRequest) (*IsAllowedResponse, error)
 	GetOwnerQuota(context.Context, *GetOwnerQuotaRequest) (*GetOwnerQuotaResponse, error)
+	UpdateFiles(context.Context, *UpdateFilesRequest) (*UpdateFilesResponse, error)
+}
+
+// UnimplementedFileServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedFileServiceServer struct {
+}
+
+func (*UnimplementedFileServiceServer) GenerateKey(ctx context.Context, req *GenerateKeyRequest) (*KeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateKey not implemented")
+}
+func (*UnimplementedFileServiceServer) CreateUpload(ctx context.Context, req *CreateUploadRequest) (*CreateUploadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUpload not implemented")
+}
+func (*UnimplementedFileServiceServer) UpdateUploadID(ctx context.Context, req *UpdateUploadIDRequest) (*UpdateUploadIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUploadID not implemented")
+}
+func (*UnimplementedFileServiceServer) GetUploadByID(ctx context.Context, req *GetUploadByIDRequest) (*GetUploadByIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUploadByID not implemented")
+}
+func (*UnimplementedFileServiceServer) DeleteUploadByID(ctx context.Context, req *DeleteUploadByIDRequest) (*DeleteUploadByIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUploadByID not implemented")
+}
+func (*UnimplementedFileServiceServer) GetFileByID(ctx context.Context, req *GetByFileByIDRequest) (*File, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFileByID not implemented")
+}
+func (*UnimplementedFileServiceServer) GetFileByKey(ctx context.Context, req *GetFileByKeyRequest) (*File, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFileByKey not implemented")
+}
+func (*UnimplementedFileServiceServer) GetFilesByFolder(ctx context.Context, req *GetFilesByFolderRequest) (*GetFilesByFolderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFilesByFolder not implemented")
+}
+func (*UnimplementedFileServiceServer) GetDescendantsByFolder(ctx context.Context, req *GetDescendantsByFolderRequest) (*GetDescendantsByFolderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDescendantsByFolder not implemented")
+}
+func (*UnimplementedFileServiceServer) CreateFile(ctx context.Context, req *CreateFileRequest) (*File, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateFile not implemented")
+}
+func (*UnimplementedFileServiceServer) DeleteFile(ctx context.Context, req *DeleteFileRequest) (*DeleteFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteFile not implemented")
+}
+func (*UnimplementedFileServiceServer) IsAllowed(ctx context.Context, req *IsAllowedRequest) (*IsAllowedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsAllowed not implemented")
+}
+func (*UnimplementedFileServiceServer) GetOwnerQuota(ctx context.Context, req *GetOwnerQuotaRequest) (*GetOwnerQuotaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOwnerQuota not implemented")
+}
+func (*UnimplementedFileServiceServer) UpdateFiles(ctx context.Context, req *UpdateFilesRequest) (*UpdateFilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateFiles not implemented")
 }
 
 func RegisterFileServiceServer(s *grpc.Server, srv FileServiceServer) {
@@ -1699,6 +1921,24 @@ func _FileService_GetFilesByFolder_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FileService_GetDescendantsByFolder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDescendantsByFolderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).GetDescendantsByFolder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/file.FileService/GetDescendantsByFolder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).GetDescendantsByFolder(ctx, req.(*GetDescendantsByFolderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FileService_CreateFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateFileRequest)
 	if err := dec(in); err != nil {
@@ -1735,24 +1975,6 @@ func _FileService_DeleteFile_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FileService_UpdateFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateFileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FileServiceServer).UpdateFile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/file.FileService/UpdateFile",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).UpdateFile(ctx, req.(*UpdateFileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _FileService_IsAllowed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IsAllowedRequest)
 	if err := dec(in); err != nil {
@@ -1785,6 +2007,24 @@ func _FileService_GetOwnerQuota_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FileServiceServer).GetOwnerQuota(ctx, req.(*GetOwnerQuotaRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_UpdateFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateFilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).UpdateFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/file.FileService/UpdateFiles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).UpdateFiles(ctx, req.(*UpdateFilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1826,16 +2066,16 @@ var _FileService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _FileService_GetFilesByFolder_Handler,
 		},
 		{
+			MethodName: "GetDescendantsByFolder",
+			Handler:    _FileService_GetDescendantsByFolder_Handler,
+		},
+		{
 			MethodName: "CreateFile",
 			Handler:    _FileService_CreateFile_Handler,
 		},
 		{
 			MethodName: "DeleteFile",
 			Handler:    _FileService_DeleteFile_Handler,
-		},
-		{
-			MethodName: "UpdateFile",
-			Handler:    _FileService_UpdateFile_Handler,
 		},
 		{
 			MethodName: "IsAllowed",
@@ -1845,71 +2085,11 @@ var _FileService_serviceDesc = grpc.ServiceDesc{
 			MethodName: "GetOwnerQuota",
 			Handler:    _FileService_GetOwnerQuota_Handler,
 		},
+		{
+			MethodName: "UpdateFiles",
+			Handler:    _FileService_UpdateFiles_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "file.proto",
-}
-
-func init() { proto.RegisterFile("file.proto", fileDescriptor_file_f1e54f84da46a47e) }
-
-var fileDescriptor_file_f1e54f84da46a47e = []byte{
-	// 914 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x94, 0x56, 0x5f, 0x8f, 0xdb, 0x44,
-	0x10, 0xbf, 0xc4, 0xc9, 0xe5, 0x32, 0x09, 0xd5, 0x65, 0x9b, 0x5e, 0x8c, 0x5b, 0xe0, 0xb4, 0x20,
-	0x28, 0x0f, 0x54, 0xd5, 0x55, 0x88, 0x97, 0x0a, 0x91, 0x70, 0xe2, 0x08, 0x08, 0x22, 0x52, 0xdd,
-	0x13, 0xe2, 0xc1, 0x17, 0xef, 0x49, 0xe6, 0x7c, 0xb1, 0x6b, 0x3b, 0x54, 0xe1, 0x19, 0xc4, 0x87,
-	0xe1, 0xab, 0xf0, 0xa1, 0xd8, 0xbf, 0xf6, 0xac, 0xd7, 0x91, 0xda, 0xb7, 0xdd, 0x99, 0xd9, 0xdf,
-	0xcc, 0xec, 0x6f, 0x66, 0x67, 0x01, 0x6e, 0xe3, 0x84, 0x3d, 0xcb, 0xf2, 0xb4, 0x4c, 0x49, 0x4f,
-	0xac, 0xe9, 0x73, 0x98, 0x5e, 0xb1, 0x72, 0xf5, 0x66, 0xcb, 0xf2, 0x5f, 0x76, 0x69, 0x19, 0xae,
-	0xd9, 0xeb, 0x1d, 0x2b, 0x4a, 0xe2, 0xc3, 0x20, 0x15, 0xc2, 0xe5, 0xa5, 0xdf, 0x39, 0xef, 0x3c,
-	0x1d, 0xae, 0xcd, 0x96, 0xfe, 0x0a, 0x8f, 0x1a, 0x27, 0x8a, 0x2c, 0xdd, 0x16, 0xec, 0xf0, 0x11,
-	0x32, 0x85, 0x7e, 0x12, 0xdf, 0xc7, 0xa5, 0xdf, 0xe5, 0x72, 0x6f, 0xad, 0x36, 0x84, 0x40, 0xaf,
-	0x88, 0xff, 0x64, 0xbe, 0x27, 0x85, 0x72, 0x4d, 0xff, 0xe9, 0xc0, 0xc3, 0x6f, 0x73, 0x16, 0x96,
-	0xec, 0x3a, 0x4b, 0xd2, 0x30, 0x32, 0xe1, 0x9c, 0xc1, 0xf1, 0xcd, 0x6e, 0x73, 0xc7, 0x4a, 0x0d,
-	0xad, 0x77, 0x02, 0x63, 0x1b, 0xde, 0x33, 0x09, 0x3c, 0x5c, 0xcb, 0x35, 0x8e, 0xc3, 0xb3, 0xe3,
-	0xe0, 0x28, 0x59, 0x98, 0xb3, 0x6d, 0xe9, 0xf7, 0x14, 0x8a, 0xda, 0x55, 0x91, 0xf4, 0x51, 0x24,
-	0xdf, 0xc0, 0xd4, 0x0e, 0x44, 0x67, 0x79, 0x0a, 0xde, 0x1d, 0xdb, 0xeb, 0x30, 0xc4, 0x12, 0xc5,
-	0xd6, 0xc5, 0xb1, 0xd1, 0x29, 0x90, 0x2b, 0xc6, 0x1d, 0x73, 0x8c, 0x1f, 0xd9, 0x5e, 0x67, 0x42,
-	0x3f, 0x82, 0x91, 0xdc, 0x1d, 0x82, 0xa3, 0xbf, 0xc1, 0xa3, 0xeb, 0x2c, 0xaa, 0x1c, 0x2f, 0x2f,
-	0xcd, 0x1d, 0xb8, 0x9e, 0x03, 0x38, 0xd9, 0x69, 0x23, 0xed, 0xbb, 0xda, 0xa3, 0xa8, 0x3c, 0x2b,
-	0x2a, 0x1f, 0xce, 0x9a, 0xf0, 0x2a, 0x14, 0x7a, 0x21, 0x4b, 0x41, 0x89, 0x17, 0xfb, 0xda, 0x2f,
-	0xf6, 0xd2, 0xb1, 0xbd, 0xd0, 0xd7, 0xb2, 0x18, 0xf0, 0x99, 0x77, 0xbd, 0x26, 0x0b, 0xde, 0x6b,
-	0x24, 0x61, 0xe8, 0xed, 0xd5, 0xf4, 0xd2, 0x2f, 0x61, 0x76, 0xc9, 0x12, 0x66, 0x12, 0x78, 0xdb,
-	0x48, 0x03, 0xf0, 0xdd, 0x63, 0x3a, 0xf3, 0x4f, 0x65, 0xe6, 0x8b, 0xfd, 0x77, 0xbc, 0x23, 0x30,
-	0xde, 0x03, 0xe8, 0xc6, 0x91, 0x46, 0xe2, 0x2b, 0xfa, 0x19, 0x3c, 0xe4, 0x76, 0xca, 0xaa, 0xa6,
-	0xb4, 0x85, 0xc3, 0x15, 0xcc, 0xb4, 0x61, 0xc1, 0x51, 0xd3, 0x24, 0x62, 0x39, 0x8a, 0xf1, 0x56,
-	0x0a, 0xea, 0x18, 0xcd, 0x1e, 0x57, 0x6e, 0xd7, 0x6e, 0xba, 0x97, 0xe0, 0xbb, 0x80, 0xfa, 0xaa,
-	0xcf, 0xa1, 0x2f, 0x5a, 0xb9, 0xe0, 0x70, 0xde, 0xd3, 0xd1, 0x05, 0x3c, 0x93, 0x4d, 0x2e, 0x6c,
-	0xd7, 0x4a, 0x41, 0xff, 0xed, 0xc0, 0x44, 0x15, 0xb3, 0x94, 0x1e, 0xac, 0xa7, 0xb6, 0x6e, 0x6a,
-	0xe9, 0x52, 0x21, 0x2b, 0xf7, 0x59, 0x45, 0x8b, 0x58, 0xe3, 0xd8, 0xfb, 0x4e, 0xd7, 0x69, 0xe2,
-	0x8f, 0x2d, 0xe2, 0xeb, 0x6e, 0x1c, 0xe0, 0x6e, 0xa4, 0x1f, 0xc3, 0x44, 0x31, 0x85, 0x83, 0x6d,
-	0x52, 0xf1, 0x09, 0x10, 0x6c, 0xa4, 0xaf, 0x82, 0x5b, 0xa5, 0x77, 0xd2, 0xea, 0x64, 0xcd, 0x57,
-	0xf4, 0x6f, 0x9e, 0xb8, 0xaa, 0x76, 0x8c, 0x65, 0xd2, 0xec, 0xb4, 0xa4, 0xd9, 0x45, 0x69, 0xbe,
-	0xfb, 0x43, 0x52, 0xa7, 0xda, 0xb7, 0x9a, 0x6e, 0x01, 0xa7, 0xcb, 0x62, 0x9e, 0x24, 0xe9, 0x1b,
-	0x86, 0x9f, 0x34, 0xc1, 0x4e, 0x55, 0x06, 0x7a, 0x27, 0xe4, 0xbb, 0x02, 0xd5, 0x80, 0xde, 0xd1,
-	0x2f, 0x60, 0x82, 0x30, 0xea, 0x37, 0x37, 0x54, 0x22, 0x9d, 0xb5, 0xd9, 0xd2, 0x08, 0x7a, 0xd7,
-	0xfc, 0x60, 0xf3, 0xe2, 0xc8, 0x13, 0x18, 0xde, 0xc6, 0x79, 0x51, 0xfe, 0x5c, 0x13, 0x5d, 0x0b,
-	0x44, 0x75, 0x26, 0xa1, 0x56, 0xea, 0x66, 0x34, 0x7b, 0x71, 0x45, 0xf7, 0x61, 0x9c, 0x18, 0xd6,
-	0xc5, 0x9a, 0x7e, 0x0e, 0xde, 0x3c, 0xcb, 0x1c, 0x27, 0x2d, 0x85, 0x44, 0xff, 0xeb, 0x42, 0x4f,
-	0xb0, 0xe0, 0x18, 0xeb, 0x3a, 0xec, 0xba, 0x75, 0xe8, 0xd9, 0x04, 0x39, 0x35, 0x77, 0x0e, 0xa3,
-	0x88, 0x15, 0x9b, 0x3c, 0xce, 0xca, 0x38, 0xdd, 0xea, 0x3b, 0xc7, 0x22, 0x4c, 0xe1, 0xb1, 0x4d,
-	0xa1, 0x21, 0x7c, 0x60, 0x11, 0x6e, 0x68, 0x3d, 0x11, 0xc6, 0xdf, 0x1f, 0x55, 0xc4, 0x3e, 0x87,
-	0xb1, 0x5a, 0xad, 0x6e, 0x7e, 0x67, 0x9b, 0xd2, 0x1f, 0x72, 0xbd, 0xd5, 0x6a, 0xdc, 0xd6, 0xb2,
-	0x40, 0xa5, 0x00, 0x56, 0xd5, 0xf3, 0xfb, 0xdf, 0xc8, 0x56, 0x8c, 0xe6, 0xa5, 0x3f, 0x92, 0xce,
-	0x6b, 0x81, 0xd0, 0xee, 0x64, 0xbd, 0x0a, 0xed, 0x58, 0x69, 0x2b, 0xc1, 0x02, 0xf8, 0xdb, 0xc1,
-	0x7d, 0xad, 0xf2, 0x65, 0x74, 0xf1, 0xd7, 0x00, 0x46, 0xc2, 0xf1, 0x2b, 0x96, 0xff, 0x11, 0x6f,
-	0x18, 0x79, 0x09, 0x23, 0x34, 0x6d, 0x88, 0xaf, 0x42, 0x73, 0x07, 0x50, 0x30, 0x51, 0x1a, 0x34,
-	0x84, 0xe8, 0x11, 0xb9, 0x82, 0x31, 0x9e, 0x76, 0xe4, 0x7d, 0x65, 0xd4, 0x32, 0x8a, 0x83, 0xa0,
-	0x4d, 0x55, 0x01, 0xfd, 0x04, 0x0f, 0xec, 0xf1, 0x42, 0x1e, 0x2b, 0xfb, 0xd6, 0x99, 0x16, 0x3c,
-	0x69, 0x57, 0x56, 0x70, 0x3f, 0xc0, 0x7b, 0xd6, 0x7c, 0x21, 0x81, 0xc9, 0xcb, 0x1d, 0x54, 0xc1,
-	0xe3, 0x56, 0x5d, 0x85, 0xf5, 0x0a, 0x4e, 0x9b, 0x13, 0x80, 0x7c, 0xa0, 0x8e, 0x1c, 0x18, 0x28,
-	0xc1, 0x87, 0x87, 0xd4, 0x15, 0xe8, 0x57, 0xe2, 0xda, 0x4b, 0x33, 0x38, 0x50, 0x78, 0xce, 0x34,
-	0x09, 0x50, 0xb5, 0xc8, 0x83, 0x63, 0x3c, 0x4b, 0xcc, 0x8d, 0xb7, 0xcc, 0x97, 0xc6, 0x41, 0x9e,
-	0x46, 0x73, 0x14, 0x98, 0x34, 0x0e, 0xcc, 0x1c, 0x93, 0xc6, 0xa1, 0x09, 0xc2, 0x41, 0x5f, 0x00,
-	0xd4, 0x03, 0x82, 0xcc, 0x30, 0xc5, 0xe8, 0xe5, 0x6c, 0x44, 0x32, 0x07, 0xa8, 0xdf, 0x60, 0x73,
-	0xc8, 0x79, 0xba, 0x03, 0xdf, 0x55, 0x60, 0xbf, 0xf5, 0xfb, 0x6c, 0x20, 0x9c, 0x17, 0xbb, 0xe1,
-	0xf7, 0x6b, 0x18, 0x56, 0x2f, 0x21, 0x39, 0x53, 0xaa, 0xe6, 0xf3, 0x1a, 0xcc, 0x1c, 0x79, 0xa3,
-	0xa8, 0xea, 0x1f, 0x2c, 0x62, 0xcd, 0xf9, 0x08, 0xa3, 0xa2, 0x72, 0xbf, 0xbc, 0xf4, 0xe8, 0xe6,
-	0x58, 0x7e, 0xa6, 0x5f, 0xfc, 0x1f, 0x00, 0x00, 0xff, 0xff, 0x1e, 0x4f, 0xb4, 0x33, 0x5a, 0x0b,
-	0x00, 0x00,
 }

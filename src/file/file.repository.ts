@@ -1,6 +1,7 @@
 import { ObjectID } from 'mongodb';
 import { IFile } from './file.interface';
 import { fileModel } from './file.model';
+import { FileNotFoundError } from '../utils/errors/client.error';
 
 const pagination = {
   startIndex: 0,
@@ -32,16 +33,20 @@ export default class FileRepository {
    * @param id - the file id.
    * @param partialFile - the partial file containing the attributes to be changed.
    */
-  static updateById(id: string, partialFile: Partial<IFile>): Promise<IFile | null> {
-    return fileModel.findByIdAndUpdate(id, partialFile, { new: true, runValidators: true }).exec();
+  static async updateById(id: string, partialFile: Partial<IFile>): Promise<boolean> {
+    const file = await fileModel.findById(id);
+    if (!file) throw new FileNotFoundError();
+
+    const res = await file.updateOne(partialFile, { runValidators: true }).exec();
+    return res.n === 1 && res.nModified === 1 && res.ok === 1;
   }
 
   /**
-   * Changes 'deleted' flag to true. Does not delete from th DB.
+   * Deletes a file from the DB.
    * @param id - the id of the file to be deleted.
    */
   static deleteById(id: string): Promise<IFile | null> {
-    return fileModel.findByIdAndUpdate({ _id: new ObjectID(id) }, { deleted: true }, { new: true, runValidators: true }).exec();
+    return fileModel.findByIdAndRemove({ _id: new ObjectID(id) }).exec();
   }
 
   /**
@@ -96,13 +101,13 @@ export default class FileRepository {
 
   /**
    * Retrieves an array of files according to a condition.
-   * @param cond - the condiotion for the search.
+   * @param condition - the condition for the search.
    * @param populate - an option to populate the retrieved file's fields.
-   * @param select - seelect certain fields of the files.
+   * @param select - select certain fields of the files.
    */
-  static find(cond?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
+  static find(condition?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
 
-    let findPromise = fileModel.find(cond);
+    let findPromise = fileModel.find(condition);
     if (populate) {
       findPromise = findPromise.populate(populate);
     }
@@ -123,6 +128,6 @@ export default class FileRepository {
    */
   static getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
     const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
-    return fileModel.findOne({ ownerID, parent, name: filename, deleted: false }).exec();
+    return fileModel.findOne({ ownerID, parent, name: filename }).exec();
   }
 }

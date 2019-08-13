@@ -1,70 +1,60 @@
-/**
- *
- */
-
-type Config = {
-  rpc_port: string;
-  conf_type: string;
-  server: string;
-  port: number;
-  db: {
-    host: string,
-    port: string,
-    name: string,
-  },
+type DB = {
+  confType: string;
+  name: string;
+  host: string;
 };
 
-const testing: Config = {
-  rpc_port: process.env.RPC_PORT || '8080',
-  conf_type: 'testing',
-  server: 'http://localhost',
-  port: 9000,
-  db: {
-    host: 'localhost',
-    port: '27017',
-    name: 'testingDB',
-  },
+const dev: DB = {
+  confType: 'dev',
+  name: 'devDB',
+  host: 'localhost'
 };
 
-const dev: Config = {
-  rpc_port: process.env.RPC_PORT || '8080',
-  conf_type: 'dev',
-  server: 'http://40.115.124.214',
-  port: 9000,
-  db: {
-    host: 'localhost',
-    port: '27017',
-    name: 'devDB',
-  },
+const prod: DB = {
+  confType: 'prod',
+  name: 'prodDB',
+  host: 'mongo'
 };
 
-// Change to Production Environment
-const prod: Config = {
-  rpc_port: process.env.RPC_PORT || '8080',
-  conf_type: 'prod',
-  server: 'https://seal.blue.com',
-  port: 9000,
-  db: {
-    host: 'mongo',
-    port: '27017',
-    name: 'prodDB',
-  },
+const testing: DB = {
+  confType: 'testing',
+  name: 'testingDB',
+  host: 'localhost'
 };
 
-function getConfig(confType: string) : Config {
+function getDB(confType: string) : DB {
   switch (confType) {
-    case dev.conf_type:
+    case dev.confType:
       return dev;
-    case prod.conf_type:
+    case prod.confType:
       return prod;
-    case testing.conf_type:
+    case testing.confType:
       return testing;
     default:
       return dev;
   }
 }
 
-export const config : Config = getConfig(process.env.NODE_ENV || dev.conf_type);
+const esHost: string = process.env.LOGGER_ELASTICSEARCH || 'http://localhost:9200';
+export const confLogger = {
+  elasticsearch: esHost && {
+    hosts: esHost.split(','),
+  },
+  indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
+};
+
+// Used for the APM agent
+export const secretToken: string = process.env.APM_SECRET_TOKEN || '';
+export const serviceName: string = process.env.FS_APM_SERVICE_NAME || 'file-service';
+export const verifyServerCert: boolean = process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true';
+export const apmURL: string = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
+
+// the port for binding the server
+export const rpcPort: string = process.env.RPC_PORT || '8080';
+
+export const nodeEnv: string = process.env.NODE_ENV || 'dev';
+export const database: DB = getDB(nodeEnv);
+
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
 export const mongoConnectionString : string =
-  process.env.MONGO_HOST || `mongodb://${config.db.host}:${config.db.port}/${config.db.name}`;
+  process.env.MONGO_HOST || `mongodb://${database.host}:27017/${database.name}`;
