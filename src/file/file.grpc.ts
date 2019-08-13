@@ -30,10 +30,10 @@ export class FileMethods {
    * Deletes a file, according to the file deletion policy.
    * @param call
    */
-  public static async DeleteFile(call: any): Promise<deleteRes[]> {
+  public static async DeleteFile(call: any): Promise<{ files: deleteRes[] }> {
     const id: string = call.request.id;
-    const deletedFiles: deleteRes[] = await FileService.delete(id);
-    return deletedFiles;
+    const files: deleteRes[] = await FileService.delete(id);
+    return { files };
   }
 
   /**
