@@ -120,8 +120,15 @@ message DeleteFileRequest {
   string id = 1;
 }
 
+message DeletedFileObject {
+    string id = 1;
+    string key = 2;
+    string bucket = 3;
+}
+
 message DeleteFileResponse {
-  bool ok = 1;
+  reserved 1;
+  repeated DeletedFileObject files = 2;
 }
 
 message IsAllowedRequest {

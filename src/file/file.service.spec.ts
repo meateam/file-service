@@ -2,7 +2,7 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import mongoose from 'mongoose';
 import chaiSubset from 'chai-subset';
-import { IFile, ResFile } from './file.interface';
+import { IFile, ResFile, deleteRes } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
@@ -392,7 +392,7 @@ describe('File Logic', () => {
       expect(file).to.have.property('id');
 
       const update = {
-        name: 'changedFile',
+        name: 'changedFileName',
         type: 'jpg'
       };
 
@@ -403,6 +403,39 @@ describe('File Logic', () => {
       expect(changedFile.id).to.equal(file.id);
       expect(changedFile.name).to.equal(update.name);
       expect(changedFile.type).to.equal(update.type);
+      expect(changedFile.size).to.equal(size);
+
+      // Check mongo updated the time accordingly
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
+    });
+
+    it('should update a file with size 0', async () => {
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY2, KEY, 0);
+      expect(file).to.exist;
+      expect(file).to.have.property('id');
+
+      const update = {
+        name: 'changedFileName',
+        type: 'text'
+      };
+
+      const isUpdated = await FileService.updateById(file.id, update);
+      expect(isUpdated).to.be.true;
+
+      const changedFile : IFile = await FileService.getById(file.id);
+      expect(changedFile.id).to.equal(file.id);
+      expect(changedFile.name).to.equal(update.name);
+      expect(changedFile.type).to.equal(update.type);
+      expect(changedFile.size).to.equal(0);
+
+      // Check mongo updated the time accordingly
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
     });
 
     it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
@@ -711,7 +744,9 @@ describe('File Logic', () => {
         bucket, 'file.txt', USER.id, 'text', null, KEY);
       const DBFile = await FileService.getById(file.id);
       expect(DBFile).to.exist;
-      await FileService.delete(file.id);
+      const deletedFile: deleteRes[] = await FileService.delete(file.id);
+      expect(deletedFile).to.have.lengthOf(1);
+      expect(deletedFile[0].id).to.be.equal(file.id);
       await FileService.getById(file.id).should.eventually.be.rejectedWith(FileNotFoundError);
     });
 
@@ -724,10 +759,12 @@ describe('File Logic', () => {
         expect(fileOrFolder).to.exist;
       }
 
-      await FileService.delete(father.id);
+      const deletedFiles: deleteRes[] = await FileService.delete(father.id);
+      expect(deletedFiles).to.have.lengthOf(structure.length);
 
       for (let i = 0; i < structure.length; i++) {
         await FileService.getById(structure[i].id).should.eventually.be.rejectedWith(FileNotFoundError);
+        expect(deletedFiles).to.containSubset([{ id: structure[i].id }]);
       }
       await FileService.getById(father.id).should.eventually.be.rejectedWith(FileNotFoundError);
     });
