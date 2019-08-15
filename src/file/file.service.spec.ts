@@ -392,7 +392,7 @@ describe('File Logic', () => {
       expect(file).to.have.property('id');
 
       const update = {
-        name: 'changedFile',
+        name: 'changedFileName',
         type: 'jpg'
       };
 
@@ -403,6 +403,39 @@ describe('File Logic', () => {
       expect(changedFile.id).to.equal(file.id);
       expect(changedFile.name).to.equal(update.name);
       expect(changedFile.type).to.equal(update.type);
+      expect(changedFile.size).to.equal(size);
+
+      // Check mongo updated the time accordingly
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
+    });
+
+    it('should update a file with size 0', async () => {
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY2, KEY, 0);
+      expect(file).to.exist;
+      expect(file).to.have.property('id');
+
+      const update = {
+        name: 'changedFileName',
+        type: 'text'
+      };
+
+      const isUpdated = await FileService.updateById(file.id, update);
+      expect(isUpdated).to.be.true;
+
+      const changedFile : IFile = await FileService.getById(file.id);
+      expect(changedFile.id).to.equal(file.id);
+      expect(changedFile.name).to.equal(update.name);
+      expect(changedFile.type).to.equal(update.type);
+      expect(changedFile.size).to.equal(0);
+
+      // Check mongo updated the time accordingly
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
     });
 
     it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
