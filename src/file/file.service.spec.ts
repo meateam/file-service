@@ -403,6 +403,12 @@ describe('File Logic', () => {
       expect(changedFile.id).to.equal(file.id);
       expect(changedFile.name).to.equal(update.name);
       expect(changedFile.type).to.equal(update.type);
+
+      // Check mongo updated the time accordingly
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
+      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
     });
 
     it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
