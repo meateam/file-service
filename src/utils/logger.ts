@@ -11,7 +11,7 @@ import { ApplicationError } from './errors/application.error';
 const indexTemplateMapping = require('winston-elasticsearch/index-template-mapping.json');
 indexTemplateMapping.index_patterns = `${confLogger.indexPrefix}-*`;
 
-export const logger = winston.createLogger({
+export const logger: winston.Logger = winston.createLogger({
   defaultMeta: { service: serviceName, hostname: os.hostname() },
 });
 
@@ -36,7 +36,7 @@ logger.add(elasticsearch);
  * @param meta - additional optional information.
  */
 export const log = (level: Severity, name: string, message: string, traceID?: string, meta?: object) => {
-  logger.log({ level, name, message, traceID, ...meta });
+  logger.log(level, name, { ...meta, traceID, mgs: message });
 };
 
 export enum Severity {
