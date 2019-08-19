@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as Elasticsearch from 'winston-elasticsearch';
 import * as grpc from 'grpc';
 import apm from 'elastic-apm-node';
+import deepcopy from 'ts-deepcopy';
 import { confLogger, serviceName } from '../config';
 import { statusToString, validateGrpcError } from './errors/grpc.status';
 import { ApplicationError } from './errors/application.error';
@@ -35,8 +36,8 @@ logger.add(elasticsearch);
  * @param user - the user requesting for the service.
  * @param meta - additional optional information.
  */
-export const log = (level: Severity, name: string, message: string, traceID?: string, meta?: object) => {
-  logger.log(level, name, { ...meta, traceID, mgs: message });
+export const log = (level: Severity, message: string, name: string, traceID?: string, meta?: object) => {
+  logger.log(level, message, { ...meta, traceID, method: name });
 };
 
 export enum Severity {
@@ -66,7 +67,8 @@ export function wrapper(func: Function) :
       const res = await func(call, callback);
 
       apm.endTransaction(statusToString(grpc.status.OK));
-      log(Severity.INFO, func.name, 'response', traceID, res);
+      const info = extractLog(res);
+      log(Severity.INFO, 'response', func.name, traceID, info);
       callback(null, res);
     } catch (err) {
       const validatedErr : ApplicationError = validateGrpcError(err);
@@ -84,4 +86,21 @@ export function getCurrTraceId() : string {
     // Should never get here. The log is set after apm starts.
     return '';
   }
+}
+
+/**
+ * extracts the wanted information for the logg4er from the response.
+ * for example: extracts only the file ids from the returned array of files.
+ * @param res - the result of the method called in file.grpc
+ */
+function extractLog(res: any): object {
+  const logInfo = deepcopy(res);
+  if (res.files) {
+    const ids: {id: string}[] = [];
+    for (let i = 0 ; i < res.files.length ; i++) {
+      ids[i] = res.files[i].id;
+    }
+    logInfo.files = { ids, length: ids.length };
+  }
+  return logInfo;
 }
