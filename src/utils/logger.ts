@@ -63,7 +63,7 @@ export function wrapper(func: Function) :
       apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
       const traceID: string = getCurrTraceId();
       const reqInfo: object = extractReqLog(call.request);
-      log(Severity.INFO, func.name, 'request', traceID, reqInfo);
+      log(Severity.INFO, 'request', func.name, traceID, reqInfo);
 
       const res = await func(call, callback);
       apm.endTransaction(statusToString(grpc.status.OK));
