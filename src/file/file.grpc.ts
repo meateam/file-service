@@ -44,7 +44,7 @@ export class FileMethods {
     const { updated, failed } = await FileService.updateMany(call.request.idList, call.request.partialFile);
     const traceID = getCurrTraceId();
     for (let i = 0; i < failed.length; i++) {
-      log(Severity.ERROR, 'update files error', failed[i].error.message, traceID, failed[i]);
+      log(Severity.ERROR, failed[i].error.message, 'update files error', traceID, failed[i]);
     }
     return { updated };
   }
