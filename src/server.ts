@@ -47,7 +47,7 @@ export class FileServer {
     this.server = new grpc.Server();
     this.addServices();
     this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
-    log(Severity.INFO, 'server bind', `server listening on port: ${port}`);
+    log(Severity.INFO, `server listening on port: ${port}`, 'server bind');
   }
 
   private addServices() {
