@@ -505,6 +505,31 @@ describe('File Logic', () => {
       expect(updatedFile2).to.have.property('id', file2.id);
       expect(updatedFile2).to.have.property('size', partialFile.size);
     });
+    it('should update all files with parent null', async () => {
+      const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', KEY, UploadService.generateKey());
+      const file2: IFile = await FileService.create(
+        'asddd', 'file.txt', 'asdadsasdsadsa', 'text', KEY, UploadService.generateKey());
+      expect(file1).to.exist;
+      expect(file1).to.have.property('id');
+      expect(file2).to.exist;
+      expect(file2).to.have.property('id');
+
+      const partialFile: (Partial<IFile>) = { parent:'null' };
+      const idList: string[] = [file1.id, file2.id];
+
+      const { updated, failed } = await FileService.updateMany(idList, partialFile);
+      expect(updated).to.exist;
+      expect(updated).to.have.length(2);
+      expect(failed).to.have.length(0);
+
+      const updatedFile1 = await FileService.getById(file1.id);
+      expect(updatedFile1).to.have.property('id', file1.id);
+      expect(updatedFile1.parent).to.not.exist;
+
+      const updatedFile2 = await FileService.getById(file2.id);
+      expect(updatedFile2).to.have.property('id', file2.id);
+      expect(updatedFile2.parent).to.not.exist;
+    });
   });
 
   describe('#getByID', () => {

@@ -261,7 +261,8 @@ export class FileService {
     const ignoreFields = ['size', 'createdAt', 'updatedAt', 'parent'];
     if (!queryFile) return {};
     const query : Partial<IFile> = {};
-    
+
+    // Parse the size if it should be updated.
     if (queryFile['size']) {
       if (queryFile['size'].toString() !== '0') {
         query['size'] = Number(queryFile['size']);
