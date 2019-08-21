@@ -233,6 +233,27 @@ describe('File Logic', () => {
       expect(file.name).to.equal('file.txt');
     });
 
+    it('should create a file with space in the name in root', async () => {
+      const file: IFile = await FileService.create(
+        bucket, 'file name with space.txt', USER.id, 'text', KEY2, KEY, size);
+      expect(file).to.exist;
+      expect(file).to.have.property('createdAt');
+      expect(file.key).to.equal(KEY);
+      expect(file.displayName).to.equal('file name with space');
+      expect(file.fullExtension).to.equal('txt');
+      expect(file.name).to.equal('file name with space.txt');
+    });
+
+    it('should create a folder with space in the name in root', async () => {
+      const folder: IFile = await FileService.create(
+        bucket, 'my folder name', USER.id, FolderContentType);
+      expect(folder).to.exist;
+      expect(folder).to.have.property('createdAt');
+      expect(folder.displayName).to.equal('my folder name');
+      expect(folder.fullExtension).to.equal('');
+      expect(folder.name).to.equal('my folder name');
+    });
+
     // Test folders creation
     it('should create two sibling folders in the root', async () => {
       const folder1: IFile = await FileService.create(
