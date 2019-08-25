@@ -5,7 +5,7 @@ import chaiSubset from 'chai-subset';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { QuotaService } from '../quota/quota.service';
@@ -551,6 +551,41 @@ describe('File Logic', () => {
       expect(updatedFile2).to.have.property('id', file2.id);
       expect(updatedFile2.parent).to.not.exist;
     });
+
+    it('should not update folders parent to itself', async () => {
+      const folder = await FileService.create('bucketName', 'folderName', USER.id, FolderContentType, KEY, KEY2);
+      expect(folder).to.exist;
+      expect(folder).to.have.property('id');
+
+      const partialFile: (Partial<IFile>) = { parent: folder.id };
+
+      const { updated, failed } = await FileService.updateMany([folder.id], partialFile);
+      expect(updated).to.have.lengthOf(0);
+      expect(failed).to.have.lengthOf(1);
+      expect(failed[0].error.message).to.equal('cyclic nesting error');
+    });
+
+    it('should not update folder`s parent to be its ancestors', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+
+      const partialFile: (Partial<IFile>) = { parent: structure[3].id };
+
+      const { updated, failed } = await FileService.updateMany([structure[0].id], partialFile);
+      expect(updated).to.have.lengthOf(0);
+      expect(failed).to.have.lengthOf(1);
+      expect(failed[0].error.message).to.equal('cyclic nesting error');
+    });
+
+    it('should not update file`s parent to be a non-folder', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+
+      const partialFile: (Partial<IFile>) = { parent: structure[1].id };
+
+      const { updated, failed } = await FileService.updateMany([structure[2].id], partialFile);
+      expect(updated).to.have.lengthOf(0);
+      expect(failed).to.have.lengthOf(1);
+      expect(failed[0].error).to.be.instanceOf(ArgumentInvalidError);
+    });
   });
 
   describe('#getByID', () => {
@@ -813,6 +848,13 @@ describe('File Logic', () => {
         expect(deletedFiles).to.containSubset([{ id: structure[i].id }]);
       }
       await FileService.getById(father.id).should.eventually.be.rejectedWith(FileNotFoundError);
+    });
+  });
+
+  describe('#getAncestors', () => {
+    it('should get an empty array when the file does not exist', async () => {
+      const ancestors: string[] = await FileService.getAncestors('5d5bc7da13ca0b0011c5a7f5');
+      ancestors.should.be.an('array').with.lengthOf(0);
     });
   });
 
