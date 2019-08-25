@@ -7,6 +7,12 @@ export class IdInvalidError extends ClientError {
   }
 }
 
+export class ArgumentInvalidError extends ClientError {
+  constructor(message?: string) {
+    super(message || 'invalid argument', grpc.status.INVALID_ARGUMENT);
+  }
+}
+
 export class NameInvalidError extends ClientError {
   constructor(message?: string) {
     super(message || 'invalid name', grpc.status.INVALID_ARGUMENT);

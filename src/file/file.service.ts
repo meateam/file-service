@@ -1,7 +1,7 @@
 import { ObjectID } from 'mongodb';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import FilesRepository from './file.repository';
-import { FileNotFoundError, QueryInvalidError } from '../utils/errors/client.error';
+import { FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel } from './file.model';
@@ -23,7 +23,7 @@ export class FileService {
    * Creates a file and adds it to the DB.
    * Trusts that the key is unique and that the users exists.
    * @param partialFile - a partial file containing some of the fields.
-   * @param name - the name of the file with the extantions.
+   * @param name - the name of the file with the extensions.
    * @param ownerID - the id of the file owner.
    * @param type - the type of the file.
    * @param folderID - id of the folder in which the file will reside (in the GUI).
@@ -115,7 +115,18 @@ export class FileService {
    * @param fileId - the id of the file.
    * @param partialFile - the partial file.
    */
-  public static updateById(fileId: string, partialFile: Partial<IFile>): Promise<boolean> {
+  public static async updateById(fileId: string, partialFile: Partial<IFile>): Promise<boolean> {
+    if (partialFile['parent']) {
+      const parentID: string = partialFile['parent'].toString();
+      const parent: IFile = await this.getById(partialFile['parent'].toString());
+      if (!parent || (parent.type !== FolderContentType)) {
+        throw new ArgumentInvalidError(`parent: ${partialFile['parent']} is not a folder`);
+      }
+      const file: IFile = await this.getById(fileId);
+      if (file.type === FolderContentType && this.isFolderAnAncestor(parentID, fileId)) {
+        throw new ClientError('cyclic nesting error');
+      }
+    }
     return FilesRepository.updateById(fileId, partialFile);
   }
 
@@ -124,13 +135,12 @@ export class FileService {
    * @param files - List of files to update with their updated fields and their id.
    */
   static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{updated: string[], failed: { id: string, error: Error }[]}> {
-
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
     const failedFiles: { id: string, error: Error }[] = [];
     const updatedFiles: string[] = [];
     for (let i = 0; i < idList.length; i++) {
       try {
-        const updatedFile = await FilesRepository.updateById(idList[i], extractedPF);
+        const updatedFile = await this.updateById(idList[i], extractedPF);
         if (updatedFile) {
           updatedFiles.push(idList[i]);
         }
@@ -233,7 +243,32 @@ export class FileService {
   }
 
   /**
-   * Checks if there is a file with a given name in a given filder.
+   * Returns an array with the fileIDs of the ancestors of a given fileId.
+   * If the file does not exists or its a root folder the return value is [].
+   * @param fileID - the id of the file.
+   */
+  public static async getAncestors(fileID: string): Promise<string[]> {
+    const file: IFile = await FilesRepository.getById(fileID);
+    if (!file || !file.parent) {
+      return [];
+    }
+    const parentID: string = (file.parent).toString();
+    const parentAncestors: string[] = await this.getAncestors(parentID);
+    return [parentID].concat(parentAncestors);
+  }
+
+  /**
+   * Returns true if the folder is an ancestor of the file
+   * @param fileID - the file id
+   * @param folderID - the folder id
+   */
+  private static async isFolderAnAncestor(fileID: string, folderID: string): Promise<boolean> {
+    const ancestors: string[] = await this.getAncestors(fileID);
+    return ancestors.includes(folderID) || (fileID === folderID);
+  }
+
+  /**
+   * Checks if there is a file with a given name in a given folder.
    * @param name - the name of the file.
    * @param folderId - the id of the folder.
    */
