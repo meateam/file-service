@@ -94,15 +94,17 @@ export function getCurrTraceId() : string {
  * @param res - the result of the method called in file.grpc
  */
 function extractResLog(res: any): object {
-  const logInfo = _.cloneDeep(res);
-  if (res.files) {
-    const ids: {id: string}[] = [];
-    for (let i = 0 ; i < res.files.length ; i++) {
-      ids[i] = res.files[i].id;
+  if (res) {
+    const logInfo = _.cloneDeep(res);
+    if (res.files) {
+      const ids: {id: string}[] = [];
+      for (let i = 0 ; i < res.files.length ; i++) {
+        ids[i] = res.files[i].id;
+      }
+      logInfo.files = { ids, length: ids.length };
     }
-    logInfo.files = { ids, length: ids.length };
+    return logInfo;
   }
-  return logInfo;
 }
 
 /**
