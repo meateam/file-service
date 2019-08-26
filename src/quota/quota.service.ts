@@ -35,6 +35,6 @@ export class QuotaService {
       throw new QuotaExceededError();
     }
 
-    return QuotaRepository.updateById(ownerID, { used: quota.used + change });
+    return QuotaRepository.updateById(ownerID, change);
   }
 }
