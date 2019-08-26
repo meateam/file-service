@@ -31,7 +31,7 @@ export class FileService {
    * @param size - the size of the file.
    */
   public static async create(
-    bucket: string| null = null,
+    bucket: string | null = null,
     name: string,
     ownerID: string,
     type: string,
@@ -86,9 +86,9 @@ export class FileService {
    * @param fileId - the id of the file/folder.
    * @param allSucceeded - marks if all the descendants of the current folder have been deleted. If false, do not delete the folder.
    */
-  private static async deleteRecursive(fileId: string, allSucceeded: boolean): Promise<{ succeeded: deleteRes[], allSucceeded: boolean } > {
+  private static async deleteRecursive(fileId: string, allSucceeded: boolean): Promise<{ succeeded: deleteRes[], allSucceeded: boolean }> {
     const file: IFile = await this.getById(fileId);
-    let deletedFiles: {id: string, key:string, bucket: string}[] = [];
+    let deletedFiles: { id: string, key: string, bucket: string }[] = [];
     let pathSuccess = allSucceeded;
     if (file.type === FolderContentType) {
       const children: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
@@ -119,23 +119,34 @@ export class FileService {
   public static async updateById(fileId: string, partialFile: Partial<IFile>): Promise<boolean> {
     if (partialFile['parent']) {
       const parentID: string = partialFile['parent'].toString();
-      const parent: IFile = await this.getById(partialFile['parent'].toString());
-      if (!parent || (parent.type !== FolderContentType)) {
-        throw new ArgumentInvalidError(`parent: ${partialFile['parent']} is not a folder`);
-      }
-      const file: IFile = await this.getById(fileId);
-      if (file.type === FolderContentType && this.isFolderAnAncestor(parentID, fileId)) {
-        throw new ClientError('cyclic nesting error');
-      }
+      await this.checkAdoption(fileId, parentID);
     }
     return FilesRepository.updateById(fileId, partialFile);
+  }
+
+  /**
+   * This function checks if a file can be put under another file.
+   * If the other file is not a folder, or if it is a descendant of the file it throws an error.
+   * @param fileID - the file to be adopted.
+   * @param parentID  - the adopting father.
+   */
+  private static async checkAdoption(fileID: string, parentID: string): Promise<void> {
+    const parent: IFile = await this.getById(parentID);
+    if (parent && (parent.type !== FolderContentType)) {
+      throw new ArgumentInvalidError(`parent: ${parentID} is not a folder`);
+    }
+    const file: IFile = await this.getById(fileID);
+    if (file.type === FolderContentType && await this.isFolderAnAncestor(parentID, fileID)) {
+      throw new ClientError('cyclic nesting error');
+    }
+    return;
   }
 
   /**
    * updateMany updates a list of files.
    * @param files - List of files to update with their updated fields and their id.
    */
-  static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{updated: string[], failed: { id: string, error: Error }[]}> {
+  static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ updated: string[], failed: { id: string, error: Error }[] }> {
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
     const failedFiles: { id: string, error: Error }[] = [];
     const updatedFiles: string[] = [];
@@ -182,7 +193,7 @@ export class FileService {
   */
   public static async getFilesByFolder(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<IFile[]> {
     const parent = folderID ? new ObjectID(folderID) : null;
-    let query : Partial<IFile> = this.extractQuery(queryFile);
+    let query: Partial<IFile> = this.extractQuery(queryFile);
     // Add parent to the query
     query = { ...query, parent };
     if (!ownerID) {
@@ -206,8 +217,8 @@ export class FileService {
    * @returns a nested IFile array of the descendants.
    */
   public static async getDescendantsByFolder
-  (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<ResFile[]> {
-    const query : Partial<IFile> = this.extractQuery(queryFile);
+    (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<ResFile[]> {
+    const query: Partial<IFile> = this.extractQuery(queryFile);
     const children: ResFile[] = await this.getPopulatedChildren(folderID, ownerID, query);
     return children;
   }
@@ -248,7 +259,7 @@ export class FileService {
    * If the file does not exists or its a root folder the return value is [].
    * @param fileID - the id of the file.
    */
-  public static async getAncestors(fileID: string): Promise<string[]> {
+  private static async getAncestors(fileID: string): Promise<string[]> {
     const file: IFile = await FilesRepository.getById(fileID);
     if (!file || !file.parent) {
       return [];
@@ -296,7 +307,7 @@ export class FileService {
   private static extractQuery(queryFile?: Partial<IFile>): Partial<IFile> {
     const ignoreFields = ['size', 'createdAt', 'updatedAt', 'parent'];
     if (!queryFile) return {};
-    const query : Partial<IFile> = {};
+    const query: Partial<IFile> = {};
 
     // Parse the size if it should be updated.
     if (queryFile['size']) {
@@ -324,11 +335,11 @@ export class FileService {
    * @param query - the conditions.
    * @param currArray - the array sent in the recursion.
    */
-  private static async getPopulatedChildren(folderID: string, ownerID: string, query: Partial<IFile>) : Promise<ResFile[]> {
+  private static async getPopulatedChildren(folderID: string, ownerID: string, query: Partial<IFile>): Promise<ResFile[]> {
     const folderFiles: IFile[] = await this.getFilesByFolder(folderID, ownerID, query);
-    const childrenArray : ResFile[] = [];
+    const childrenArray: ResFile[] = [];
 
-    for (let i = 0 ; i < folderFiles.length ; i++) {
+    for (let i = 0; i < folderFiles.length; i++) {
       const currChild = new ResFile(folderFiles[i]);
       const grandChildren = await this.getPopulatedChildren(currChild.id, ownerID, query);
       currChild.children = grandChildren;
@@ -338,7 +349,7 @@ export class FileService {
     return childrenArray;
   }
 
-  private static isFolder(file: IFile) : boolean {
+  private static isFolder(file: IFile): boolean {
     return (file.type === FolderContentType);
   }
 
