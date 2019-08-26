@@ -587,6 +587,41 @@ describe('File Logic', () => {
       expect(failed).to.have.lengthOf(1);
       expect(failed[0].error).to.be.instanceOf(ArgumentInvalidError);
     });
+
+    it('should update file`s parent', async () => {
+      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
+      const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, null);
+      const partialFile: (Partial<IFile>) = { parent: folder.id };
+
+      const { updated, failed } = await FileService.updateMany([file.id], partialFile);
+      expect(updated).to.have.lengthOf(1);
+      expect(failed).to.have.lengthOf(0);
+    });
+
+    it('should update a folder parent', async () => {
+      const folder1 = await FileService.create(bucket, 'folder1', USER.id, FolderContentType, null);
+      const folder2 = await FileService.create(bucket, 'folder2', USER.id, FolderContentType, null);
+      const partialFile: (Partial<IFile>) = { parent: folder2.id };
+
+      const { updated, failed } = await FileService.updateMany([folder1.id], partialFile);
+      expect(updated).to.have.lengthOf(1);
+      expect(failed).to.have.lengthOf(0);
+    });
+
+    it('should update a file or folder parent to null(root)', async () => {
+      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
+      const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, null);
+      const partialFile: (Partial<IFile>) = { parent: null };
+
+      const { updated, failed } = await FileService.updateMany([file.id, folder.id], partialFile);
+      expect(updated).to.have.lengthOf(2);
+      expect(failed).to.have.lengthOf(0);
+
+      const updatedFile = await FileService.getById(file.id);
+      const updatedFolder = await FileService.getById(folder.id);
+      expect(updatedFile.parent).to.be.null;
+      expect(updatedFolder.parent).to.be.null;
+    });
   });
 
   describe('#getByID', () => {
@@ -866,13 +901,6 @@ describe('File Logic', () => {
         expect(deletedFiles).to.containSubset([{ id: structure[i].id }]);
       }
       await FileService.getById(father.id).should.eventually.be.rejectedWith(FileNotFoundError);
-    });
-  });
-
-  describe('#getAncestors', () => {
-    it('should get an empty array when the file does not exist', async () => {
-      const ancestors: string[] = await FileService.getAncestors('5d5bc7da13ca0b0011c5a7f5');
-      ancestors.should.be.an('array').with.lengthOf(0);
     });
   });
 
