@@ -6,6 +6,7 @@ import { log, Severity, wrapper } from './utils/logger';
 import { apmURL, verifyServerCert, serviceName, secretToken } from './config';
 import { FileMethods } from './file/file.grpc';
 import { UploadMethods } from './upload/upload.grpc';
+import { QuotaMethods } from './quota/quota.grpc';
 
 apm.start({
   serviceName,
@@ -69,6 +70,7 @@ export class FileServer {
       DeleteFile: wrapper(FileMethods.DeleteFile),
       IsAllowed: wrapper(FileMethods.IsAllowed),
       UpdateFiles: wrapper(FileMethods.UpdateFiles),
+      GetOwnerQuota: wrapper(QuotaMethods.GetOwnerQuota),
     };
 
     this.server.addService(file_proto.FileService.service, fileService);
