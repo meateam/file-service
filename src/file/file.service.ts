@@ -131,11 +131,11 @@ export class FileService {
    */
   private static async checkAdoption(fileID: string, parentID: string): Promise<void> {
     const parent: IFile = await this.getById(parentID);
-    if (!parent || (parent.type !== FolderContentType)) {
+    if (parent && (parent.type !== FolderContentType)) {
       throw new ArgumentInvalidError(`parent: ${parentID} is not a folder`);
     }
     const file: IFile = await this.getById(fileID);
-    if (file.type === FolderContentType && this.isFolderAnAncestor(parentID, fileID)) {
+    if (file.type === FolderContentType && await this.isFolderAnAncestor(parentID, fileID)) {
       throw new ClientError('cyclic nesting error');
     }
     return;
