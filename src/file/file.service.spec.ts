@@ -851,13 +851,6 @@ describe('File Logic', () => {
     });
   });
 
-  describe('#getAncestors', () => {
-    it('should get an empty array when the file does not exist', async () => {
-      const ancestors: string[] = await FileService.getAncestors('5d5bc7da13ca0b0011c5a7f5');
-      ancestors.should.be.an('array').with.lengthOf(0);
-    });
-  });
-
 });
 
 async function generateFolderStructure() : Promise<IFile[]> {
