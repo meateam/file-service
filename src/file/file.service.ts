@@ -105,7 +105,6 @@ export class FileService {
         pathSuccess = false;
       } else {
         const currquota = await QuotaService.updateUsed(currFile.ownerID, -currFile.size);
-        console.log(`${currFile.name} : ${currFile.size} -> ${currquota.used}`);
         deletedFiles.push({ id: currFile.id, key: currFile.key, bucket: currFile.bucket });
       }
     }
