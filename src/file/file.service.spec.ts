@@ -11,6 +11,7 @@ import { uploadModel } from '../upload/upload.model';
 import { QuotaService } from '../quota/quota.service';
 import { QuotaExceededError } from '../utils/errors/quota.error';
 import { UploadService } from '../upload/upload.service';
+import { IQuota } from '../quota/quota.interface';
 
 const expect: Chai.ExpectStatic = chai.expect;
 chai.should();
@@ -856,18 +857,33 @@ describe('File Logic', () => {
 
   describe('#delete', () => {
     it('should delete a file', async () => {
+      let quota: IQuota = await QuotaService.getByOwnerID(USER.id);
+      expect(quota.used).to.be.equal(0);
+
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', null, KEY);
+        bucket, 'file.txt', USER.id, 'text', null, KEY, 320 * 1024 * 1024);
       const DBFile = await FileService.getById(file.id);
+      quota = await QuotaService.getByOwnerID(file.ownerID);
+
+      expect(quota.used).to.be.equal(file.size);
       expect(DBFile).to.exist;
+
       const deletedFile: deleteRes[] = await FileService.delete(file.id);
+      quota = await QuotaService.getByOwnerID(file.ownerID);
+
+      expect(quota.used).to.be.equal(0);
       expect(deletedFile).to.have.lengthOf(1);
       expect(deletedFile[0].id).to.be.equal(file.id);
       await FileService.getById(file.id).should.eventually.be.rejectedWith(FileNotFoundError);
     });
 
     it('should recursively delete a folder', async () => {
+      let quota: IQuota = await QuotaService.getByOwnerID(USER.id);
+      expect(quota.used).to.be.equal(0);
       const structure: IFile[] = await generateFolderStructure();
+
+      quota = await QuotaService.getByOwnerID(USER.id);
+      expect(quota.used).to.be.equal(390);
 
       const father: IFile = structure[0];
       for (let i = 0; i < structure.length; i++) {
@@ -877,6 +893,8 @@ describe('File Logic', () => {
 
       const deletedFiles: deleteRes[] = await FileService.delete(father.id);
       expect(deletedFiles).to.have.lengthOf(structure.length);
+      quota = await QuotaService.getByOwnerID(USER.id);
+      expect(quota.used).to.be.equal(0);
 
       for (let i = 0; i < structure.length; i++) {
         await FileService.getById(structure[i].id).should.eventually.be.rejectedWith(FileNotFoundError);
@@ -889,23 +907,23 @@ describe('File Logic', () => {
 });
 
 async function generateFolderStructure() : Promise<IFile[]> {
-  const key2 = UploadService.generateKey();
-  const key3 = UploadService.generateKey();
-  const key4 = UploadService.generateKey();
+  const key2: string = UploadService.generateKey();
+  const key3: string = UploadService.generateKey();
+  const key4: string = UploadService.generateKey();
 
   // father is a folder in the root
   const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, null);
 
   const file1: IFile = await FileService.create(
-    bucket, 'file1.txt', USER.id, 'text', father.id, KEY2);
+    bucket, 'file1.txt', USER.id, 'text', father.id, KEY2, 120);
   const file2: IFile = await FileService.create(
-    bucket, 'file2.txt', USER.id, 'text', father.id, key2);
+    bucket, 'file2.txt', USER.id, 'text', father.id, key2, 250);
   const folder1: IFile = await FileService.create(
     null, 'folder1', USER.id, FolderContentType, father.id, KEY3);
   const folder2: IFile = await FileService.create(
     null, 'folder2', USER.id, FolderContentType, father.id, key4);
   const file11: IFile = await FileService.create(
-    null, 'file11.txt', USER.id, 'text', folder1.id, key3, size);
+    null, 'file11.txt', USER.id, 'text', folder1.id, key3, 20);
 
   return [father, file1, file2, folder1, folder2, file11];
 }
