@@ -47,4 +47,13 @@ export class QuotaService {
 
     return QuotaRepository.updateById(ownerID, change);
   }
+
+  /**
+   * Checks if the user is allowed to access the owner's quota.
+   * @param requestingUser - the requesting user id.
+   * @param ownerID - the owner id.
+   */
+  public static isAllowedToGetQuota(requestingUser: string, ownerID: string) {
+    return ownerID === requestingUser;
+  }
 }

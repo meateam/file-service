@@ -15,19 +15,7 @@ service FileService {
   rpc CreateFile(CreateFileRequest) returns (File) {}
   rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
   rpc IsAllowed(IsAllowedRequest) returns (IsAllowedResponse) {}
-  rpc GetOwnerQuota(GetOwnerQuotaRequest) returns (GetOwnerQuotaResponse) {}
   rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse) {}
-}
-
-message GetOwnerQuotaRequest {
-  string ownerID = 1;
-}
-
-message GetOwnerQuotaResponse {
-  string ownerID = 1;
-  int64 limit = 2;
-  reserved 3;
-  int64 used = 4;
 }
 
 message CreateUploadRequest {

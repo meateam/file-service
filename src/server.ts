@@ -15,11 +15,21 @@ apm.start({
   serverUrl: apmURL,
 });
 
-const PROTO_PATH: string = `${__dirname}/../proto/file.proto`;
+const FILE_PROTO_PATH: string = `${__dirname}/../proto/file.proto`;
+const QUOTA_PROTO_PATH: string = `${__dirname}/../proto/quota.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
-const packageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
-  PROTO_PATH,
+const filePackageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
+  FILE_PROTO_PATH,
+  {
+    keepCase: true,
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+  });
+const quotaPackageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
+  QUOTA_PROTO_PATH,
   {
     keepCase: true,
     longs: String,
@@ -29,8 +39,11 @@ const packageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
   });
 
 // Has the full package hierarchy
-const protoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(packageDefinition);
-const file_proto: any = protoDescriptor.file;
+const fileProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(filePackageDefinition);
+const quotaProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(quotaPackageDefinition);
+
+const file_proto: any = fileProtoDescriptor.file;
+const quota_proto: any = quotaProtoDescriptor.quota;
 
 export const serviceNames: string[] = ['', 'file.fileService'];
 export const healthCheckStatusMap = {
@@ -70,9 +83,15 @@ export class FileServer {
       DeleteFile: wrapper(FileMethods.DeleteFile),
       IsAllowed: wrapper(FileMethods.IsAllowed),
       UpdateFiles: wrapper(FileMethods.UpdateFiles),
-      GetOwnerQuota: wrapper(QuotaMethods.GetOwnerQuota),
     };
 
     this.server.addService(file_proto.FileService.service, fileService);
+
+    const quotaService = {
+      GetOwnerQuota: wrapper(QuotaMethods.GetOwnerQuota),
+      IsAllowedToGetQuota: wrapper(QuotaMethods.IsAllowedToGetQuota)
+    };
+
+    this.server.addService(quota_proto.QuotaService.service, quotaService);
   }
 }

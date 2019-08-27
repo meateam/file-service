@@ -11,4 +11,12 @@ export class QuotaMethods {
     const quota: IQuota = await QuotaService.getByOwnerID(ownerID);
     return quota;
   }
+  public static async IsAllowedToGetQuota(call: ServerUnaryCall<{ requestingUser: string, ownerID: string }>):
+      Promise<{ allowed: boolean }> {
+
+    const requestingUser: string = call.request.requestingUser;
+    const ownerID: string = call.request.ownerID;
+    const allowed: boolean = await QuotaService.isAllowedToGetQuota(requestingUser, ownerID);
+    return { allowed };
+  }
 }
