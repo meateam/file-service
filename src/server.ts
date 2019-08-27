@@ -15,8 +15,8 @@ apm.start({
   serverUrl: apmURL,
 });
 
-const FILE_PROTO_PATH: string = `${__dirname}/../proto/file.proto`;
-const QUOTA_PROTO_PATH: string = `${__dirname}/../proto/quota.proto`;
+const FILE_PROTO_PATH: string = `${__dirname}/../proto/file/file.proto`;
+const QUOTA_PROTO_PATH: string = `${__dirname}/../proto/quota/quota.proto`;
 
 // Suggested options for similarity to existing grpc.load behavior
 const filePackageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
