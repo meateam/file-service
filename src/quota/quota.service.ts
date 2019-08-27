@@ -4,8 +4,12 @@ import { QuotaExceededError } from '../utils/errors/quota.error';
 import { ServerError } from '../utils/errors/application.error';
 
 export class QuotaService {
+  /**
+   * Returns the quota of a user by his ID.
+   * @param ownerID - the user id.
+   */
   public static async getByOwnerID(ownerID: string): Promise<IQuota> {
-    let quota = await QuotaRepository.getByOwnerID(ownerID);
+    let quota: IQuota = await QuotaRepository.getByOwnerID(ownerID);
 
     // Create quota if it doesn't exist.
     if (!quota) {
@@ -14,6 +18,12 @@ export class QuotaService {
 
     return quota;
   }
+
+  /**
+   * Creates a quota given the userID.
+   * default: 100GB per user.
+   * @param ownerID - the user ID.
+   */
   public static create(ownerID: string): Promise<IQuota> {
     return QuotaRepository.create({ ownerID });
   }
@@ -36,5 +46,14 @@ export class QuotaService {
     }
 
     return QuotaRepository.updateById(ownerID, change);
+  }
+
+  /**
+   * Checks if the user is allowed to access the owner's quota.
+   * @param requestingUser - the requesting user id.
+   * @param ownerID - the owner id.
+   */
+  public static isAllowedToGetQuota(requestingUser: string, ownerID: string) {
+    return ownerID === requestingUser;
   }
 }

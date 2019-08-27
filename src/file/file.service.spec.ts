@@ -904,6 +904,20 @@ describe('File Logic', () => {
     });
   });
 
+  describe('#QuotaService', () => {
+    describe('#isAllowedToGetQuota', () => {
+      it('should return allowed to a user requesting his own quota', async () => {
+        const allowed : boolean = await QuotaService.isAllowedToGetQuota(USER.id, USER.id);
+        expect(allowed).to.be.true;
+      });
+
+      it('should return not allowed to a user requesting another`s quota', async () => {
+        const allowed : boolean = await QuotaService.isAllowedToGetQuota(USER.id, '654321');
+        expect(allowed).to.be.false;
+      });
+    });
+  });
+
 });
 
 async function generateFolderStructure() : Promise<IFile[]> {
