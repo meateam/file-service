@@ -4,6 +4,7 @@ import { IQuota } from './quota.interface';
 import { MongoError } from 'mongodb';
 import { UniqueIndexExistsError } from '../utils/errors/client.error';
 import { NextFunction } from 'connect';
+import { userQuotaLimit } from '../config';
 
 const KiB = 1024;
 const MiB = 1024 * KiB;
@@ -18,7 +19,7 @@ export const quotaSchema: Schema = new Schema(
     limit: {
       type: Number,
       required: true,
-      default: 100 * GiB,
+      default: parseInt(userQuotaLimit, 10) * GiB,
     },
     used: {
       type: Number,
