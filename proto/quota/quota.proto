@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package quota;
+
+service QuotaService {
+    rpc IsAllowedToGetQuota(IsAllowedToGetQuotaRequest) returns (IsAllowedToGetQuotaResponse) {}
+    rpc GetOwnerQuota(GetOwnerQuotaRequest) returns (GetOwnerQuotaResponse) {}
+}
+
+message IsAllowedToGetQuotaRequest {
+    string requestingUser = 1;
+    string ownerID = 2;
+  }
+  
+  message IsAllowedToGetQuotaResponse {
+    bool allowed = 1;
+  }
+  
+  message GetOwnerQuotaRequest {
+    string ownerID = 1;
+  }
+  
+  message GetOwnerQuotaResponse {
+    string ownerID = 1;
+    int64 limit = 2;
+    int64 used = 3;
+  }

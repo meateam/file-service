@@ -2,8 +2,9 @@ import { Document, Schema, model } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IQuota } from './quota.interface';
 import { MongoError } from 'mongodb';
-import { KeyAlreadyExistsError } from '../utils/errors/client.error';
+import { UniqueIndexExistsError } from '../utils/errors/client.error';
 import { NextFunction } from 'connect';
+import { userQuotaLimit } from '../config';
 
 const KiB = 1024;
 const MiB = 1024 * KiB;
@@ -18,7 +19,7 @@ export const quotaSchema: Schema = new Schema(
     limit: {
       type: Number,
       required: true,
-      default: 100 * GiB,
+      default: parseInt(userQuotaLimit, 10) * GiB,
     },
     used: {
       type: Number,
@@ -35,7 +36,7 @@ export const quotaSchema: Schema = new Schema(
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    next(new KeyAlreadyExistsError(this.key));
+    next(new UniqueIndexExistsError(this.key));
   } else {
     next();
   }

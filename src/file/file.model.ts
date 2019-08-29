@@ -1,7 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
-import { KeyAlreadyExistsError } from '../utils/errors/client.error';
+import { UniqueIndexExistsError } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
@@ -11,8 +11,6 @@ export const fileSchema: Schema = new Schema(
   {
     key: {
       type: String,
-      sparse: true,
-      unique: true,
     },
     name: {
       type: String,
@@ -41,11 +39,7 @@ export const fileSchema: Schema = new Schema(
     },
     bucket: {
       type: String,
-      required: true,
-    },
-    deleted: {
-      type: Boolean,
-      default: false,
+      required: false,
     }
   },
   {
@@ -56,50 +50,48 @@ export const fileSchema: Schema = new Schema(
     toJSON: {
       virtuals: true,
     }
-	}
+  }
 );
 
-fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: false });
+fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true });
+fileSchema.index({ key: 1, bucket: 1 }, { unique: true, sparse: true });
 
 fileSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
 fileSchema.virtual('displayName')
-.set(function () {
-  this.displayName = this.name ? this.name.split('.')[0] : '';
-}) .get(function ()  {
-  return (`${this.name ? this.name.split('.')[0] : ''}`);
-});
+  .set(function () {
+    this.displayName = this.name ? this.name.split('.')[0] : '';
+  }).get(function () {
+    return (`${this.name ? this.name.split('.')[0] : ''}`);
+  });
 
 fileSchema.virtual('fullExtension')
-.set(function () {
-  this.fullExtension = this.name ? this.name.split('.').splice(1).join('.') : '';
-}).get(function ()  {
-  return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
-});
+  .set(function () {
+    this.fullExtension = this.name ? this.name.split('.').splice(1).join('.') : '';
+  }).get(function () {
+    return (`${this.name ? this.name.split('.').splice(1).join('.') : ''}`);
+  });
 
-fileSchema.pre('save', async function (next: NextFunction) {
-	const existingFile = await fileModel.findOne({ name: (<any>this).name, parent: (<any>this).parent, ownerID: (<any>this).ownerID });
-	if (existingFile && !existingFile.deleted) {
-		next(new KeyAlreadyExistsError((<any>this).key));
-	} else {
-		next();
-	}
-});
-
-// handleE11000 is called when there is a duplicateKey Error
-const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
+/**
+ * handleE11000 is called when there is a duplicateKey Error.
+ * @param error
+ * @param _
+ * @param next
+ */
+function handleE11000(error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    next(new KeyAlreadyExistsError(this.key));
+    next(new UniqueIndexExistsError(error.message));
   } else {
     next();
   }
-};
+}
 
 fileSchema.post('save', handleE11000);
 fileSchema.post('update', handleE11000);
 fileSchema.post('findOneAndUpdate', handleE11000);
+fileSchema.post('updateOne', handleE11000);
 fileSchema.post('insertMany', handleE11000);
 
 fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {

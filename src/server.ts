@@ -1,97 +1,97 @@
-import express from 'express';
-import * as bodyParser from 'body-parser';
-import mongoose from 'mongoose';
-import morgan from 'morgan';
-import session from 'express-session';
-import cors from 'cors';
-import { config, mongoConnectionString } from './config';
-import { FileServer, serviceNames } from './file/file.rpc';
-import { HealthCheckResponse } from 'grpc-ts-health-check';
+import * as grpc from 'grpc';
+import * as protoLoader from '@grpc/proto-loader';
+import apm from 'elastic-apm-node';
+import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
+import { log, Severity, wrapper } from './utils/logger';
+import { apmURL, verifyServerCert, serviceName, secretToken } from './config';
+import { FileMethods } from './file/file.grpc';
+import { UploadMethods } from './upload/upload.grpc';
+import { QuotaMethods } from './quota/quota.grpc';
 
-export class Server {
-  public app: express.Application;
-  public listener: any;
+apm.start({
+  serviceName,
+  secretToken,
+  verifyServerCert,
+  serverUrl: apmURL,
+});
 
-  constructor(testing = false) {
-    this.createApplication();
-    this.configApplication();
-    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+const FILE_PROTO_PATH: string = `${__dirname}/../proto/file/file.proto`;
+const QUOTA_PROTO_PATH: string = `${__dirname}/../proto/quota/quota.proto`;
 
-    if (!testing) {
-      this.connectDB();
-      this.log();
-    }
+// Suggested options for similarity to existing grpc.load behavior
+const filePackageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
+  FILE_PROTO_PATH,
+  {
+    keepCase: true,
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+  });
+const quotaPackageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
+  QUOTA_PROTO_PATH,
+  {
+    keepCase: true,
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+  });
+
+// Has the full package hierarchy
+const fileProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(filePackageDefinition);
+const quotaProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(quotaPackageDefinition);
+
+const file_proto: any = fileProtoDescriptor.file;
+const quota_proto: any = quotaProtoDescriptor.quota;
+
+export const serviceNames: string[] = ['', 'file.fileService'];
+export const healthCheckStatusMap = {
+  '': HealthCheckResponse.ServingStatus.UNKNOWN,
+  serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
+};
+
+// The FileServer class, containing all of the FileServer methods.
+export class FileServer {
+
+  public server: grpc.Server;
+  public grpcHealthCheck: GrpcHealthCheck;
+
+  public constructor(port: string) {
+    this.server = new grpc.Server();
+    this.addServices();
+    this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
+    log(Severity.INFO, `server listening on port: ${port}`, 'server bind');
   }
 
-  public static bootstrap(): Server {
-    return new Server();
-  }
+  private addServices() {
+    // Register the health service
+    this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
+    this.server.addService(HealthService, this.grpcHealthCheck);
 
-  private createApplication(): void {
-    this.app = express();
-  }
+    const fileService = {
+      GenerateKey: wrapper(UploadMethods.GenerateKey),
+      CreateUpload: wrapper(UploadMethods.CreateUpload),
+      UpdateUploadID: wrapper(UploadMethods.UpdateUploadID),
+      GetUploadByID: wrapper(UploadMethods.GetUploadByID),
+      DeleteUploadByID: wrapper(UploadMethods.DeleteUploadByID),
+      GetFileByID: wrapper(FileMethods.GetFileByID),
+      GetFileByKey: wrapper(FileMethods.GetFileByKey),
+      GetFilesByFolder: wrapper(FileMethods.GetFilesByFolder),
+      GetDescendantsByFolder: wrapper(FileMethods.GetDescendantsByFolder),
+      CreateFile: wrapper(FileMethods.CreateFile),
+      DeleteFile: wrapper(FileMethods.DeleteFile),
+      IsAllowed: wrapper(FileMethods.IsAllowed),
+      UpdateFiles: wrapper(FileMethods.UpdateFiles),
+    };
 
-  // using cors, body parsers and sessions
-  private configApplication(): void {
-    this.app.use(cors({ credentials: true, origin: true }));
-    this.app.use(bodyParser.urlencoded({ extended: true }));
-    this.app.use(bodyParser.json());
-    this.app.use(session({
-      secret: 'seal',
-      resave: true,
-      saveUninitialized: true
-    }));
-    this.app.use((_, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-      res.header('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');
-      next();
-    });
-  }
+    this.server.addService(file_proto.FileService.service, fileService);
 
-  private log() {
-    this.app.use(morgan('tiny'));
-  }
+    const quotaService = {
+      GetOwnerQuota: wrapper(QuotaMethods.GetOwnerQuota),
+      IsAllowedToGetQuota: wrapper(QuotaMethods.IsAllowedToGetQuota)
+    };
 
-  // Connect mongoose to our database
-  private async connectDB() {
-    const fileServer: FileServer = new FileServer(config.rpc_port);
-
-    await mongoose.connect(
-      mongoConnectionString,
-      { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false },
-      (err) => {
-        if (!err) {
-          setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.SERVING);
-        } else {
-          setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
-        }
-      });
-
-    const db = mongoose.connection;
-    db.on('connected', () => {
-      setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.SERVING);
-    });
-    db.on('error', () => {
-      setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
-    });
-    db.on('disconnected', () => {
-      setHealthStatus(fileServer, HealthCheckResponse.ServingStatus.NOT_SERVING);
-    });
-
-    // Ensures you don't run the server twice
-    if (!module.parent) {
-      fileServer.server.start();
-    }
-  }
-}
-
-if (!module.parent) {
-  new Server().app;
-}
-
-function setHealthStatus(server: FileServer, status: number) : void {
-  for (let i = 0 ; i < serviceNames.length ; i++) {
-    server.grpcHealthCheck.setStatus(serviceNames[i], status);
+    this.server.addService(quota_proto.QuotaService.service, quotaService);
   }
 }
