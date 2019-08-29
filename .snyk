@@ -49,3 +49,19 @@ patch:
         patched: '2019-07-04T00:16:51.860Z'
     - snyk > @snyk/dep-graph > graphlib > lodash:
         patched: '2019-07-04T00:16:51.860Z'
+    - winston-elasticsearch > lodash:
+        patched: '2019-08-29T06:51:53.822Z'
+    - winston > async > lodash:
+        patched: '2019-08-29T06:51:53.822Z'
+    - winston-elasticsearch > elasticsearch > lodash:
+        patched: '2019-08-29T06:51:53.822Z'
+    - nyc > istanbul-lib-instrument > @babel/types > lodash:
+        patched: '2019-08-29T06:51:53.822Z'
+    - winston-elasticsearch > winston > async > lodash:
+        patched: '2019-08-29T06:51:53.822Z'
+    - nyc > istanbul-lib-instrument > @babel/template > @babel/types > lodash:
+        patched: '2019-08-29T06:51:53.822Z'
+    - nyc > istanbul-lib-instrument > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2019-08-29T06:51:53.822Z'
+    - nyc > istanbul-lib-instrument > @babel/traverse > @babel/helper-function-name > @babel/helper-get-function-arity > @babel/types > lodash:
+        patched: '2019-08-29T06:51:53.822Z'
