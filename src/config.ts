@@ -35,10 +35,14 @@ function getDB(confType: string) : DB {
   }
 }
 
-const esHost: string = process.env.LOGGER_ELASTICSEARCH || 'http://localhost:9200';
+const esHost: string = process.env.LOGGER_ELASTICSEARCH || 'http://13.69.137.179:9200';
+const esUser: string = process.env.ELASTICSEARCH_USER || '';
+const esPass: string = process.env.ELASTICSEARCH_PASSWORD || '';
 export const confLogger = {
-  elasticsearch: esHost && {
-    hosts: esHost.split(','),
+  options: {
+    hosts: esHost && esHost.split(','),
+    // Might be auth instead, not sure.
+    httpAuth: `${esUser}:${esPass}`,
   },
   indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
 };
@@ -47,7 +51,7 @@ export const confLogger = {
 export const secretToken: string = process.env.APM_SECRET_TOKEN || '';
 export const serviceName: string = process.env.FS_APM_SERVICE_NAME || 'file-service';
 export const verifyServerCert: boolean = process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true';
-export const apmURL: string = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
+export const apmURL: string = process.env.ELASTIC_APM_SERVER_URL || 'http://13.69.137.179:8200';
 export const userQuotaLimit: string = process.env.USER_QUOTA_LIMIT || '10';
 
 // the port for binding the server

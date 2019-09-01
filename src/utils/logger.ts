@@ -20,7 +20,7 @@ export const logger: winston.Logger = winston.createLogger({
 const elasticsearch = new Elasticsearch.default({
   indexPrefix: confLogger.indexPrefix,
   level: 'verbose',
-  clientOpts: confLogger.elasticsearch,
+  clientOpts: confLogger.options,
   bufferLimit: 100,
   ensureMappingTemplate: true,
   mappingTemplate: indexTemplateMapping,
