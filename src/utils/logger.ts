@@ -22,6 +22,7 @@ const elasticsearch = new Elasticsearch.default({
   level: 'verbose',
   clientOpts: confLogger.options,
   bufferLimit: 100,
+  messageType: 'log',
   ensureMappingTemplate: true,
   mappingTemplate: indexTemplateMapping,
 });
