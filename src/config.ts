@@ -63,3 +63,5 @@ export const database: DB = getDB(nodeEnv);
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
 export const mongoConnectionString : string =
   process.env.MONGO_HOST || `mongodb://${database.host}:27017/${database.name}`;
+export const connectionRetries : string = process.env.RECONNECT_ATTEMPTS || '5';
+export const reconnectTimeout : string = process.env.RECONNECT_TIMEOUT || '2000';
