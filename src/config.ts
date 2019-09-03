@@ -36,9 +36,13 @@ function getDB(confType: string) : DB {
 }
 
 const esHost: string = process.env.LOGGER_ELASTICSEARCH || 'http://localhost:9200';
+const esUser: string = process.env.ELASTICSEARCH_USER || '';
+const esPass: string = process.env.ELASTICSEARCH_PASSWORD || '';
 export const confLogger = {
-  elasticsearch: esHost && {
-    hosts: esHost.split(','),
+  options: {
+    hosts: esHost && esHost.split(','),
+    // Might be auth instead, not sure.
+    httpAuth: `${esUser}:${esPass}`,
   },
   indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
 };
