@@ -166,4 +166,10 @@ message UpdateFilesRequest {
 
 message UpdateFilesResponse {
   repeated string updated = 1;
+  repeated FailedFile failedFiles = 2;
+}
+
+message FailedFile {
+  string id = 1;
+  string message = 2;
 }
