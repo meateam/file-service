@@ -6,6 +6,7 @@ import { getDisplayError } from './../utils/errors/error.helper';
 
 interface FailedFile {
   id: string;
+  name: string;
   message: string;
 }
 
@@ -52,9 +53,14 @@ export class FileMethods {
     const traceID = getCurrTraceId();
     const failedFiles: FailedFile[] = [];
     for (let i = 0; i < failed.length; i++) {
+      let name: string = '';
+      try {
+        const file = await FileService.getById(failed[i].id);
+        name = file.name;
+      } catch (e) {}
       log(Severity.ERROR, failed[i].error.message, 'update files error', traceID, failed[i]);
       const displayError: string = getDisplayError(failed[i].error);
-      failedFiles.push({ id: failed[i].id, message: displayError });
+      failedFiles.push({ name, id: failed[i].id, message: displayError });
     }
     return { updated, failedFiles };
   }
