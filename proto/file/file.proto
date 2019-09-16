@@ -171,6 +171,5 @@ message UpdateFilesResponse {
 
 message FailedFile {
   string id = 1;
-  string name = 2;
-  string message = 3;
+  string error = 2;
 }

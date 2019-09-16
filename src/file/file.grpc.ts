@@ -6,7 +6,6 @@ import { getDisplayError } from './../utils/errors/error.helper';
 
 interface FailedFile {
   id: string;
-  name: string;
   message: string;
 }
 
@@ -48,21 +47,16 @@ export class FileMethods {
    * which succeeded the operation.
    */
   public static async UpdateFiles(call: ServerUnaryCall<{ partialFile: Partial<IFile>, idList: string[] }>)
-  : Promise<{ updated: string[], failedFiles: FailedFile[] }> {
-    const { updated, failed } = await FileService.updateMany(call.request.idList, call.request.partialFile);
-    const traceID = getCurrTraceId();
+  : Promise<{ failedFiles: FailedFile[] }> {
+    const failed: { id: string, error: Error }[] = await FileService.updateMany(call.request.idList, call.request.partialFile);
+    const traceID: string = getCurrTraceId();
     const failedFiles: FailedFile[] = [];
     for (let i = 0; i < failed.length; i++) {
-      let name: string = '';
-      try {
-        const file = await FileService.getById(failed[i].id);
-        name = file.name;
-      } catch (e) {}
-      log(Severity.ERROR, failed[i].error.message, 'update files error', traceID, failed[i]);
+      log(Severity.ERROR, failed[i].error.toString(), 'update files error', traceID, failed[i]);
       const displayError: string = getDisplayError(failed[i].error);
-      failedFiles.push({ name, id: failed[i].id, message: displayError });
+      failedFiles.push({ id: failed[i].id, message: displayError });
     }
-    return { updated, failedFiles };
+    return { failedFiles };
   }
 
   /**

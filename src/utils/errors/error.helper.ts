@@ -30,6 +30,6 @@ export function getDisplayError(error : Error): string {
     case UploadNotFoundError:
       return 'upload was not found';
     default:
-      return '';
+      return 'internal server error';
   }
 }
