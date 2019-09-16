@@ -165,8 +165,7 @@ message UpdateFilesRequest {
 }
 
 message UpdateFilesResponse {
-  repeated string updated = 1;
-  repeated FailedFile failedFiles = 2;
+  repeated FailedFile failedFiles = 1;
 }
 
 message FailedFile {
