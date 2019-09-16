@@ -514,9 +514,7 @@ describe('File Logic', () => {
       const partialFile: (Partial<IFile>) = { name: 'update1.txt', size: 123123 };
       const idList: string[] = [file1.id, file2.id];
 
-      const { updated, failed } = await FileService.updateMany(idList, partialFile);
-      expect(updated).to.exist;
-      expect(updated).to.have.length(2);
+      const failed = await FileService.updateMany(idList, partialFile);
       expect(failed).to.have.length(0);
 
       const updatedFile1 = await FileService.getById(file1.id);
@@ -539,9 +537,7 @@ describe('File Logic', () => {
       const partialFile: (Partial<IFile>) = { parent:'null' };
       const idList: string[] = [file1.id, file2.id];
 
-      const { updated, failed } = await FileService.updateMany(idList, partialFile);
-      expect(updated).to.exist;
-      expect(updated).to.have.length(2);
+      const failed = await FileService.updateMany(idList, partialFile);
       expect(failed).to.have.length(0);
 
       const updatedFile1 = await FileService.getById(file1.id);
@@ -560,8 +556,7 @@ describe('File Logic', () => {
 
       const partialFile: (Partial<IFile>) = { parent: folder.id };
 
-      const { updated, failed } = await FileService.updateMany([folder.id], partialFile);
-      expect(updated).to.have.lengthOf(0);
+      const failed = await FileService.updateMany([folder.id], partialFile);
       expect(failed).to.have.lengthOf(1);
       expect(failed[0].error.message).to.equal('cyclic nesting error');
     });
@@ -571,8 +566,7 @@ describe('File Logic', () => {
 
       const partialFile: (Partial<IFile>) = { parent: structure[3].id };
 
-      const { updated, failed } = await FileService.updateMany([structure[0].id], partialFile);
-      expect(updated).to.have.lengthOf(0);
+      const failed = await FileService.updateMany([structure[0].id], partialFile);
       expect(failed).to.have.lengthOf(1);
       expect(failed[0].error.message).to.equal('cyclic nesting error');
     });
@@ -582,8 +576,7 @@ describe('File Logic', () => {
 
       const partialFile: (Partial<IFile>) = { parent: structure[1].id };
 
-      const { updated, failed } = await FileService.updateMany([structure[2].id], partialFile);
-      expect(updated).to.have.lengthOf(0);
+      const failed = await FileService.updateMany([structure[2].id], partialFile);
       expect(failed).to.have.lengthOf(1);
       expect(failed[0].error).to.be.instanceOf(ArgumentInvalidError);
     });
@@ -593,8 +586,7 @@ describe('File Logic', () => {
       const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, null);
       const partialFile: (Partial<IFile>) = { parent: folder.id };
 
-      const { updated, failed } = await FileService.updateMany([file.id], partialFile);
-      expect(updated).to.have.lengthOf(1);
+      const failed = await FileService.updateMany([file.id], partialFile);
       expect(failed).to.have.lengthOf(0);
     });
 
@@ -603,8 +595,7 @@ describe('File Logic', () => {
       const folder2 = await FileService.create(bucket, 'folder2', USER.id, FolderContentType, null);
       const partialFile: (Partial<IFile>) = { parent: folder2.id };
 
-      const { updated, failed } = await FileService.updateMany([folder1.id], partialFile);
-      expect(updated).to.have.lengthOf(1);
+      const failed = await FileService.updateMany([folder1.id], partialFile);
       expect(failed).to.have.lengthOf(0);
     });
 
@@ -613,8 +604,7 @@ describe('File Logic', () => {
       const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, null);
       const partialFile: (Partial<IFile>) = { parent: null };
 
-      const { updated, failed } = await FileService.updateMany([file.id, folder.id], partialFile);
-      expect(updated).to.have.lengthOf(2);
+      const failed = await FileService.updateMany([file.id, folder.id], partialFile);
       expect(failed).to.have.lengthOf(0);
 
       const updatedFile = await FileService.getById(file.id);
