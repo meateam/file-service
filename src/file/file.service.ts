@@ -146,22 +146,18 @@ export class FileService {
    * updateMany updates a list of files.
    * @param files - List of files to update with their updated fields and their id.
    */
-  static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ updated: string[], failed: { id: string, error: Error }[] }> {
+  static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ id: string, error: Error }[]> {
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
     const failedFiles: { id: string, error: Error }[] = [];
-    const updatedFiles: string[] = [];
     for (let i = 0; i < idList.length; i++) {
       try {
-        const updatedFile = await this.updateById(idList[i], extractedPF);
-        if (updatedFile) {
-          updatedFiles.push(idList[i]);
-        }
+        await this.updateById(idList[i], extractedPF);
       } catch (e) {
         failedFiles.push({ id: idList[i], error: e });
       }
     }
 
-    return { updated: updatedFiles, failed: failedFiles };
+    return failedFiles;
   }
 
   /**
