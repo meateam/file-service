@@ -3,6 +3,7 @@ import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { getDisplayError } from './../utils/errors/error.helper';
+import { FILE } from 'dns';
 
 interface FailedFile {
   id: string;
@@ -112,5 +113,14 @@ export class FileMethods {
   public static async IsAllowed(call: any): Promise<{ allowed: boolean }> {
     const res: boolean = await FileService.isOwner(call.request.fileID, call.request.userID);
     return  { allowed: res };
+  }
+
+  /**
+   * Get the ancestors of a file by it's ID, not including the root folder.
+   * @param call
+   */
+  public static async GetAncestors(call: any): Promise<{ ancestors: string[] }> {
+    const ancestors: string[] = await FileService.getAncestors(call.request.fileID);
+    return { ancestors };
   }
 }

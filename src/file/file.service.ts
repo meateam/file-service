@@ -255,7 +255,7 @@ export class FileService {
    * If the file does not exists or its a root folder the return value is [].
    * @param fileID - the id of the file.
    */
-  private static async getAncestors(fileID: string): Promise<string[]> {
+  public static async getAncestors(fileID: string): Promise<string[]> {
     const file: IFile = await FilesRepository.getById(fileID);
     if (!file || !file.parent) {
       return [];
