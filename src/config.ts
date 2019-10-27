@@ -35,6 +35,9 @@ function getDB(confType: string) : DB {
   }
 }
 
+// the port for binding the server
+export const bindAddress = process.env.BIND_ADDRESS || '0.0.0.0:8080';
+
 const esHost: string = process.env.ELASTICSEARCH_URL || 'http://localhost:9200';
 const esUser: string = process.env.ELASTICSEARCH_USER || '';
 const esPass: string = process.env.ELASTICSEARCH_PASSWORD || '';
@@ -53,9 +56,6 @@ export const serviceName: string = process.env.FS_APM_SERVICE_NAME || 'file-serv
 export const verifyServerCert: boolean = process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true';
 export const apmURL: string = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
 export const userQuotaLimit: string = process.env.USER_QUOTA_LIMIT || '10';
-
-// the port for binding the server
-export const rpcPort: string = process.env.RPC_PORT || '8080';
 
 export const nodeEnv: string = process.env.NODE_ENV || 'dev';
 export const database: DB = getDB(nodeEnv);
