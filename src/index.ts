@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { HealthCheckResponse } from 'grpc-ts-health-check';
 import { FileServer, serviceNames } from './server';
-import { mongoConnectionString, rpcPort, connectionRetries, reconnectTimeout } from './config';
+import { mongoConnectionString, bindAddress, connectionRetries, reconnectTimeout } from './config';
 import { log, Severity, getCurrTraceId } from './utils/logger';
 
 // Ensures you don't run the server twice
@@ -10,7 +10,7 @@ if (!module.parent) {
 }
 
 async function initServer() {
-  const fileServer: FileServer = new FileServer(rpcPort);
+  const fileServer: FileServer = new FileServer(bindAddress);
   await initMongo(fileServer);
   fileServer.server.start();
 }

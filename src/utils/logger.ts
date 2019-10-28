@@ -4,7 +4,7 @@ import * as Elasticsearch from 'winston-elasticsearch';
 import * as grpc from 'grpc';
 import apm from 'elastic-apm-node';
 import * as _ from 'lodash';
-import { confLogger, serviceName } from '../config';
+import { confLogger, serviceName, debugMode } from '../config';
 import { statusToString, validateGrpcError } from './errors/grpc.status';
 import { ApplicationError } from './errors/application.error';
 
@@ -38,6 +38,17 @@ logger.add(elasticsearch);
  * @param meta - additional optional information.
  */
 export const log = (level: Severity, message: string, name: string, traceID?: string, meta?: object) => {
+  // Console logs for debugging only.
+  if (debugMode) {
+    if (traceID) {
+      console.log(`level: ${level}, message: ${message}, name: ${name}, traceID: ${traceID}, meta:`);
+    } else {
+      console.log(`level: ${level}, message: ${message}, name: ${name}, meta:`);
+    }
+    if (meta) {
+      console.log(meta);
+    }
+  }
   logger.log(level, message, { ...meta, traceID, method: name });
 };
 
