@@ -39,7 +39,7 @@ logger.add(elasticsearch);
  */
 export const log = (level: Severity, message: string, name: string, traceID?: string, meta?: object) => {
   // Console logs for debugging only.
-  if (debugMode === 'true') {
+  if (debugMode) {
     if (traceID) {
       console.log(`level: ${level}, message: ${message}, name: ${name}, traceID: ${traceID}, meta:`);
     } else {
