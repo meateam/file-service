@@ -48,7 +48,7 @@ export const confLogger = {
     // Might be auth instead, not sure.
     httpAuth: `${esUser}:${esPass}`,
   },
-  indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
+  indexPrefix: process.env.LOG_INDEX || 'kdrive',
 };
 
 // Used for the APM agent
