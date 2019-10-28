@@ -2,15 +2,43 @@ version: '2.1'
 
 services:
   file-service:
-    image: file-service:latest
+    image: file-service:local
     build: .
     environment:
-      MONGO_HOST: mongo
+      BIND_ADDRESS: '0.0.0.0:8080'
+      ELASTICSEARCH_URL: 'http://localhost:9200'
+      ELASTICSEARCH_USER: ''
+      ELASTICSEARCH_PASSWORD: ''
+      LOGGER_ELASTICSEARCH_PREFIX: 'kdrive'
+      APM_SECRET_TOKEN: ''
+      FS_APM_SERVICE_NAME: 'file-service'
+      ELASTIC_APM_VERIFY_SERVER_CERT: 'false'
+      ELASTIC_APM_SERVER_URL: 'http://localhost:8200'
+      USER_QUOTA_LIMIT: '10'
+      NODE_ENV: 'dev'
+      DEBUG_MODE: 'true'
+      RECONNECT_ATTEMPTS: '5'
+      RECONNECT_TIMEOUT: '2000'
+      MONGO_HOST: 'mongodb://mongo:27017/devDB'
     ports:
       - 8080:8080
+    depends_on:
+      - mongo
   mongo:
     image: mongo:4.0.9
     ports:
       - "27017:27017"
     volumes:
       - ./data/db:/data/db
+    depends_on:
+      - minio
+  minio:
+    image: minio/minio
+    volumes:
+      - './data:/data'
+    ports:
+      - '9000:9000'
+    environment:
+      MINIO_ACCESS_KEY: F6WUUG27HBUFSIXVZL59
+      MINIO_SECRET_KEY: BPlIUU6SX0ZxiCMo3tIpCMAUdnmkN9Eo9K42NsRR
+    command: server /data

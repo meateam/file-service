@@ -37,6 +37,7 @@ function getDB(confType: string) : DB {
 
 // the port for binding the server
 export const bindAddress = process.env.BIND_ADDRESS || '0.0.0.0:8080';
+export const debugMode = process.env.DEBUG_MODE || 'true';
 
 const esHost: string = process.env.ELASTICSEARCH_URL || 'http://localhost:9200';
 const esUser: string = process.env.ELASTICSEARCH_USER || '';
