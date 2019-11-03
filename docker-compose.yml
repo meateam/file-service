@@ -9,7 +9,7 @@ services:
       ELASTICSEARCH_URL: 'http://localhost:9200'
       ELASTICSEARCH_USER: ''
       ELASTICSEARCH_PASSWORD: ''
-      LOGGER_ELASTICSEARCH_PREFIX: 'kdrive'
+      LOG_INDEX: 'kdrive'
       APM_SECRET_TOKEN: ''
       FS_APM_SERVICE_NAME: 'file-service'
       ELASTIC_APM_VERIFY_SERVER_CERT: 'false'
