@@ -2,6 +2,12 @@ import { FileService } from './file.service';
 import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
+import { getDisplayError } from './../utils/errors/error.helper';
+
+interface FailedFile {
+  id: string;
+  error: string;
+}
 
 /**
  * The highest level of the micro-service functions that run.
@@ -40,13 +46,17 @@ export class FileMethods {
    * UpdateFiles updates a list of files and responses with a list of the files' id
    * which succeeded the operation.
    */
-  public static async UpdateFiles(call: ServerUnaryCall<{ partialFile: Partial<IFile>, idList: string[] }>) {
-    const { updated, failed } = await FileService.updateMany(call.request.idList, call.request.partialFile);
-    const traceID = getCurrTraceId();
+  public static async UpdateFiles(call: ServerUnaryCall<{ partialFile: Partial<IFile>, idList: string[] }>)
+  : Promise<{ failedFiles: FailedFile[] }> {
+    const failed: { id: string, error: Error }[] = await FileService.updateMany(call.request.idList, call.request.partialFile);
+    const traceID: string = getCurrTraceId();
+    const failedFiles: FailedFile[] = [];
     for (let i = 0; i < failed.length; i++) {
-      log(Severity.ERROR, failed[i].error.message, 'update files error', traceID, failed[i]);
+      log(Severity.ERROR, failed[i].error.toString(), 'update files error', traceID, failed[i]);
+      const displayError: string = getDisplayError(failed[i].error);
+      failedFiles.push({ id: failed[i].id, error: displayError });
     }
-    return { updated };
+    return { failedFiles };
   }
 
   /**
