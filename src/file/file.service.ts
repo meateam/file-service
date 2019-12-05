@@ -255,14 +255,16 @@ export class FileService {
    * If the file does not exists or its a root folder the return value is [].
    * @param fileID - the id of the file.
    */
-  private static async getAncestors(fileID: string): Promise<string[]> {
-    const file: IFile = await FilesRepository.getById(fileID);
-    if (!file || !file.parent) {
-      return [];
+  public static async getAncestors(fileID: string): Promise<string[]> {
+    const ancestors: string[] = [];
+    let file: IFile = await FilesRepository.getById(fileID);
+
+    while (file && file.parent && file.parent.toString()) {
+      ancestors.push(file.parent.toString());
+      file = await FilesRepository.getById(file.parent.toString());
     }
-    const parentID: string = (file.parent).toString();
-    const parentAncestors: string[] = await this.getAncestors(parentID);
-    return [parentID].concat(parentAncestors);
+
+    return ancestors.reverse();
   }
 
   /**

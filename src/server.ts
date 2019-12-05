@@ -83,6 +83,7 @@ export class FileServer {
       DeleteFile: wrapper(FileMethods.DeleteFile),
       IsAllowed: wrapper(FileMethods.IsAllowed),
       UpdateFiles: wrapper(FileMethods.UpdateFiles),
+      GetAncestors: wrapper(FileMethods.GetAncestors),
     };
 
     this.server.addService(file_proto.FileService.service, fileService);
