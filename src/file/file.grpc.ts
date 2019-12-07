@@ -3,6 +3,7 @@ import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { getDisplayError } from './../utils/errors/error.helper';
+import { IdInvalidError } from './../utils/errors/client.error';
 
 interface FailedFile {
   id: string;
@@ -112,5 +113,14 @@ export class FileMethods {
   public static async IsAllowed(call: any): Promise<{ allowed: boolean }> {
     const res: boolean = await FileService.isOwner(call.request.fileID, call.request.userID);
     return  { allowed: res };
+  }
+
+  public static async GetAncestors(call: any): Promise<{ancestors: string[]}> {
+    const fileID: string = call.request.id;
+    if (!fileID) throw new IdInvalidError();
+
+    const ancestors = await FileService.getAncestors(fileID);
+    
+    return { ancestors };
   }
 }
