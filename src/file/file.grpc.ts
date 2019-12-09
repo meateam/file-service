@@ -123,4 +123,13 @@ export class FileMethods {
     
     return { ancestors };
   }
+
+  public static async SetFileFloat(call: any): Promise<void> {
+    const fileID: string = call.request.id;
+    const isFloat: boolean = call.request.isFloat;
+    if (!fileID) throw new IdInvalidError();
+
+
+    const result = await FileService.setFileFloat(fileID, isFloat);
+  }
 }

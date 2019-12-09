@@ -38,6 +38,7 @@ export class FileService {
     folderID: string = '',
     key: string | null = null,
     size: number = 0,
+    isFloat: boolean = false,
   ): Promise<IFile> {
     const isFolder: boolean = (type === FolderContentType);
     if (!key && !isFolder) {
@@ -50,7 +51,8 @@ export class FileService {
       name,
       ownerID,
       size,
-      parent: folderID
+      isFloat,
+      parent: folderID,
     };
 
     // Create the file id by reversing key, and add ket and bucket.
@@ -265,6 +267,10 @@ export class FileService {
     }
 
     return ancestors.reverse();
+  }
+
+  public static async setFileFloat(fileID: string, isFloat: boolean): Promise<boolean> {
+    return await FilesRepository.updateById(fileID, { isFloat })
   }
 
   /**

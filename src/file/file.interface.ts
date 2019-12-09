@@ -15,7 +15,8 @@ export class PrimitiveFile
   createdAt?: Date | number;
   updatedAt?: Date | number;
   children?: PrimitiveFile[] = [];
-  [key: string]: string | number | ObjectID | Date | PrimitiveFile[];
+  isFloat: boolean = false;
+  [key: string]: string | number | ObjectID | Date | boolean | PrimitiveFile[];
 
   constructor(file: Partial<PrimitiveFile>) {
     this.id = file.id;
@@ -29,6 +30,7 @@ export class PrimitiveFile
     this.ownerID = file.ownerID;
     this.size = file.size;
     this.parent = file.parent;
+    this.isFloat = file.isFloat;
   }
 }
 export class IFile extends PrimitiveFile{
