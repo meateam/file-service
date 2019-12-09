@@ -17,6 +17,7 @@ service FileService {
   rpc IsAllowed(IsAllowedRequest) returns (IsAllowedResponse) {}
   rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse) {}
   rpc GetAncestors(GetAncestorsRequest) returns (GetAncestorsResponse) {}
+  rpc SetFileFloat(SetFileFloatRequest) returns (SetFileFloatResponse) {}
 }
 
 message CreateUploadRequest {
@@ -181,3 +182,10 @@ message GetAncestorsRequest {
 message GetAncestorsResponse {
   repeated string ancestors = 1;
 }
+
+message SetFileFloatRequest {
+  string id = 1;
+  bool float = 2;
+}
+
+message SetFileFloatResponse {}
