@@ -126,10 +126,10 @@ export class FileMethods {
 
   public static async SetFileFloat(call: any): Promise<void> {
     const fileID: string = call.request.id;
-    const isFloat: boolean = call.request.isFloat;
+    const float: boolean = call.request.float;
     if (!fileID) throw new IdInvalidError();
 
 
-    const result = await FileService.setFileFloat(fileID, isFloat);
+    const result = await FileService.setFileFloat(fileID, float);
   }
 }

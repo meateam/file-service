@@ -41,7 +41,7 @@ export const fileSchema: Schema = new Schema(
       type: String,
       required: false,
     },
-    isFloat: {
+    float: {
       type: Boolean,
       required: false,
       default: false,

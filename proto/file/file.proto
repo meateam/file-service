@@ -185,7 +185,7 @@ message GetAncestorsResponse {
 
 message SetFileFloatRequest {
   string id = 1;
-  bool isFloat = 2;
+  bool float = 2;
 }
 
 message SetFileFloatResponse {}
