@@ -309,7 +309,7 @@ export class FileService {
    * @returns the pure query for extracting from the database.
    */
   private static extractQuery(queryFile?: Partial<IFile>): Partial<IFile> {
-    const ignoreFields = ['size', 'createdAt', 'updatedAt', 'parent'];
+    const ignoreFields = ['size', 'createdAt', 'updatedAt', 'parent', 'float'];
     if (!queryFile) return {};
     const query: Partial<IFile> = {};
 
@@ -322,6 +322,10 @@ export class FileService {
 
     if (queryFile['parent']) {
       query['parent'] = queryFile['parent'] === 'null' ? null : queryFile['parent'];
+    }
+
+    if (queryFile['float'] != undefined) {
+      query['float'] = queryFile['float'];
     }
 
     for (const prop in queryFile) {
