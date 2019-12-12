@@ -96,9 +96,20 @@ function handleE11000(error: MongoError, _: any, next: NextFunction) {
 }
 
 fileSchema.pre('updateOne', async function (next: NextFunction) {
-  const query = this.getQuery();
+  const ownerID = this.getQuery().ownerID;
+
   const update = this.getUpdate();
-  const existingFile = await fileModel.findOne({name: query.name, parent: update.$set.parent});
+
+  const updatedParent = update.$set && update.$set.parent;
+  const updatedName = update.$set && update.$set.name;
+  const query: any = {name: updatedName, parent: updatedParent}
+  
+  if (!updatedParent) {
+    query.ownerID = ownerID;  
+  }
+
+  const existingFile = await fileModel.findOne(query);
+
   if (existingFile && existingFile.id != query._id.toString() && !existingFile.float) {
     next(new FileExistsWithSameName());
   } else {
@@ -107,7 +118,16 @@ fileSchema.pre('updateOne', async function (next: NextFunction) {
 });
 
 fileSchema.pre('save', async function (next: NextFunction) {
-  const existingFile = await fileModel.findOne({name: (<any>this).name, parent: (<any>this).parent});
+  const name = (<any>this).name;
+  const parent = (<any>this).parent;
+  const ownerID = (<any>this).ownerID;
+
+  const query: any = {name, parent};
+  if (!parent) {
+    query.ownerID = ownerID;
+  }
+
+  const existingFile = await fileModel.findOne(query);
   if (existingFile && !existingFile.float) {
     next(new FileExistsWithSameName());
   } else {
