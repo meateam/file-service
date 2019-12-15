@@ -84,6 +84,7 @@ export class FileServer {
       IsAllowed: wrapper(FileMethods.IsAllowed),
       UpdateFiles: wrapper(FileMethods.UpdateFiles),
       GetAncestors: wrapper(FileMethods.GetAncestors),
+      GetDescendantsByID: wrapper(FileMethods.GetDescendantsByID),
     };
 
     this.server.addService(file_proto.FileService.service, fileService);

@@ -269,8 +269,18 @@ export class FileService {
     return ancestors.reverse();
   }
 
-  public static async setFileFloat(fileID: string, float: boolean): Promise<boolean> {
-    return await FilesRepository.updateById(fileID, { float })
+  public static async getDescendantsByID(fileID: string): Promise<string[]> {
+    const filesQueue = [fileID];
+    const descendants: string[] = [];
+    while (filesQueue.length > 0) {
+      const currentFile = filesQueue.pop();
+      const fileDescendants = await this.getFilesByFolder(currentFile, null);
+      const mappedIds = fileDescendants.map(f => f.id);
+      descendants.push(...mappedIds);
+      filesQueue.push(...mappedIds);
+    }
+
+    return descendants;
   }
 
   /**

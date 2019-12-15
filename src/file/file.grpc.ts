@@ -93,7 +93,7 @@ export class FileMethods {
     return { files: resFiles };
   }
 
-    /**
+  /**
    * Retrieves all files residing in a given folder.
    * @param call
    */
@@ -103,6 +103,16 @@ export class FileMethods {
     const queryFile: ResFile = call.request.queryFile || {};
     const queryIFile = new IFile(queryFile);
     const files: ResFile[] = await FileService.getDescendantsByFolder(folderID, ownerID, queryIFile);
+    return { files };
+  }
+
+  public static async GetDescendantsByID(call: any): Promise<{files: string[]}> {
+    const folderID: string = call.request.id;
+
+    if (!folderID) throw new IdInvalidError();
+
+    const files: string[] = await FileService.getDescendantsByID(folderID);
+
     return { files };
   }
 
@@ -122,14 +132,5 @@ export class FileMethods {
     const ancestors = await FileService.getAncestors(fileID);
     
     return { ancestors };
-  }
-
-  public static async SetFileFloat(call: any): Promise<void> {
-    const fileID: string = call.request.id;
-    const float: boolean = call.request.float;
-    if (!fileID) throw new IdInvalidError();
-
-
-    const result = await FileService.setFileFloat(fileID, float);
   }
 }
