@@ -15,7 +15,7 @@
 			],
 			"env": {
 				"MONGO_HOST": "mongodb://localhost:27017/devDB",
-				"RPC_PORT": "8083",
+				"BIND_ADDRESS": "0.0.0.0:8083",
 			}
 		}
 	]

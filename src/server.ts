@@ -57,11 +57,11 @@ export class FileServer {
   public server: grpc.Server;
   public grpcHealthCheck: GrpcHealthCheck;
 
-  public constructor(port: string) {
+  public constructor(address: string) {
     this.server = new grpc.Server();
     this.addServices();
-    this.server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
-    log(Severity.INFO, `server listening on port: ${port}`, 'server bind');
+    this.server.bind(address, grpc.ServerCredentials.createInsecure());
+    log(Severity.INFO, `server listening on address: ${address}`, 'server bind');
   }
 
   private addServices() {
@@ -83,6 +83,7 @@ export class FileServer {
       DeleteFile: wrapper(FileMethods.DeleteFile),
       IsAllowed: wrapper(FileMethods.IsAllowed),
       UpdateFiles: wrapper(FileMethods.UpdateFiles),
+      GetAncestors: wrapper(FileMethods.GetAncestors),
     };
 
     this.server.addService(file_proto.FileService.service, fileService);

@@ -35,12 +35,20 @@ function getDB(confType: string) : DB {
   }
 }
 
-const esHost: string = process.env.LOGGER_ELASTICSEARCH || 'http://localhost:9200';
+// the port for binding the server
+export const bindAddress: string = process.env.BIND_ADDRESS || '0.0.0.0:8080';
+export const debugMode: boolean = process.env.DEBUG_MODE === 'true';
+
+const esHost: string = process.env.ELASTICSEARCH_URL || 'http://localhost:9200';
+const esUser: string = process.env.ELASTICSEARCH_USER || '';
+const esPass: string = process.env.ELASTICSEARCH_PASSWORD || '';
 export const confLogger = {
-  elasticsearch: esHost && {
-    hosts: esHost.split(','),
+  options: {
+    hosts: esHost && esHost.split(','),
+    // Might be auth instead, not sure.
+    httpAuth: `${esUser}:${esPass}`,
   },
-  indexPrefix: process.env.LOGGER_ELASTICSEARCH_PREFIX || 'kdrive',
+  indexPrefix: process.env.LOG_INDEX || 'kdrive',
 };
 
 // Used for the APM agent
@@ -50,12 +58,11 @@ export const verifyServerCert: boolean = process.env.ELASTIC_APM_VERIFY_SERVER_C
 export const apmURL: string = process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200';
 export const userQuotaLimit: string = process.env.USER_QUOTA_LIMIT || '10';
 
-// the port for binding the server
-export const rpcPort: string = process.env.RPC_PORT || '8080';
-
 export const nodeEnv: string = process.env.NODE_ENV || 'dev';
 export const database: DB = getDB(nodeEnv);
 
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
 export const mongoConnectionString : string =
   process.env.MONGO_HOST || `mongodb://${database.host}:27017/${database.name}`;
+export const connectionRetries : string = process.env.RECONNECT_ATTEMPTS || '5';
+export const reconnectTimeout : string = process.env.RECONNECT_TIMEOUT || '2000';

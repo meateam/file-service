@@ -16,6 +16,7 @@ service FileService {
   rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
   rpc IsAllowed(IsAllowedRequest) returns (IsAllowedResponse) {}
   rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse) {}
+  rpc GetAncestors(GetAncestorsRequest) returns (GetAncestorsResponse) {}
 }
 
 message CreateUploadRequest {
@@ -165,5 +166,18 @@ message UpdateFilesRequest {
 }
 
 message UpdateFilesResponse {
-  repeated string updated = 1;
+  repeated FailedFile failedFiles = 1;
+}
+
+message FailedFile {
+  string id = 1;
+  string error = 2;
+}
+
+message GetAncestorsRequest {
+  string id = 1;
+}
+
+message GetAncestorsResponse {
+  repeated string ancestors = 1;
 }

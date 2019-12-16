@@ -146,22 +146,18 @@ export class FileService {
    * updateMany updates a list of files.
    * @param files - List of files to update with their updated fields and their id.
    */
-  static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ updated: string[], failed: { id: string, error: Error }[] }> {
+  static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ id: string, error: Error }[]> {
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
     const failedFiles: { id: string, error: Error }[] = [];
-    const updatedFiles: string[] = [];
     for (let i = 0; i < idList.length; i++) {
       try {
-        const updatedFile = await this.updateById(idList[i], extractedPF);
-        if (updatedFile) {
-          updatedFiles.push(idList[i]);
-        }
+        await this.updateById(idList[i], extractedPF);
       } catch (e) {
         failedFiles.push({ id: idList[i], error: e });
       }
     }
 
-    return { updated: updatedFiles, failed: failedFiles };
+    return failedFiles;
   }
 
   /**
@@ -259,14 +255,16 @@ export class FileService {
    * If the file does not exists or its a root folder the return value is [].
    * @param fileID - the id of the file.
    */
-  private static async getAncestors(fileID: string): Promise<string[]> {
-    const file: IFile = await FilesRepository.getById(fileID);
-    if (!file || !file.parent) {
-      return [];
+  public static async getAncestors(fileID: string): Promise<string[]> {
+    const ancestors: string[] = [];
+    let file: IFile = await FilesRepository.getById(fileID);
+
+    while (file && file.parent && file.parent.toString()) {
+      ancestors.push(file.parent.toString());
+      file = await FilesRepository.getById(file.parent.toString());
     }
-    const parentID: string = (file.parent).toString();
-    const parentAncestors: string[] = await this.getAncestors(parentID);
-    return [parentID].concat(parentAncestors);
+
+    return ancestors.reverse();
   }
 
   /**
