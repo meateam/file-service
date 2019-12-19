@@ -82,8 +82,10 @@ export class FileService {
     return res.succeeded;
   }
 
-  public static deleteByID(fileID: string): Promise<IFile> {
-    return FilesRepository.deleteById(fileID);
+  public static async deleteByID(fileID: string): Promise<IFile> {
+    const file = await FilesRepository.deleteById(fileID);
+    await QuotaService.updateUsed(file.ownerID, -file.size);
+    return file
   }
 
   /**

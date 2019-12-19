@@ -116,14 +116,14 @@ export class FileMethods {
     return { files };
   }
 
-  public static async GetDescendantsByID(call: any): Promise<{file: IFile, parent: IFile}[]> {
+  public static async GetDescendantsByID(call: any): Promise<{ descendants: {file: IFile, parent: IFile}[] }> {
     const folderID: string = call.request.id;
 
     if (!folderID) throw new IdInvalidError();
 
     const descendants: {file: IFile, parent: IFile}[] = await FileService.getDescendantsByID(folderID);
 
-    return descendants;
+    return { descendants };
   }
 
   /**
