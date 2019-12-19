@@ -18,6 +18,7 @@ service FileService {
   rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse) {}
   rpc GetAncestors(GetAncestorsRequest) returns (GetAncestorsResponse) {}
   rpc GetDescendantsByID(GetDescendantsByIDRequest) returns (GetDescendantsByIDResponse) {}
+  rpc DeleteFileByID(DeleteFileByIDRequest) returns (DeleteFileByIDResponse) {}
 }
 
 message CreateUploadRequest {
@@ -189,5 +190,18 @@ message GetDescendantsByIDRequest {
 }
 
 message GetDescendantsByIDResponse {
-  repeated string files = 1;
+  message Descendant {
+    File file = 1;
+    File parent = 2;
+  }
+
+  repeated Descendant descendants = 1;
+}
+
+message DeleteFileByIDRequest {
+  string id = 1;
+}
+
+message DeleteFileByIDResponse {
+  File file = 1;
 }

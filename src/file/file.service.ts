@@ -82,6 +82,10 @@ export class FileService {
     return res.succeeded;
   }
 
+  public static deleteByID(fileID: string): Promise<IFile> {
+    return FilesRepository.deleteById(fileID);
+  }
+
   /**
    * Auxillary function for delete. recursively deletes files.
    * If a file could not be deleted, it does not delete its path.
@@ -269,14 +273,24 @@ export class FileService {
     return ancestors.reverse();
   }
 
-  public static async getDescendantsByID(fileID: string): Promise<string[]> {
+  public static async getDescendantsByID(fileID: string): Promise<{file: IFile, parent: IFile}[]> {
     const filesQueue = [fileID];
-    const descendants: string[] = [];
+    const descendants: {file: IFile, parent: IFile}[] = [];
     while (filesQueue.length > 0) {
       const currentFile = filesQueue.pop();
-      const fileDescendants = await this.getFilesByFolder(currentFile, null);
-      const mappedIds = fileDescendants.map(f => f.id);
-      descendants.push(...mappedIds);
+      const children = await this.getFilesByFolder(currentFile, null);
+      const childrenWithParents: {file: IFile, parent: IFile}[] = [];
+      for (let i = 0; i < children.length; i++) {
+        let parent = null;
+        if (children[i].parent) {
+          parent = await FilesRepository.getById(children[i].parent.toString());
+        }
+
+        childrenWithParents.push({ file: children[i], parent });
+      }
+      
+      const mappedIds = children.map(f => f.id);
+      descendants.push(...childrenWithParents);
       filesQueue.push(...mappedIds);
     }
 
