@@ -38,6 +38,7 @@ export class FileService {
     folderID: string = '',
     key: string | null = null,
     size: number = 0,
+    float: boolean = false,
   ): Promise<IFile> {
     const isFolder: boolean = (type === FolderContentType);
     if (!key && !isFolder) {
@@ -50,7 +51,8 @@ export class FileService {
       name,
       ownerID,
       size,
-      parent: folderID
+      float,
+      parent: folderID,
     };
 
     // Create the file id by reversing key, and add ket and bucket.
@@ -78,6 +80,12 @@ export class FileService {
   public static async delete(fileId: string): Promise<deleteRes[]> {
     const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.deleteRecursive(fileId, true);
     return res.succeeded;
+  }
+
+  public static async deleteByID(fileID: string): Promise<IFile> {
+    const file = await FilesRepository.deleteById(fileID);
+    await QuotaService.updateUsed(file.ownerID, -file.size);
+    return file
   }
 
   /**
@@ -267,6 +275,30 @@ export class FileService {
     return ancestors.reverse();
   }
 
+  public static async getDescendantsByID(fileID: string): Promise<{file: IFile, parent: IFile}[]> {
+    const filesQueue = [fileID];
+    const descendants: {file: IFile, parent: IFile}[] = [];
+    while (filesQueue.length > 0) {
+      const currentFile = filesQueue.pop();
+      const children = await this.getFilesByFolder(currentFile, null);
+      const childrenWithParents: {file: IFile, parent: IFile}[] = [];
+      for (let i = 0; i < children.length; i++) {
+        let parent = null;
+        if (children[i].parent) {
+          parent = await FilesRepository.getById(children[i].parent.toString());
+        }
+
+        childrenWithParents.push({ file: children[i], parent });
+      }
+      
+      const mappedIds = children.map(f => f.id);
+      descendants.push(...childrenWithParents);
+      filesQueue.push(...mappedIds);
+    }
+
+    return descendants;
+  }
+
   /**
    * Returns true if the folder is an ancestor of the file
    * @param fileID - the file id
@@ -303,7 +335,7 @@ export class FileService {
    * @returns the pure query for extracting from the database.
    */
   private static extractQuery(queryFile?: Partial<IFile>): Partial<IFile> {
-    const ignoreFields = ['size', 'createdAt', 'updatedAt', 'parent'];
+    const ignoreFields = ['size', 'createdAt', 'updatedAt', 'parent', 'float'];
     if (!queryFile) return {};
     const query: Partial<IFile> = {};
 
@@ -316,6 +348,10 @@ export class FileService {
 
     if (queryFile['parent']) {
       query['parent'] = queryFile['parent'] === 'null' ? null : queryFile['parent'];
+    }
+
+    if (queryFile['float'] != undefined) {
+      query['float'] = queryFile['float'];
     }
 
     for (const prop in queryFile) {

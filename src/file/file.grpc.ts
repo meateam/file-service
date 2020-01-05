@@ -44,6 +44,16 @@ export class FileMethods {
   }
 
   /**
+   * Deletes a file, according to the file deletion policy.
+   * @param call
+   */
+  public static async DeleteFileByID(call: any): Promise<{ file: IFile }> {
+    const id: string = call.request.id;
+    const file: IFile = await FileService.deleteByID(id);
+    return { file };
+  }
+
+  /**
    * UpdateFiles updates a list of files and responses with a list of the files' id
    * which succeeded the operation.
    */
@@ -93,7 +103,7 @@ export class FileMethods {
     return { files: resFiles };
   }
 
-    /**
+  /**
    * Retrieves all files residing in a given folder.
    * @param call
    */
@@ -104,6 +114,16 @@ export class FileMethods {
     const queryIFile = new IFile(queryFile);
     const files: ResFile[] = await FileService.getDescendantsByFolder(folderID, ownerID, queryIFile);
     return { files };
+  }
+
+  public static async GetDescendantsByID(call: any): Promise<{ descendants: {file: IFile, parent: IFile}[] }> {
+    const folderID: string = call.request.id;
+
+    if (!folderID) throw new IdInvalidError();
+
+    const descendants: {file: IFile, parent: IFile}[] = await FileService.getDescendantsByID(folderID);
+
+    return { descendants };
   }
 
   /**

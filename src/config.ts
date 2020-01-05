@@ -61,6 +61,8 @@ export const userQuotaLimit: string = process.env.USER_QUOTA_LIMIT || '10';
 export const nodeEnv: string = process.env.NODE_ENV || 'dev';
 export const database: DB = getDB(nodeEnv);
 
+export const autoIndex: string = process.env.FS_AUTO_INDEX || 'false'
+
 // example: 'mongodb://user:pw@host1.com:27017,host2.com:27017,host3.com:27017/testdb'
 export const mongoConnectionString : string =
   process.env.MONGO_HOST || `mongodb://${database.host}:27017/${database.name}`;

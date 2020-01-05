@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { HealthCheckResponse } from 'grpc-ts-health-check';
 import { FileServer, serviceNames } from './server';
-import { mongoConnectionString, bindAddress, connectionRetries, reconnectTimeout } from './config';
+import { mongoConnectionString, bindAddress, connectionRetries, reconnectTimeout, autoIndex } from './config';
 import { log, Severity, getCurrTraceId } from './utils/logger';
 
 // Ensures you don't run the server twice
@@ -71,7 +71,7 @@ async function connect(): Promise<{success: boolean, error: Error}> {
   let error: Error = null;
   await mongoose.connect(
     mongoConnectionString,
-    { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false },
+    { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false, autoIndex: autoIndex == 'true' },
     async (err) => {
       if (!err) {
         success = true;
