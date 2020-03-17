@@ -44,7 +44,7 @@
     "grpc": "^1.21.1",
     "grpc-ts-health-check": "^1.0.14",
     "lodash": "^4.17.15",
-    "mocha": "^6.1.4",
+    "mocha": "^6.2.1",
     "mongoose": "^5.5.7",
     "nyc": "^14.1.1",
     "request": "^2.88.0",
