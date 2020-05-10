@@ -85,7 +85,7 @@ export class FileService {
   public static async deleteByID(fileID: string): Promise<IFile> {
     const file = await FilesRepository.deleteById(fileID);
     await QuotaService.updateUsed(file.ownerID, -file.size);
-    return file
+    return file;
   }
 
   /**
@@ -288,9 +288,9 @@ export class FileService {
           parent = await FilesRepository.getById(children[i].parent.toString());
         }
 
-        childrenWithParents.push({ file: children[i], parent });
+        childrenWithParents.push({ parent, file: children[i] });
       }
-      
+
       const mappedIds = children.map(f => f.id);
       descendants.push(...childrenWithParents);
       filesQueue.push(...mappedIds);
