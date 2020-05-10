@@ -15,6 +15,7 @@ export class PrimitiveFile
   createdAt?: Date | number;
   updatedAt?: Date | number;
   children?: PrimitiveFile[] = [];
+  appID?: string;
   float: boolean = false;
   [key: string]: string | number | ObjectID | Date | boolean | PrimitiveFile[];
 

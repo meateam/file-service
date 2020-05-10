@@ -86,6 +86,7 @@ export class FileServer {
       GetAncestors: wrapper(FileMethods.GetAncestors),
       GetDescendantsByID: wrapper(FileMethods.GetDescendantsByID),
       DeleteFileByID: wrapper(FileMethods.DeleteFileByID),
+      GetAppIDByFileID: wrapper(FileMethods.GetAppIDByFileID),
     };
 
     this.server.addService(file_proto.FileService.service, fileService);

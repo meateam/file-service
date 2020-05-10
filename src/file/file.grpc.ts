@@ -58,7 +58,7 @@ export class FileMethods {
    * which succeeded the operation.
    */
   public static async UpdateFiles(call: ServerUnaryCall<{ partialFile: Partial<IFile>, idList: string[] }>)
-  : Promise<{ failedFiles: FailedFile[] }> {
+    : Promise<{ failedFiles: FailedFile[] }> {
     const failed: { id: string, error: Error }[] = await FileService.updateMany(call.request.idList, call.request.partialFile);
     const traceID: string = getCurrTraceId();
     const failedFiles: FailedFile[] = [];
@@ -103,6 +103,16 @@ export class FileMethods {
     return { files: resFiles };
   }
 
+    /**
+   * Retrieves the app id by the file id.
+   * @param call
+   */
+  public static async GetAppIDByFileID(call: any): Promise<{ appID: string }> {
+    const fileID: string = call.request.fileID;
+    const resFile: IFile = await FileService.getById(fileID);
+    return { appID: resFile.appID };
+  }
+
   /**
    * Retrieves all files residing in a given folder.
    * @param call
@@ -116,19 +126,19 @@ export class FileMethods {
     return { files };
   }
 
-  public static async GetDescendantsByID(call: any): Promise<{ descendants: {file: ResFile, parent: ResFile}[] }> {
+  public static async GetDescendantsByID(call: any): Promise<{ descendants: { file: ResFile, parent: ResFile }[] }> {
     const folderID: string = call.request.id;
 
     if (!folderID) throw new IdInvalidError();
 
-    const descendants: {file: IFile, parent: IFile}[] = await FileService.getDescendantsByID(folderID);
-    const ResFileDescendants: {file: ResFile, parent: ResFile}[] = descendants.map(e => {
+    const descendants: { file: IFile, parent: IFile }[] = await FileService.getDescendantsByID(folderID);
+    const ResFileDescendants: { file: ResFile, parent: ResFile }[] = descendants.map(e => {
       return {
         file: new ResFile(e.file),
         parent: new ResFile(e.parent),
-      }
+      };
     });
-    
+
     return { descendants: ResFileDescendants };
   }
 
@@ -138,15 +148,15 @@ export class FileMethods {
    */
   public static async IsAllowed(call: any): Promise<{ allowed: boolean }> {
     const res: boolean = await FileService.isOwner(call.request.fileID, call.request.userID);
-    return  { allowed: res };
+    return { allowed: res };
   }
 
-  public static async GetAncestors(call: any): Promise<{ancestors: string[]}> {
+  public static async GetAncestors(call: any): Promise<{ ancestors: string[] }> {
     const fileID: string = call.request.id;
     if (!fileID) throw new IdInvalidError();
 
     const ancestors = await FileService.getAncestors(fileID);
-    
+
     return { ancestors };
   }
 }

@@ -28,6 +28,10 @@ export const fileSchema: Schema = new Schema(
       type: String,
       required: true,
     },
+    appID: {
+      type: String,
+      required: false,
+    },
     size: {
       type: Number,
       default: 0,
@@ -88,7 +92,7 @@ fileSchema.virtual('fullExtension')
 function handleE11000(error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
     next(new UniqueIndexExistsError(error.message));
-  } else if (error.name === "INVALID_ARGUMENT") {
+  } else if (error.name === 'INVALID_ARGUMENT') {
     next(error);
   } else {
     next();
@@ -102,10 +106,10 @@ fileSchema.pre('updateOne', async function (next: NextFunction) {
 
   const updatedParent = update.$set && update.$set.parent;
   const updatedName = update.$set && update.$set.name;
-  const query: any = {name: updatedName, parent: updatedParent}
-  
+  const query: any = { name: updatedName, parent: updatedParent };
+
   if (!updatedParent) {
-    query.ownerID = ownerID;  
+    query.ownerID = ownerID;
   }
 
   const existingFile = await fileModel.findOne(query);
@@ -122,7 +126,7 @@ fileSchema.pre('save', async function (next: NextFunction) {
   const parent = (<any>this).parent;
   const ownerID = (<any>this).ownerID;
 
-  const query: any = {name, parent};
+  const query: any = { name, parent };
   if (!parent) {
     query.ownerID = ownerID;
   }

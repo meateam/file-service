@@ -6,6 +6,7 @@
       "max-line-length": false,   // 18.12.18
       "function-name": false,     // 4.7.19
       "variable-name": [true, "ban-keywords", "check-format", "allow-snake-case", "allow-leading-underscore", "allow-pascal-case"],
-      "trailing-comma" : false
+      "trailing-comma" : false,
+      "ter-arrow-parens": false
     }
   }
