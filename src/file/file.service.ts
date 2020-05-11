@@ -37,7 +37,8 @@ export class FileService {
     type: string,
     folderID: string = '',
     key: string | null = null,
-    size: number = 0,
+    appID: string | null = null,
+    size: number,
     float: boolean = false,
   ): Promise<IFile> {
     const isFolder: boolean = (type === FolderContentType);
@@ -52,8 +53,13 @@ export class FileService {
       ownerID,
       size,
       float,
+      appID,
       parent: folderID,
     };
+
+    if (!appID) {
+      delete basicFile.appID;
+    }
 
     // Create the file id by reversing key, and add ket and bucket.
     if (key && bucket) {
@@ -275,13 +281,13 @@ export class FileService {
     return ancestors.reverse();
   }
 
-  public static async getDescendantsByID(fileID: string): Promise<{file: IFile, parent: IFile}[]> {
+  public static async getDescendantsByID(fileID: string): Promise<{ file: IFile, parent: IFile }[]> {
     const filesQueue = [fileID];
-    const descendants: {file: IFile, parent: IFile}[] = [];
+    const descendants: { file: IFile, parent: IFile }[] = [];
     while (filesQueue.length > 0) {
       const currentFile = filesQueue.pop();
       const children = await this.getFilesByFolder(currentFile, null);
-      const childrenWithParents: {file: IFile, parent: IFile}[] = [];
+      const childrenWithParents: { file: IFile, parent: IFile }[] = [];
       for (let i = 0; i < children.length; i++) {
         let parent = null;
         if (children[i].parent) {

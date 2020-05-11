@@ -31,6 +31,7 @@ export const fileSchema: Schema = new Schema(
     appID: {
       type: String,
       required: false,
+      default: undefined,
     },
     size: {
       type: Number,

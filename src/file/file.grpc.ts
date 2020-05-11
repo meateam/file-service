@@ -28,6 +28,7 @@ export class FileMethods {
       params.type,
       params.parent,
       params.key,
+      params.appID,
       parseInt(params.size, 10),
     );
     return new ResFile(createdFile);
@@ -101,16 +102,6 @@ export class FileMethods {
     const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID, new IFile(queryFile));
     const resFiles: ResFile[] = files.length ? files.map(file => new ResFile(file)) : [];
     return { files: resFiles };
-  }
-
-    /**
-   * Retrieves the app id by the file id.
-   * @param call
-   */
-  public static async GetAppIDByFileID(call: any): Promise<{ appID: string }> {
-    const fileID: string = call.request.fileID;
-    const resFile: IFile = await FileService.getById(fileID);
-    return { appID: resFile.appID };
   }
 
   /**

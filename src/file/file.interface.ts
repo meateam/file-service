@@ -1,6 +1,5 @@
 import { ObjectID } from 'mongodb';
-export class PrimitiveFile
-{
+export class PrimitiveFile {
   id?: string;
   key?: string;
   bucket?: string;
@@ -32,9 +31,10 @@ export class PrimitiveFile
     this.size = file.size;
     this.parent = file.parent;
     this.float = file.float;
+    this.appID = file.appID;
   }
 }
-export class IFile extends PrimitiveFile{
+export class IFile extends PrimitiveFile {
   children?: IFile[] = undefined;
   createdAt?: Date;
   updatedAt?: Date;
@@ -50,7 +50,7 @@ export class IFile extends PrimitiveFile{
       this.updatedAt = new Date(+resFile.updatedAt);
     }
     if (resFile.children) {
-      for (let i = 0 ; i < resFile.children.length ; i++) {
+      for (let i = 0; i < resFile.children.length; i++) {
         new IFile(resFile.children[i]);
       }
     }
@@ -69,7 +69,7 @@ export class ResFile extends PrimitiveFile {
     this.createdAt = file.createdAt.getTime();
     this.updatedAt = file.updatedAt.getTime();
     if (file.children) {
-      for (let i = 0 ; i < file.children.length ; i++) {
+      for (let i = 0; i < file.children.length; i++) {
         new ResFile(file.children[i]);
       }
     }

@@ -18,7 +18,6 @@ service FileService {
   rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse) {}
   rpc GetAncestors(GetAncestorsRequest) returns (GetAncestorsResponse) {}
   rpc GetDescendantsByID(GetDescendantsByIDRequest) returns (GetDescendantsByIDResponse) {}
-  rpc GetAppIDByFileID(GetAppIDByFileIDRequest) returns (GetAppIDByFileIDResponse) {}
   rpc DeleteFileByID(DeleteFileByIDRequest) returns (DeleteFileByIDResponse) {}
 }
 
@@ -50,14 +49,6 @@ message UpdateUploadIDRequest {
 
 message UpdateUploadIDResponse {
 
-}
-
-message GetAppIDByFileIDRequest {
-  string fileID = 1;
-}
-
-message GetAppIDByFileIDResponse {
-  string appID = 1;
 }
 
 
@@ -116,6 +107,7 @@ message CreateFileRequest {
   string ownerID = 5;
   string bucket = 6;
   string parent = 7;
+  string appID = 8;
 }
 
 message DeleteFileRequest {
@@ -171,6 +163,7 @@ message File {
   int64 updatedAt = 12;
   repeated File children = 13; 
   bool float = 14;
+  string appID = 15;
 }
 
 message UpdateFilesRequest {
