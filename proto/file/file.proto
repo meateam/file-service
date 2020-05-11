@@ -73,6 +73,8 @@ message DeleteUploadByIDResponse {
 
 message GetByFileByIDRequest {
   string id = 1;
+  string appID = 2;
+  bool filterByApp= 3;
 }
 
 message GetFileByKeyRequest {

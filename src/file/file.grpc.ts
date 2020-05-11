@@ -3,7 +3,7 @@ import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { getDisplayError } from './../utils/errors/error.helper';
-import { IdInvalidError } from './../utils/errors/client.error';
+import { IdInvalidError, FileNotFoundError } from './../utils/errors/client.error';
 
 interface FailedFile {
   id: string;
@@ -77,7 +77,10 @@ export class FileMethods {
    */
   public static async GetFileByID(call: any): Promise<ResFile> {
     const id: string = call.request.id;
+    const appID: string = call.request.appID;
+    const filterByApp: Boolean = call.request.filterByApp;
     const file: IFile = await FileService.getById(id);
+    if (filterByApp && file.appID !== appID) throw new FileNotFoundError();
     return new ResFile(file);
   }
 
