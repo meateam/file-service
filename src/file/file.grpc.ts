@@ -3,6 +3,7 @@ import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { getDisplayError } from './../utils/errors/error.helper';
+import { driveAppID } from '../config';
 import { IdInvalidError, FileNotFoundError } from './../utils/errors/client.error';
 
 interface FailedFile {
@@ -79,7 +80,8 @@ export class FileMethods {
     const id: string = call.request.id;
     const appID: string | undefined = call.request.appID || undefined;
     const file: IFile = await FileService.getById(id);
-    if (appID && file.appID !== appID) throw new FileNotFoundError();
+    // if the appID exists in the request, and the file appID equal the recived appID, or the appID is drive and the file appID isn`t empty the 
+    if ((appID && file.appID !== appID) || (appID === driveAppID && file.appID)) throw new FileNotFoundError();
     return new ResFile(file);
   }
 
