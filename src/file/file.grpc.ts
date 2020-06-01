@@ -78,10 +78,7 @@ export class FileMethods {
    */
   public static async GetFileByID(call: any): Promise<ResFile> {
     const id: string = call.request.id;
-    const appID: string | undefined = call.request.appID || undefined;
     const file: IFile = await FileService.getById(id);
-    // if the appID exists in the request, and the file appID equal the recived appID, or the appID is drive and the file appID isn`t empty the 
-    if ((appID && file.appID !== appID) || (appID === driveAppID && file.appID)) throw new FileNotFoundError();
     return new ResFile(file);
   }
 
