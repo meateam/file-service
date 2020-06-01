@@ -57,10 +57,6 @@ export class FileService {
       parent: folderID,
     };
 
-    if (!appID) {
-      delete basicFile.appID;
-    }
-
     // Create the file id by reversing key, and add ket and bucket.
     if (key && bucket) {
       basicFile = { ...basicFile, bucket, key };
