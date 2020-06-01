@@ -25,7 +25,7 @@ export class QuotaMethods {
       Promise<{ success: boolean }> {
 
     const ownerID: string = call.request.ownerID;
-    const size: number = call.request.size;
+    const size: number = call.request.size ;
     const quota: IQuota = await QuotaService.updateUsed(ownerID, size);
     const success: boolean = (quota ? true : false);
     return { success };
