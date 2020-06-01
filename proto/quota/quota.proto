@@ -5,6 +5,7 @@ package quota;
 service QuotaService {
     rpc IsAllowedToGetQuota(IsAllowedToGetQuotaRequest) returns (IsAllowedToGetQuotaResponse) {}
     rpc GetOwnerQuota(GetOwnerQuotaRequest) returns (GetOwnerQuotaResponse) {}
+    rpc UpdateQuota(UpdateQuotaRequest) returns (UpdateQuotaResponse) {}
 }
 
 message IsAllowedToGetQuotaRequest {
@@ -24,4 +25,13 @@ message IsAllowedToGetQuotaRequest {
     string ownerID = 1;
     int64 limit = 2;
     int64 used = 3;
+  }
+
+  message UpdateQuotaRequest {
+    string ownerID = 1;
+    int64 size = 2;
+  }
+  
+  message UpdateQuotaResponse {
+    bool success = 1; 
   }
