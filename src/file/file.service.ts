@@ -38,7 +38,7 @@ export class FileService {
     folderID: string = '',
     key: string | null = null,
     appID: string | null = null,
-    size: number,
+    size: number = 0,
     float: boolean = false,
   ): Promise<IFile> {
     const isFolder: boolean = (type === FolderContentType);

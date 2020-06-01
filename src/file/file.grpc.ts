@@ -3,8 +3,7 @@ import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { getDisplayError } from './../utils/errors/error.helper';
-import { driveAppID } from '../config';
-import { IdInvalidError, FileNotFoundError } from './../utils/errors/client.error';
+import { IdInvalidError } from './../utils/errors/client.error';
 
 interface FailedFile {
   id: string;

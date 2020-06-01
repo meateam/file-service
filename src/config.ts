@@ -68,5 +68,3 @@ export const mongoConnectionString : string =
   process.env.MONGO_HOST || `mongodb://${database.host}:27017/${database.name}`;
 export const connectionRetries : string = process.env.RECONNECT_ATTEMPTS || '5';
 export const reconnectTimeout : string = process.env.RECONNECT_TIMEOUT || '2000';
-
-export const driveAppID: string = process.env.DRIVE_APP_ID || 'Drive';
