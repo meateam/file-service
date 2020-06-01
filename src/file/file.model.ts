@@ -28,6 +28,10 @@ export const fileSchema: Schema = new Schema(
       type: String,
       required: true,
     },
+    appID: {
+      type: String,
+      required: true,
+    },
     size: {
       type: Number,
       default: 0,
