@@ -37,7 +37,7 @@ export class FileService {
     type: string,
     folderID: string = '',
     key: string | null = null,
-    appID: string | null = null,
+    appID: string,
     size: number = 0,
     float: boolean = false,
   ): Promise<IFile> {
