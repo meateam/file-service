@@ -1,9 +1,10 @@
 import { ObjectID } from 'mongodb';
 import FilesRepository from '../file/file.repository';
-import { FileExistsWithSameName, UploadNotFoundError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UploadNotFoundError, FileNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { UploadRepository } from '../upload/upload.repository';
 import { QuotaService } from '../quota/quota.service';
+import { IFile } from 'src/file/file.interface';
 
 /**
  * Explanation about upload fields:
@@ -44,6 +45,37 @@ export class UploadService {
     }
 
     const createdUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size });
+    if (createdUpload) {
+      await QuotaService.updateUsed(ownerID, size);
+    }
+
+    return createdUpload;
+  }
+
+  /**
+   * Creates a new upload object and adds it to the DB.
+   * @param key - file key
+   * @param bucket - is the s3 bucket in the storage
+   * @param name - of the file uploaded
+   * @param ownerID - the id of the file owner
+   * @param parent - the folder id in which the file resides
+   * @param size - the size of the file that is being uploaded.
+   */
+  public static async createUpdate(
+    key: string,
+    bucket: string,
+    name: string,
+    ownerID: string,
+    parent: string,
+    size: number = 0,
+    ) : Promise<IUpload> {
+
+    const file: IFile = await FilesRepository.getFileInFolderByName(parent, name, ownerID);
+    if (!file) {
+      throw new FileNotFoundError();
+    }
+
+    const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size });
     if (createdUpload) {
       await QuotaService.updateUsed(ownerID, size);
     }
