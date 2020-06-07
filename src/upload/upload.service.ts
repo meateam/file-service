@@ -75,9 +75,14 @@ export class UploadService {
       throw new FileNotFoundError();
     }
 
-    const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size });
+    let sizeCalculated: number = 0;
+    if (file.size > size) {
+      sizeCalculated = file.size - size;
+    }
+
+    const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated });
     if (createdUpload) {
-      await QuotaService.updateUsed(ownerID, size);
+      await QuotaService.updateUsed(ownerID, sizeCalculated);
     }
 
     return createdUpload;
