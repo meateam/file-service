@@ -28,6 +28,7 @@ message CreateUploadRequest {
   string ownerID = 3;
   string parent = 4;
   int64 size = 5;
+  bool isUpdate = 6;
 }
 
 message CreateUpdateRequest {
@@ -37,6 +38,7 @@ message CreateUpdateRequest {
   string ownerID = 4;
   string parent = 5;
   int64 size = 6;
+  bool isUpdate = 7;
 }
 
 // Use for both upload and update
@@ -61,7 +63,6 @@ message UpdateUploadIDRequest {
 message UpdateUploadIDResponse {
 
 }
-
 
 message GetUploadByIDRequest {
   string uploadID = 1;
@@ -118,7 +119,6 @@ message CreateFileRequest {
   string ownerID = 5;
   string bucket = 6;
   string parent = 7;
-  string appID = 8;
 }
 
 message DeleteFileRequest {
@@ -174,7 +174,6 @@ message File {
   int64 updatedAt = 12;
   repeated File children = 13; 
   bool float = 14;
-  string appID = 15;
 }
 
 message UpdateFilesRequest {

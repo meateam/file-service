@@ -4,7 +4,7 @@ import { FileExistsWithSameName, UploadNotFoundError, FileNotFoundError } from '
 import { IUpload } from '../upload/upload.interface';
 import { UploadRepository } from '../upload/upload.repository';
 import { QuotaService } from '../quota/quota.service';
-import { IFile } from 'src/file/file.interface';
+import { IFile } from '../file/file.interface';
 
 /**
  * Explanation about upload fields:

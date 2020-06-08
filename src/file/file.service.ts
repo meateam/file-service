@@ -37,7 +37,6 @@ export class FileService {
     type: string,
     folderID: string = '',
     key: string | null = null,
-    appID: string,
     size: number = 0,
     float: boolean = false,
   ): Promise<IFile> {
@@ -53,7 +52,6 @@ export class FileService {
       ownerID,
       size,
       float,
-      appID,
       parent: folderID,
     };
 
@@ -87,7 +85,7 @@ export class FileService {
   public static async deleteByID(fileID: string): Promise<IFile> {
     const file = await FilesRepository.deleteById(fileID);
     await QuotaService.updateUsed(file.ownerID, -file.size);
-    return file;
+    return file
   }
 
   /**
@@ -277,22 +275,22 @@ export class FileService {
     return ancestors.reverse();
   }
 
-  public static async getDescendantsByID(fileID: string): Promise<{ file: IFile, parent: IFile }[]> {
+  public static async getDescendantsByID(fileID: string): Promise<{file: IFile, parent: IFile}[]> {
     const filesQueue = [fileID];
-    const descendants: { file: IFile, parent: IFile }[] = [];
+    const descendants: {file: IFile, parent: IFile}[] = [];
     while (filesQueue.length > 0) {
       const currentFile = filesQueue.pop();
       const children = await this.getFilesByFolder(currentFile, null);
-      const childrenWithParents: { file: IFile, parent: IFile }[] = [];
+      const childrenWithParents: {file: IFile, parent: IFile}[] = [];
       for (let i = 0; i < children.length; i++) {
         let parent = null;
         if (children[i].parent) {
           parent = await FilesRepository.getById(children[i].parent.toString());
         }
 
-        childrenWithParents.push({ parent, file: children[i] });
+        childrenWithParents.push({ file: children[i], parent });
       }
-
+      
       const mappedIds = children.map(f => f.id);
       descendants.push(...childrenWithParents);
       filesQueue.push(...mappedIds);
