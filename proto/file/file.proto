@@ -72,6 +72,7 @@ message GetUploadByIDResponse {
   string uploadID = 3;
   string name = 4;
   bool isUpdate = 5;
+  string fileID = 6;
 }
 
 message DeleteUploadByIDRequest {
