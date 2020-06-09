@@ -44,7 +44,7 @@ export class UploadService {
       throw new FileExistsWithSameName();
     }
 
-    const createdUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size });
+    const createdUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size, isUpdate: false });
     if (createdUpload) {
       await QuotaService.updateUsed(ownerID, size);
     }
@@ -80,7 +80,7 @@ export class UploadService {
       sizeCalculated = file.size - size;
     }
 
-    const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated });
+    const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true });
     if (createdUpload) {
       await QuotaService.updateUsed(ownerID, sizeCalculated);
     }
