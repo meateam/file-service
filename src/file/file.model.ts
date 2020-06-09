@@ -87,8 +87,8 @@ fileSchema.virtual('fullExtension')
  */
 function handleE11000(error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    next(new UniqueIndexExistsError(error.message));
-  } else if (error.name === "INVALID_ARGUMENT") {
+    next(new UniqueIndexExistsError(error.message || error.errmsg));
+  } else if (error.name === 'INVALID_ARGUMENT') {
     next(error);
   } else {
     next();
@@ -102,10 +102,10 @@ fileSchema.pre('updateOne', async function (next: NextFunction) {
 
   const updatedParent = update.$set && update.$set.parent;
   const updatedName = update.$set && update.$set.name;
-  const query: any = {name: updatedName, parent: updatedParent}
-  
+  const query: any = { name: updatedName, parent: updatedParent };
+
   if (!updatedParent) {
-    query.ownerID = ownerID;  
+    query.ownerID = ownerID;
   }
 
   const existingFile = await fileModel.findOne(query);
@@ -122,7 +122,7 @@ fileSchema.pre('save', async function (next: NextFunction) {
   const parent = (<any>this).parent;
   const ownerID = (<any>this).ownerID;
 
-  const query: any = {name, parent};
+  const query: any = { name, parent };
   if (!parent) {
     query.ownerID = ownerID;
   }
@@ -143,7 +143,7 @@ fileSchema.post('insertMany', handleE11000);
 
 fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
-    next(new ServerError(error.message));
+    next(new ServerError(error.message || error.errmsg));
   }
   next(error);
 });
