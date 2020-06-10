@@ -42,7 +42,7 @@ export const uploadSchema: Schema = new Schema(
       required: false,
       default: false
     },
-    fileId: {
+    fileID: {
       type: String,
       required: false
     }

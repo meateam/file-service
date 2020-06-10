@@ -7,7 +7,7 @@ export interface IUpload {
   size: number;
   ownerID: string;
   isUpdate?: boolean;
-  fileId?: string;
+  fileID?: string;
   parent?: string;
   createdAt?: Date;
   updatedAt?: Date;

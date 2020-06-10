@@ -80,7 +80,7 @@ export class UploadService {
       sizeCalculated = file.size - size;
     }
 
-    const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true, fileId: file.id });
+    const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true, fileID: file.id });
     if (createdUpload) {
       await QuotaService.updateUsed(ownerID, sizeCalculated);
     }
