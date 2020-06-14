@@ -76,8 +76,8 @@ export class UploadService {
     }
 
     let sizeCalculated: number = 0;
-    if (file.size > size) {
-      sizeCalculated = file.size - size;
+    if (file.size < size) {
+      sizeCalculated = size - file.size;
     }
 
     const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true, fileID: file.id });

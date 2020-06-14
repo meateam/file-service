@@ -23,7 +23,7 @@ export class UploadMethods {
 
   // Creates an upload object, present while updateing a file.
   public static async CreateUpdate(call: any, callback: any): Promise<IUpload> {
-    const key: string = call.request.key;
+    const key: string = UploadService.generateKey();
     const bucket: string = call.request.bucket;
     const name: string = call.request.name;
     const ownerID: string = call.request.ownerID;

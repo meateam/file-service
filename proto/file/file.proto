@@ -31,7 +31,6 @@ message CreateUploadRequest {
 }
 
 message CreateUpdateRequest {
-  string key =1;
   string bucket = 2;
   string name = 3;
   string ownerID = 4;
@@ -39,7 +38,7 @@ message CreateUpdateRequest {
   int64 size = 6;
 }
 
-// Use for both upload and update
+// Used for both upload and update
 message CreateUploadResponse {
   string key = 1;
   string bucket = 2;

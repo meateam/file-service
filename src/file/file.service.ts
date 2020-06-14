@@ -129,7 +129,12 @@ export class FileService {
       const parentID: string = partialFile['parent'].toString();
       await this.checkAdoption(fileId, parentID);
     }
-    return FilesRepository.updateById(fileId, partialFile);
+    const file: IFile = await FilesRepository.getById(fileId);
+    const updated: boolean = await FilesRepository.updateById(fileId, partialFile);
+    if (updated) {
+      await QuotaService.updateUsed(file.ownerID, partialFile.size - file.size);
+    }
+    return updated
   }
 
   /**
