@@ -129,12 +129,22 @@ export class FileService {
       const parentID: string = partialFile['parent'].toString();
       await this.checkAdoption(fileId, parentID);
     }
-    const file: IFile = await FilesRepository.getById(fileId);
-    const updated: boolean = await FilesRepository.updateById(fileId, partialFile);
-    if (updated) {
-      await QuotaService.updateUsed(file.ownerID, partialFile.size - file.size);
+    if (partialFile.size) {
+        this.updateQuota(fileId, partialFile.size);
     }
-    return updated
+    return await FilesRepository.updateById(fileId, partialFile);
+  }
+
+  /**
+   * Update a file quota using a subtract between new file size to the old file size.
+   * @param fileId - the id of the file.
+   * @param size - the size of the new file.
+   */
+  public static async updateQuota(fileId: string, size: number) {
+    const file: IFile = await FilesRepository.getById(fileId);
+    if(file) {
+      await QuotaService.updateUsed(file.ownerID, size - file.size);
+    }
   }
 
   /**
@@ -280,13 +290,13 @@ export class FileService {
     return ancestors.reverse();
   }
 
-  public static async getDescendantsByID(fileID: string): Promise<{file: IFile, parent: IFile}[]> {
+  public static async getDescendantsByID(fileID: string): Promise<{ file: IFile, parent: IFile }[]> {
     const filesQueue = [fileID];
-    const descendants: {file: IFile, parent: IFile}[] = [];
+    const descendants: { file: IFile, parent: IFile }[] = [];
     while (filesQueue.length > 0) {
       const currentFile = filesQueue.pop();
       const children = await this.getFilesByFolder(currentFile, null);
-      const childrenWithParents: {file: IFile, parent: IFile}[] = [];
+      const childrenWithParents: { file: IFile, parent: IFile }[] = [];
       for (let i = 0; i < children.length; i++) {
         let parent = null;
         if (children[i].parent) {
@@ -295,7 +305,7 @@ export class FileService {
 
         childrenWithParents.push({ file: children[i], parent });
       }
-      
+
       const mappedIds = children.map(f => f.id);
       descendants.push(...childrenWithParents);
       filesQueue.push(...mappedIds);

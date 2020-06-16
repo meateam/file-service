@@ -53,7 +53,7 @@ export class UploadService {
   }
 
   /**
-   * Creates a new upload object and adds it to the DB.
+   * Creates a new upload object and adds it to the DB. // TODO
    * @param key - file key
    * @param bucket - is the s3 bucket in the storage
    * @param name - of the file uploaded

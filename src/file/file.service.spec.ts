@@ -215,7 +215,7 @@ describe('File Logic', () => {
     it('should throw error: same owner, folder and filename', async () => {
       await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
       await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
-      .should.eventually.be.rejectedWith(UniqueIndexExistsError);
+      .should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
 
     it('should not throw error: same folder and filename, different owner', async () => {
@@ -285,7 +285,7 @@ describe('File Logic', () => {
       const folder1: IFile = await FileService.create(
         null, 'folder1', USER.id, FolderContentType, parent.id);
       const folder2: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, parent.id).should.eventually.be.rejectedWith(UniqueIndexExistsError);
+        null, 'folder1', USER.id, FolderContentType, parent.id).should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
 
     // Quota testing
