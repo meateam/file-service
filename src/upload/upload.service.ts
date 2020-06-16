@@ -18,7 +18,7 @@ export class UploadService {
    * Generates a random key.
    */
   public static generateKey(): string {
-    const objectID : ObjectID = new ObjectID();
+    const objectID: ObjectID = new ObjectID();
     return this.reverseString(objectID.toHexString());
   }
 
@@ -38,7 +38,7 @@ export class UploadService {
     ownerID: string,
     parent: string,
     size: number = 0,
-    ) : Promise<IUpload> {
+  ): Promise<IUpload> {
     const file = await FilesRepository.getFileInFolderByName(parent, name, ownerID);
     if (file) {
       throw new FileExistsWithSameName();
@@ -53,7 +53,7 @@ export class UploadService {
   }
 
   /**
-   * Creates a new upload object and adds it to the DB. // TODO
+   * Creates a new upload object and adds it to the DB for update file. // TODO
    * @param key - file key
    * @param bucket - is the s3 bucket in the storage
    * @param name - of the file uploaded
@@ -68,7 +68,7 @@ export class UploadService {
     ownerID: string,
     parent: string,
     size: number = 0,
-    ) : Promise<IUpload> {
+  ): Promise<IUpload> {
 
     const file: IFile = await FilesRepository.getFileInFolderByName(parent, name, ownerID);
     if (!file) {
@@ -76,16 +76,19 @@ export class UploadService {
     }
 
     let sizeCalculated: number = 0;
+    // check if the new file size is bigger from the original file, thet for save quata for the new file
     if (file.size < size) {
       sizeCalculated = size - file.size;
     }
 
-    const createdUpload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true, fileID: file.id });
-    if (createdUpload) {
-      await QuotaService.updateUsed(ownerID, sizeCalculated);
-    }
+    const upload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true, fileID: file.id });
 
-    return createdUpload;
+    if (upload) {
+      if (sizeCalculated > 0) {
+        await QuotaService.updateUsed(ownerID, sizeCalculated);
+      }
+    }
+    return upload;
   }
 
   /**

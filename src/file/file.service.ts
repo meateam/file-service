@@ -129,10 +129,15 @@ export class FileService {
       const parentID: string = partialFile['parent'].toString();
       await this.checkAdoption(fileId, parentID);
     }
-    if (partialFile.size) {
+    const update: boolean = await FilesRepository.updateById(fileId, partialFile);
+
+    if (update) {
+      if (partialFile.size) {
         this.updateQuota(fileId, partialFile.size);
+      }
     }
-    return await FilesRepository.updateById(fileId, partialFile);
+
+    return update;
   }
 
   /**
@@ -142,7 +147,7 @@ export class FileService {
    */
   public static async updateQuota(fileId: string, size: number) {
     const file: IFile = await FilesRepository.getById(fileId);
-    if(file) {
+    if (file) {
       await QuotaService.updateUsed(file.ownerID, size - file.size);
     }
   }
