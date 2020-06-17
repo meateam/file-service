@@ -81,9 +81,8 @@ export class UploadService {
     const upload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true, fileID: file.id });
 
     if (upload && sizeCalculated > 0) {
-        await QuotaService.updateUsed(ownerID, sizeCalculated);
+      await QuotaService.updateUsed(ownerID, sizeCalculated);
     }
-    
     return upload;
   }
 
