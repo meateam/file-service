@@ -122,13 +122,13 @@ export class FileMethods {
     if (!folderID) throw new IdInvalidError();
 
     const descendants: {file: IFile, parent: IFile}[] = await FileService.getDescendantsByID(folderID);
-    const ResFileDescendants: {file: ResFile, parent: ResFile}[] = descendants.map(e => {
+    const ResFileDescendants: {file: ResFile, parent: ResFile}[] = descendants.map((e) => {
       return {
         file: new ResFile(e.file),
         parent: new ResFile(e.parent),
-      }
+      };
     });
-    
+
     return { descendants: ResFileDescendants };
   }
 
@@ -146,7 +146,7 @@ export class FileMethods {
     if (!fileID) throw new IdInvalidError();
 
     const ancestors = await FileService.getAncestors(fileID);
-    
+
     return { ancestors };
   }
 }

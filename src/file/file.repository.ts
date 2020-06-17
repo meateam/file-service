@@ -37,7 +37,7 @@ export default class FileRepository {
     const file = await fileModel.findById(id);
     if (!file) throw new FileNotFoundError();
 
-    const res = await fileModel.updateOne({ _id: file._id, ownerID: file.ownerID }, { $set: partialFile }, { runValidators: true }).exec()
+    const res = await fileModel.updateOne({ _id: file._id, ownerID: file.ownerID }, { $set: partialFile }, { runValidators: true }).exec();
     // const res = await file.updateOne(partialFile, { runValidators: true }).exec();
     return res.n === 1 && res.nModified === 1 && res.ok === 1;
   }

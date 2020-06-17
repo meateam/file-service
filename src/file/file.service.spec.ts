@@ -463,7 +463,7 @@ describe('File Logic', () => {
     it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
       const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
       const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
-      await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
+      await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
 
     it('should throw an error when changing a file to unique properties of another (key)', async () => {
