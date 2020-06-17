@@ -131,10 +131,8 @@ export class FileService {
     }
     const update: boolean = await FilesRepository.updateById(fileId, partialFile);
 
-    if (update) {
-      if (partialFile.size) {
+    if (update && partialFile.size) {
         this.updateQuota(fileId, partialFile.size);
-      }
     }
 
     return update;

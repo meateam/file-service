@@ -75,19 +75,15 @@ export class UploadService {
       throw new FileNotFoundError();
     }
 
-    let sizeCalculated: number = 0;
     // check if the new file size is bigger from the original file, thet for save quata for the new file
-    if (file.size < size) {
-      sizeCalculated = size - file.size;
-    }
+    const sizeCalculated: number = (file.size < size) ? size - file.size : 0;
 
     const upload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true, fileID: file.id });
 
-    if (upload) {
-      if (sizeCalculated > 0) {
+    if (upload && sizeCalculated > 0) {
         await QuotaService.updateUsed(ownerID, sizeCalculated);
-      }
     }
+    
     return upload;
   }
 
