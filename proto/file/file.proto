@@ -33,7 +33,7 @@ message CreateUploadRequest {
 
 // Used for both upload and update
 message CreateUploadResponse {
-  string uploadID = 1;
+  string ID = 1; // Upload id
   string key = 2;
   string bucket = 3;
 }
