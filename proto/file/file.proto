@@ -33,8 +33,9 @@ message CreateUploadRequest {
 
 // Used for both upload and update
 message CreateUploadResponse {
-  string key = 1;
-  string bucket = 2;
+  string uploadID = 1;
+  string key = 2;
+  string bucket = 3;
 }
 
 message GenerateKeyRequest {
