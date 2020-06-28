@@ -62,7 +62,7 @@ export const fileSchema: Schema = new Schema(
   }
 );
 
-fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: false });
+fileSchema.index({ name: 1, parent: 1, ownerID: 1, appID: 1 }, { unique: false });
 fileSchema.index({ key: 1, bucket: 1 }, { unique: true, sparse: true });
 
 fileSchema.virtual('id').get(function () {
@@ -125,8 +125,9 @@ fileSchema.pre('save', async function (next: NextFunction) {
   const name = (<any>this).name;
   const parent = (<any>this).parent;
   const ownerID = (<any>this).ownerID;
+  const appID = (<any>this).appID;
 
-  const query: any = { name, parent };
+  const query: any = { name, parent, appID };
   if (!parent) {
     query.ownerID = ownerID;
   }
