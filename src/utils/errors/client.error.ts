@@ -32,7 +32,7 @@ export class QueryInvalidError extends ClientError {
 }
 
 export class UniqueIndexExistsError extends ClientError {
-  constructor(uniqueIndex:string, message?: string) {
+  constructor(uniqueIndex: string, message?: string) {
     super(message || `unique index '${uniqueIndex}' is already in use`, grpc.status.INVALID_ARGUMENT);
   }
 }
@@ -40,6 +40,12 @@ export class UniqueIndexExistsError extends ClientError {
 export class FileExistsWithSameName extends ClientError {
   constructor(message?: string) {
     super(message || 'file already exists in the folder', grpc.status.INVALID_ARGUMENT);
+  }
+}
+
+export class FileParentAppIDNotEqual extends ClientError {
+  constructor(message?: string) {
+    super(message || 'file parent app id is not the same', grpc.status.INVALID_ARGUMENT);
   }
 }
 

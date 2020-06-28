@@ -1,7 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
-import { UniqueIndexExistsError, FileExistsWithSameName } from '../utils/errors/client.error';
+import { UniqueIndexExistsError, FileExistsWithSameName, FileParentAppIDNotEqual } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
@@ -127,13 +127,18 @@ fileSchema.pre('save', async function (next: NextFunction) {
   const ownerID = (<any>this).ownerID;
   const appID = (<any>this).appID;
 
+  const parentFile = await fileModel.findById(parent);
+
   const query: any = { name, parent, appID };
   if (!parent) {
     query.ownerID = ownerID;
   }
 
   const existingFile = await fileModel.findOne(query);
-  if (existingFile && !existingFile.float) {
+
+  if (parentFile && parentFile.appID !== appID) {
+    next(new FileParentAppIDNotEqual());
+  } else if (existingFile && !existingFile.float) {
     next(new FileExistsWithSameName());
   } else {
     next();

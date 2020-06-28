@@ -5,7 +5,7 @@ import chaiSubset from 'chai-subset';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, FileParentAppIDNotEqual } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { QuotaService } from '../quota/quota.service';
@@ -212,7 +212,7 @@ describe('File Logic', () => {
       await FileService.create(bucket, 'myFolder', USER.id, FolderContentType, 'drive').should.eventually.exist;
     });
 
-    it('should throw error: same owner, folder and filename', async () => {
+    it('should throw error: same owner, folder, appID and filename', async () => {
       await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
       await FileService.create(bucket, 'myFile', USER.id, 'Other', 'drive', null, KEY2, size)
         .should.eventually.be.rejectedWith(FileExistsWithSameName);
@@ -221,6 +221,22 @@ describe('File Logic', () => {
     it('should not throw error: same folder and filename, different owner', async () => {
       await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
       await FileService.create(bucket, 'myFile', '654321', 'Other', 'drive', null, KEY2, size).should.eventually.exist;
+    });
+
+    it('should not throw error: same folder and filename, different appID', async () => {
+      await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'dropbox', null, KEY2, size).should.eventually.exist;
+    });
+
+    it('should throw error: parent app id is not the same', async () => {
+      const parent = await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'dropbox', parent.id, KEY2, size)
+        .should.eventually.be.rejectedWith(FileParentAppIDNotEqual);
+    });
+
+    it('should create file when parent app id is the same', async () => {
+      const parent = await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'drive', parent.id, KEY2, size).should.eventually.exist;
     });
 
     it('should create a file', async () => {
