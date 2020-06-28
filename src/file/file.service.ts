@@ -35,9 +35,9 @@ export class FileService {
     name: string,
     ownerID: string,
     type: string,
+    appID: string,
     folderID: string = '',
     key: string | null = null,
-    appID: string,
     size: number = 0,
     float: boolean = false,
   ): Promise<IFile> {
@@ -352,7 +352,7 @@ export class FileService {
       query['parent'] = queryFile['parent'] === 'null' ? null : queryFile['parent'];
     }
 
-    if (queryFile['float'] != undefined) {
+    if (queryFile['float'] !== undefined) {
       query['float'] = queryFile['float'];
     }
 

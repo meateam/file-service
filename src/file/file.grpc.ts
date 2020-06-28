@@ -26,9 +26,9 @@ export class FileMethods {
       params.name,
       params.ownerID,
       params.type,
+      params.appID,
       params.parent,
       params.key,
-      params.appID,
       parseInt(params.size, 10),
     );
     return new ResFile(createdFile);
@@ -123,7 +123,7 @@ export class FileMethods {
     if (!folderID) throw new IdInvalidError();
 
     const descendants: { file: IFile, parent: IFile }[] = await FileService.getDescendantsByID(folderID);
-    const ResFileDescendants: { file: ResFile, parent: ResFile }[] = descendants.map(e => {
+    const ResFileDescendants: { file: ResFile, parent: ResFile }[] = descendants.map((e) => {
       return {
         file: new ResFile(e.file),
         parent: new ResFile(e.parent),

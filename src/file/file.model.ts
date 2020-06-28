@@ -114,7 +114,7 @@ fileSchema.pre('updateOne', async function (next: NextFunction) {
 
   const existingFile = await fileModel.findOne(query);
 
-  if (existingFile && existingFile.id != this.getQuery()._id.toString() && !existingFile.float) {
+  if (existingFile && existingFile.id !== this.getQuery()._id.toString() && !existingFile.float) {
     next(new FileExistsWithSameName());
   } else {
     next();
