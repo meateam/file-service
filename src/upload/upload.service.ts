@@ -75,7 +75,8 @@ export class UploadService {
       throw new FileNotFoundError();
     }
 
-    // Checks whether the new file is larger than the existing file if it is greater than sending the avg to save on quota
+    // Checks whether the new file is larger than the existing file,
+    // if it is greater then save the difference
     const sizeCalculated: number = (file.size < size) ? size - file.size : 0;
 
     const upload: IUpload = await UploadRepository.create({ key, bucket, name, ownerID, parent, size: sizeCalculated, isUpdate: true, fileID: file.id });
