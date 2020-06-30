@@ -37,12 +37,12 @@ export const uploadSchema: Schema = new Schema(
       required: true,
       default: 0,
     },
-    isUpdate: {
+    isUpdate: { // Relevant for updates
       type: Boolean,
       required: false,
       default: false
     },
-    fileID: {
+    fileID: { // Relevant for updates
       type: String,
       required: false
     }
