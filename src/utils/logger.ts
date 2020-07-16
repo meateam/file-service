@@ -12,21 +12,21 @@ import { ApplicationError } from './errors/application.error';
 const indexTemplateMapping = require('winston-elasticsearch/index-template-mapping.json');
 indexTemplateMapping.index_patterns = `${confLogger.indexPrefix}-*`;
 
-export const logger: winston.Logger = winston.createLogger({
-  defaultMeta: { service: serviceName, hostname: os.hostname() },
-});
+// export const logger: winston.Logger = winston.createLogger({
+//   defaultMeta: { service: serviceName, hostname: os.hostname() },
+// });
 
 // configure logger
-const elasticsearch = new Elasticsearch.default({
-  indexPrefix: confLogger.indexPrefix,
-  level: 'verbose',
-  clientOpts: confLogger.options,
-  bufferLimit: 100,
-  messageType: 'log',
-  ensureMappingTemplate: true,
-  mappingTemplate: indexTemplateMapping,
-});
-logger.add(elasticsearch);
+// const elasticsearch = new Elasticsearch.default({
+//   indexPrefix: confLogger.indexPrefix,
+//   level: 'verbose',
+//   clientOpts: confLogger.options,
+//   bufferLimit: 100,
+//   messageType: 'log',
+//   ensureMappingTemplate: true,
+//   mappingTemplate: indexTemplateMapping,
+// });
+// logger.add(elasticsearch);
 
 /**
  * logs the data with its given parameters.
@@ -49,7 +49,7 @@ export const log = (level: Severity, message: string, name: string, traceID?: st
       console.log(meta);
     }
   }
-  logger.log(level, message, { ...meta, traceID, method: name });
+  // logger.log(level, message, { ...meta, traceID, method: name });
 };
 
 export enum Severity {
@@ -72,20 +72,20 @@ export function wrapper(func: Function) :
     try {
       const traceparent: grpc.MetadataValue[] = call.metadata.get('elastic-apm-traceparent');
       const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
-      apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
+      // apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
       const traceID: string = getCurrTraceId();
       const reqInfo: object = extractReqLog(call.request);
       log(Severity.INFO, 'request', func.name, traceID, reqInfo);
 
       const res = await func(call, callback);
-      apm.endTransaction(statusToString(grpc.status.OK));
+      // apm.endTransaction(statusToString(grpc.status.OK));
       const resInfo: object = extractResLog(res);
       log(Severity.INFO, 'response', func.name, traceID, resInfo);
       callback(null, res);
     } catch (err) {
       const validatedErr : ApplicationError = validateGrpcError(err);
       log(Severity.ERROR, func.name, err.message, getCurrTraceId());
-      apm.endTransaction(validatedErr.name);
+      // apm.endTransaction(validatedErr.name);
       callback(validatedErr);
     }
   };

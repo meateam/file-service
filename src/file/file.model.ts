@@ -2,7 +2,7 @@ import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
 import { UniqueIndexExistsError, FileExistsWithSameName } from '../utils/errors/client.error';
-import { MongoError } from 'mongodb';
+import { MongoError, ChangeStream } from 'mongodb';
 import { NextFunction } from 'connect';
 
 const ObjectId = Schema.Types.ObjectId;
@@ -86,16 +86,19 @@ fileSchema.virtual('fullExtension')
  * @param next
  */
 function handleE11000(error: MongoError, _: any, next: NextFunction) {
+  console.log('handleE11000');
   if (error.name === 'MongoError' && error.code === 11000) {
     next(new UniqueIndexExistsError(error.message || error.errmsg));
   } else if (error.name === 'INVALID_ARGUMENT') {
     next(error);
   } else {
+    console.log('No error! :)');
     next();
   }
 }
 
 fileSchema.pre('updateOne', async function (next: NextFunction) {
+  console.log('in pre updateOne ');
   const ownerID = this.getQuery().ownerID;
 
   const update = this.getUpdate();
@@ -136,11 +139,21 @@ fileSchema.pre('save', async function (next: NextFunction) {
 });
 
 fileSchema.post('save', handleE11000);
+fileSchema.post('save', (doc) => {
+  console.log('in save 2');
+  console.log(doc);
+});
 fileSchema.post('update', handleE11000);
-fileSchema.post('findOneAndUpdate', handleE11000);
-fileSchema.post('updateOne', handleE11000);
-fileSchema.post('insertMany', handleE11000);
 
+fileSchema.post('findOneAndUpdate', handleE11000);
+
+fileSchema.post('', handleE11000);
+fileSchema.post('updateOne', (doc) => {
+  console.log('in updateOne 2');
+  printValues(doc);
+});
+
+fileSchema.post('insertMany', handleE11000);
 fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
     next(new ServerError(error.message || error.errmsg));
@@ -149,3 +162,16 @@ fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
 });
 
 export const fileModel = model<IFile & Document>('File', fileSchema);
+
+// const fileEventEmitter : ChangeStream = fileModel.watch();
+
+// fileEventEmitter.on('change', change => console.log(JSON.stringify(change)));
+function printValues(obj: any) {
+  for (const key in obj) {
+    if (typeof obj[key] === 'object') {
+      printValues(obj[key]);
+    } else {
+      console.log(obj[key]);
+    }
+  }
+}
