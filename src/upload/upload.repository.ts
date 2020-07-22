@@ -33,6 +33,15 @@ export class UploadRepository {
   }
 
   /**
+ * Delete an upload from the DB by its file key.
+ * @param key - the key of the file is create when upload created.
+ * @param bucket - the basket key that holds the file.
+ */
+  static deleteByKey(key: string, bucket: string): Promise<IUpload | null> {
+    return uploadModel.findOneAndRemove({ key, bucket }).exec();
+  }
+
+  /**
    * Retrieve an upload by its id.
    * @param uploadID - the id of the upload.
    */
@@ -46,7 +55,7 @@ export class UploadRepository {
    * @param bucket - the bucket of the upload.
    * @param uploadID - the new id.
    */
-  static updateByKey(key: string, bucket: string, uploadID: string) : Promise<IUpload> {
+  static updateByKey(key: string, bucket: string, uploadID: string): Promise<IUpload> {
     return uploadModel.findOneAndUpdate({ key, bucket }, { uploadID }, { new: true }).exec();
   }
 
