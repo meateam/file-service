@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package file;
 
-option go_package = "github.com/meateam/file-service/proto";
-
 service FileService {
   rpc GenerateKey(GenerateKeyRequest) returns (KeyResponse) {}
   rpc CreateUpload(CreateUploadRequest) returns (CreateUploadResponse) {}
