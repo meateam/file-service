@@ -128,7 +128,7 @@ export class UploadService {
  * @param bucket - the basket key that holds the file.
  */
   public static async deleteUploadByKey(key: string, bucket: string): Promise<void> {
-    const deletedUpload = await UploadRepository.deleteByKey(key, bucket);
+    const deletedUpload: IUpload = await UploadRepository.deleteByKey(key, bucket);
     if (deletedUpload) {
       await QuotaService.updateUsed(deletedUpload.ownerID, -deletedUpload.size);
     }
