@@ -39,6 +39,13 @@ const testUpload = {
   bucket: 'BUCKET_TEST',
 };
 
+// Sizes:
+const KB: number = 1024;
+const MB: number = KB * 1024;
+const GB: number = MB * 1024;
+
+const ExceedQuotaSize: number = 11 * GB;
+
 describe('File Logic', () => {
 
   before(async () => {
@@ -130,7 +137,7 @@ describe('File Logic', () => {
     });
 
     it('should throw exceeded quota error', async () => {
-      await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, KEY, 101 * 1024 * 1024 * 1024)
+      await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, KEY, ExceedQuotaSize)
         .should.eventually.be.rejectedWith(QuotaExceededError);
     });
 
@@ -140,17 +147,77 @@ describe('File Logic', () => {
     });
 
     it('should increase quota usage by the size of the upload', async () => {
-      const oldQuota = await QuotaService.getByOwnerID(USER.id);
+      const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
 
       const newUpload: IUpload =
-        await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * 1024).should.eventually.exist;
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * KB).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
       expect(newUpload.key).to.be.equal(testUpload.key);
 
-      const newQuota = await QuotaService.getByOwnerID(USER.id);
+      const newQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
       expect(newQuota.used).to.be.equal(oldQuota.used + newUpload.size);
+    });
+  });
+
+  describe('#createUpdate', () => {
+
+    it('should throw an error when {ownerID, parent, name} already exist', async () => {
+      uploadModel.on('index', async () => { // <-- Wait for model's indexes to finish
+        const newUpload1: IUpload =
+          await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1', USER.id, null)
+            .should.eventually.exist;
+        const newUpload2: IUpload =
+          await UploadService.createUpload(KEY2, 'BUCKET2', 'name1', USER.id, null)
+            .should.eventually.be.rejectedWith(UniqueIndexExistsError);
+      });
+    });
+
+    it('should return a new upload', async () => {
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY, KEY2, size);
+      const newUpdate: IUpload = await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, KEY, size).should.eventually.exist;
+      expect(newUpdate).to.exist;
+      expect(newUpdate.bucket).to.be.equal(bucket);
+      expect(newUpdate.name).to.be.equal('file.txt');
+      expect(newUpdate.key).to.be.equal(KEY);
+    });
+
+    it('should throw FileNotFoundError error', async () => {
+      await UploadService.createUpdate(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 256)
+        .should.eventually.be.rejectedWith(FileNotFoundError);
+    });
+
+    it('should throw exceeded quota error', async () => {
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY, KEY2, size);
+      await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, KEY, 101 * GB)
+        .should.eventually.be.rejectedWith(QuotaExceededError);
+    });
+
+    it('should stay same quota usage by the negative size of the upload', async () => {
+      const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
+      await FileService.create(bucket, testUpload.name, USER.id, 'text', 'drive', KEY, KEY2);
+      const newUpload: IUpload = await UploadService.createUpdate(KEY, bucket, testUpload.name, USER.id, KEY, -500).should.eventually.exist;
+      expect(newUpload).to.exist;
+      expect(newUpload.bucket).to.be.equal(bucket);
+      expect(newUpload.name).to.be.equal(testUpload.name);
+      expect(newUpload.key).to.be.equal(KEY);
+
+      const newQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
+      expect(newQuota.used).to.be.equal(oldQuota.used);
+    });
+
+    it('should increase quota usage by the size of the upload', async () => {
+      const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
+      const newFile: IFile = await FileService.create(bucket, testUpload.name, USER.id, 'text', 'drive', KEY, KEY2, size);
+      const newUpload: IUpload = await UploadService.createUpdate(KEY, bucket, testUpload.name, USER.id, KEY, 6 * KB).should.eventually.exist;
+      expect(newUpload).to.exist;
+      expect(newUpload.bucket).to.be.equal(bucket);
+      expect(newUpload.name).to.be.equal(testUpload.name);
+      expect(newUpload.key).to.be.equal(KEY);
+
+      const newQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
+      expect(newQuota.used).to.be.equal(oldQuota.used + newUpload.size + newFile.size);
     });
   });
 
@@ -158,7 +225,7 @@ describe('File Logic', () => {
     it('should update upload id', async () => {
       await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null);
       await UploadService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
-      const myUpload = await UploadService.getUploadById(testUpload.uploadID);
+      const myUpload: IUpload = await UploadService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
       expect(myUpload.name).to.be.equal(testUpload.name);
@@ -170,7 +237,7 @@ describe('File Logic', () => {
     it('should delete an existing upload', async () => {
       await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null);
       await UploadService.updateUpload(testUpload.uploadID, testUpload.key, testUpload.bucket);
-      const myUpload = await UploadService.getUploadById(testUpload.uploadID);
+      const myUpload: IUpload = await UploadService.getUploadById(testUpload.uploadID);
       expect(myUpload).to.exist;
       expect(myUpload.uploadID).to.be.equal(testUpload.uploadID);
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
@@ -185,19 +252,19 @@ describe('File Logic', () => {
 
     it('should decrease quota usage by the size of the upload', async () => {
       const newUpload: IUpload =
-        await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * 1024).should.eventually.exist;
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * KB).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
       expect(newUpload.key).to.be.equal(testUpload.key);
-      expect(newUpload.size).to.be.equal(6 * 1024);
+      expect(newUpload.size).to.be.equal(6 * KB);
 
       const quotaAfterUpload = await QuotaService.getByOwnerID(USER.id);
-      expect(quotaAfterUpload.used).to.be.equal(6 * 1024);
+      expect(quotaAfterUpload.used).to.be.equal(6 * KB);
 
       await UploadService.deleteUpload(newUpload.uploadID).should.eventually.not.be.rejected;
 
-      const quotaAfterDelete = await QuotaService.getByOwnerID(USER.id);
+      const quotaAfterDelete: IQuota = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterDelete.used).to.be.equal(0);
     });
   });
@@ -314,17 +381,17 @@ describe('File Logic', () => {
     });
 
     it('should create upload with deleted big upload', async () => {
-      const oldQuota = await QuotaService.getByOwnerID(USER.id);
+      const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
 
       const newUpload: IUpload = await UploadService.createUpload(
-        testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 9 * 1024 * 1024 * 1024)
+        testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 9 * GB)
         .should.eventually.exist;
 
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
       expect(newUpload.key).to.be.equal(testUpload.key);
-      expect(newUpload.size).to.be.equal(9 * 1024 * 1024 * 1024);
+      expect(newUpload.size).to.be.equal(9 * GB);
 
       const quotaAfterCreatedUpload = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterCreatedUpload.used).to.be.equal(newUpload.size);
@@ -335,30 +402,30 @@ describe('File Logic', () => {
       expect(quotaAfterDelete.used).to.be.equal(0);
 
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 2 * 1024 * 1024 * 1024);
+        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 2 * GB);
 
-      const newQuota = await QuotaService.getByOwnerID(USER.id);
+      const newQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
       expect(newQuota.used).to.be.equal(file.size);
     });
 
     it('should throw quota exceeded', async () => {
-      const oldQuota = await QuotaService.getByOwnerID(USER.id);
+      const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
 
       const newUpload: IUpload = await UploadService.createUpload(
-        testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 9 * 1024 * 1024 * 1024)
+        testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 9 * GB)
         .should.eventually.exist;
 
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(testUpload.bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
       expect(newUpload.key).to.be.equal(testUpload.key);
-      expect(newUpload.size).to.be.equal(9 * 1024 * 1024 * 1024);
+      expect(newUpload.size).to.be.equal(9 * GB);
 
       const quotaAfterCreatedUpload = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterCreatedUpload.used).to.be.equal(newUpload.size);
 
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 2 * 1024 * 1024 * 1024).should.eventually.be.rejectedWith(QuotaExceededError);
+        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 2 * GB).should.eventually.be.rejectedWith(QuotaExceededError);
 
       const quotaAfterCreateTry = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterCreateTry.used).to.be.equal(newUpload.size);
@@ -366,7 +433,7 @@ describe('File Logic', () => {
 
     it('should throw exceeded owner quota files size used', async () => {
       await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 101 * 1024 * 1024 * 1024)
+        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, ExceedQuotaSize)
         .should.eventually.be.rejectedWith(QuotaExceededError);
     });
 
@@ -867,7 +934,7 @@ describe('File Logic', () => {
       expect(quota.used).to.be.equal(0);
 
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 320 * 1024 * 1024);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 320 * MB);
       const DBFile = await FileService.getById(file.id);
       quota = await QuotaService.getByOwnerID(file.ownerID);
 

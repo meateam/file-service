@@ -131,7 +131,24 @@ export class FileService {
       const parentID: string = partialFile['parent'].toString();
       await this.checkAdoption(fileId, parentID);
     }
-    return FilesRepository.updateById(fileId, partialFile);
+
+    if (partialFile.size) {
+      await this.updateQuota(fileId, partialFile.size);
+    }
+
+    return await FilesRepository.updateById(fileId, partialFile);
+  }
+
+  /**
+   * Update a file quota using a subtract between new file size to the old file size.
+   * @param fileId - the id of the file.
+   * @param size - the size of the new file.
+   */
+  public static async updateQuota(fileId: string, size: number) {
+    const file: IFile = await FilesRepository.getById(fileId);
+    if (file) {
+      await QuotaService.updateUsed(file.ownerID, size - file.size);
+    }
   }
 
   /**
