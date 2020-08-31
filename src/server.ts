@@ -72,6 +72,7 @@ export class FileServer {
     const fileService = {
       GenerateKey: wrapper(UploadMethods.GenerateKey),
       CreateUpload: wrapper(UploadMethods.CreateUpload),
+      CreateUpdate: wrapper(UploadMethods.CreateUpdate),
       UpdateUploadID: wrapper(UploadMethods.UpdateUploadID),
       GetUploadByID: wrapper(UploadMethods.GetUploadByID),
       DeleteUploadByID: wrapper(UploadMethods.DeleteUploadByID),

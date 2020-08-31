@@ -5,6 +5,7 @@ package file;
 service FileService {
   rpc GenerateKey(GenerateKeyRequest) returns (KeyResponse) {}
   rpc CreateUpload(CreateUploadRequest) returns (CreateUploadResponse) {}
+  rpc CreateUpdate(CreateUploadRequest) returns (CreateUploadResponse) {}
   rpc UpdateUploadID(UpdateUploadIDRequest) returns (UpdateUploadIDResponse) {}
   rpc GetUploadByID(GetUploadByIDRequest) returns (GetUploadByIDResponse) {}
   rpc DeleteUploadByID(DeleteUploadByIDRequest) returns (DeleteUploadByIDResponse) {}
@@ -21,6 +22,7 @@ service FileService {
   rpc DeleteFileByID(DeleteFileByIDRequest) returns (DeleteFileByIDResponse) {}
 }
 
+// Used for both upload and update
 message CreateUploadRequest {
   string bucket = 1;
   string name = 2;
@@ -29,6 +31,7 @@ message CreateUploadRequest {
   int64 size = 5;
 }
 
+// Used for both upload and update
 message CreateUploadResponse {
   string key = 1;
   string bucket = 2;
@@ -61,6 +64,8 @@ message GetUploadByIDResponse {
   string bucket = 2;
   string uploadID = 3;
   string name = 4;
+  bool isUpdate = 5;
+  string fileID = 6;
 }
 
 message DeleteUploadByIDRequest {
