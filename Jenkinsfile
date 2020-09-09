@@ -13,26 +13,34 @@ pipeline {
           }
         }
       }
-      stage('build image of test and system') {
-        parallel {
-          stage('build dockerfile of tests') {
+        stage('build dockerfile of tests') {
             steps {
-              sh "docker build -t unittest/${env.GIT_REPO_NAME}/master:${env.GIT_SHORT_COMMIT} -f test.Dockerfile ." 
+              sh "docker build -t unittest/${env.GIT_REPO_NAME}:${env.GIT_SHORT_COMMIT} -f test.Dockerfile ." 
             }  
           }
-          stage('login to azure container registry') {
+        stage('run unit tests') {   
+            steps {
+                sh "docker run unittest/${env.GIT_REPO_NAME}:${env.GIT_SHORT_COMMIT}"  
+            }
+        post {
+          always {
+            discordSend description: '**service**: '+ env.GIT_REPO_NAME + '\n **Build**:' + " " + env.BUILD_NUMBER + '\n **Branch**:' + " " + env.GIT_BRANCH + '\n **Status**:' + " " +  currentBuild.result + '\n \n \n **Commit ID**:'+ " " + env.GIT_SHORT_COMMIT + '\n **commit massage**:' + " " + env.GIT_COMMIT_MSG + '\n **commit email**:' + " " + env.GIT_COMMITTER_EMAIL, footer: '', image: '', link: 'http://52.164.201.18/blue/organizations/jenkins/'+env.JOB_NAME+'/detail/'+env.JOB_NAME+'/'+env.BUILD_NUMBER+'/pipeline', result: currentBuild.result, thumbnail: '', title: ' link to result', webhookURL: 'https://discord.com/api/webhooks/735056754051645451/jYad6fXNkPMnD7mopiCJx2qLNoXZnvNUaYj5tYztcAIWQCoVl6m2tE2kmdhrFwoAASbv'   
+          }
+         }
+        }
+        stage('login to azure container registry') {
             steps{  
               withCredentials([usernamePassword(credentialsId:'Drive_ACR',usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                 sh "docker login  drivehub.azurecr.io -u ${USER} -p ${PASS}"
               }
             }
           }  
-          stage('build dockerfile of system only for master and develop') {
+        stage('build dockerfile of system only for master and develop and push them to acr') {
             when {
               anyOf {
                  branch 'master'; branch 'develop'
-              }
             }
+        }
             steps {
               script{
                 if(env.GIT_BRANCH == 'master') {
@@ -45,18 +53,6 @@ pipeline {
                 }
               } 
             }
-          }     
-        }
-      }  
-      stage('run unit tests') {   
-        steps {
-          sh "docker run unittest/${env.GIT_REPO_NAME}/master:${env.GIT_SHORT_COMMIT}"  
-        }
-        post {
-          always {
-            discordSend description: '**service**: '+ env.GIT_REPO_NAME + '\n **Build**:' + " " + env.BUILD_NUMBER + '\n **Branch**:' + " " + env.GIT_BRANCH + '\n **Status**:' + " " +  currentBuild.result + '\n \n \n **Commit ID**:'+ " " + env.GIT_SHORT_COMMIT + '\n **commit massage**:' + " " + env.GIT_COMMIT_MSG + '\n **commit email**:' + " " + env.GIT_COMMITTER_EMAIL, footer: '', image: '', link: 'http://52.164.201.18/blue/organizations/jenkins/'+env.JOB_NAME+'/detail/'+env.JOB_NAME+'/'+env.BUILD_NUMBER+'/pipeline', result: currentBuild.result, thumbnail: '', title: ' link to result', webhookURL: 'https://discord.com/api/webhooks/735056754051645451/jYad6fXNkPMnD7mopiCJx2qLNoXZnvNUaYj5tYztcAIWQCoVl6m2tE2kmdhrFwoAASbv'   
-          }
-        }
-      }
+        }      
     }   
 }
