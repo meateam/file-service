@@ -60,10 +60,13 @@ export const uploadSchema: Schema = new Schema(
 
 uploadSchema.index({ key: 1, bucket: 1 }, { unique: true });
 
+uploadSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true, partialFilterExpression: { isUpdate : false } });
+
 // ******* SAME AS FILE *******//
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
+    console.log(error.message);
     next(new UniqueIndexExistsError(this.key));
   } else {
     next();
