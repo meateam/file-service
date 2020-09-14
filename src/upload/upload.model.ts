@@ -66,7 +66,6 @@ uploadSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true, partialFi
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    console.log(error.message);
     next(new UniqueIndexExistsError(this.key));
   } else {
     next();
