@@ -5,7 +5,7 @@ import chaiSubset from 'chai-subset';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, OwnerIDInvalidError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { fileModel } from '../file/file.model';
@@ -97,7 +97,7 @@ describe('File Logic', () => {
     it('should throw an error when {key, bucket} already exist', async () => {
       await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1', USER.id, null)
         .should.eventually.exist;
-      await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1', USER.id, null)
+      await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name2', USER.id, null)
         .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
@@ -281,7 +281,7 @@ describe('File Logic', () => {
     it('should throw error: same owner, folder and filename', async () => {
       await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
       await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
-        .should.eventually.be.rejectedWith(FileExistsWithSameName);
+        .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should not throw error: same folder and filename, different owner', async () => {
@@ -351,7 +351,7 @@ describe('File Logic', () => {
       const folder1: IFile = await FileService.create(
         null, 'folder1', USER.id, FolderContentType, parent.id);
       const folder2: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, parent.id).should.eventually.be.rejectedWith(FileExistsWithSameName);
+        null, 'folder1', USER.id, FolderContentType, parent.id).should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     // Quota testing
@@ -529,7 +529,7 @@ describe('File Logic', () => {
     it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
       const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
       const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
-      await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(FileExistsWithSameName);
+      await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should throw an error when changing a file to unique properties of another (key)', async () => {
@@ -624,7 +624,7 @@ describe('File Logic', () => {
 
       const failed = await FileService.updateMany([folder.id], partialFile);
       expect(failed).to.have.lengthOf(1);
-      expect(failed[0].error.message).to.equal('cyclic nesting error');
+      expect(failed[0].error.message).to.equal(`cyclic nesting error: Trying to put the file ${folder.id} inside itself`);
     });
 
     it('should not update folder`s parent to be its ancestors', async () => {
@@ -634,7 +634,7 @@ describe('File Logic', () => {
 
       const failed = await FileService.updateMany([structure[0].id], partialFile);
       expect(failed).to.have.lengthOf(1);
-      expect(failed[0].error.message).to.equal('cyclic nesting error');
+      expect(failed[0].error.message).to.equal(`cyclic nesting error: The folder ${structure[0].id} is an ancestor of ${structure[3].id }, therefore it cant be inside it`);
     });
 
     it('should not update file`s parent to be a non-folder', async () => {
@@ -677,6 +677,16 @@ describe('File Logic', () => {
       const updatedFolder = await FileService.getById(folder.id);
       expect(updatedFile.parent).to.be.null;
       expect(updatedFolder.parent).to.be.null;
+    });
+
+    it('should not move a file to a folder which has a file with identical name', async () => {
+      const structure: IFile[] = await generateFolderStructure();
+
+      const partialFile: (Partial<IFile>) = { parent: structure[0].id, name: structure[1].name };
+
+      const failed = await FileService.updateMany([structure[5].id], partialFile);
+      expect(failed).to.have.lengthOf(1);
+      expect(failed[0].error).to.be.instanceOf(UniqueIndexExistsError);
     });
   });
 
@@ -754,7 +764,7 @@ describe('File Logic', () => {
     describe('Root Folder', () => {
       it('should throw an error if the fileID and the user are null', async () => {
         await FileService.getFilesByFolder(null, null)
-          .should.eventually.rejectedWith(ClientError, 'no owner id sent');
+          .should.eventually.rejectedWith(OwnerIDInvalidError, 'ownerID was not provided');
       });
 
       it('should return an empty array if the user has no root folder', async () => {

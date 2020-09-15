@@ -3,7 +3,9 @@ import { ServerError } from '../utils/errors/application.error';
 import { IUpload } from './upload.interface';
 import { MongoError } from 'mongodb';
 import { UniqueIndexExistsError } from '../utils/errors/client.error';
+import { getMongoErrorIndices } from '../utils/mongo.error';
 import { NextFunction } from 'connect';
+import { status } from 'grpc';
 
 export const uploadSchema: Schema = new Schema(
   {
@@ -66,8 +68,8 @@ uploadSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true, partialFi
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    console.log(error.message);
-    next(new UniqueIndexExistsError(this.key));
+    const msg = getMongoErrorIndices(error);
+    next(new UniqueIndexExistsError('upload', msg.indexName, msg.values));
   } else {
     next();
   }
@@ -79,7 +81,7 @@ uploadSchema.post('findOneAndUpdate', handleE11000);
 
 uploadSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
-    next(new ServerError(error.message));
+    next(new ServerError(`Mongo Error: ${error.message || error.errmsg}`));
   }
   next(error);
 });

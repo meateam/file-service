@@ -39,3 +39,5 @@ Thumbs.db
 
 # Ignore built ts files
 dist
+protoc-get-ts.sh
+.vscode/settings.json

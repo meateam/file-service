@@ -1,6 +1,6 @@
 import { IUpload } from './upload.interface';
 import { uploadModel } from './upload.model';
-import { IdInvalidError } from '../utils/errors/client.error';
+import { OwnerIDInvalidError } from '../utils/errors/client.error';
 import { ServerError } from '../utils/errors/application.error';
 
 /**
@@ -15,10 +15,10 @@ export class UploadRepository {
    */
   static create(upload: Partial<IUpload>): Promise<IUpload> {
     if (!upload) {
-      throw new ServerError();
+      throw new ServerError('upload not sent');
     }
     if (!upload.ownerID) {
-      throw new IdInvalidError('ownerID not provided');
+      throw new OwnerIDInvalidError('ownerID not provided');
     }
     upload.parent = upload.parent ? upload.parent : null;
     return uploadModel.create(upload);

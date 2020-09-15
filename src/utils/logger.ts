@@ -5,8 +5,7 @@ import * as grpc from 'grpc';
 import apm from 'elastic-apm-node';
 import * as _ from 'lodash';
 import { confLogger, serviceName, debugMode } from '../config';
-import { statusToString, validateGrpcError } from './errors/grpc.status';
-import { ApplicationError } from './errors/application.error';
+import { ApplicationError, validateGrpcError } from './errors/application.error';
 
 // index pattern for the logger
 const indexTemplateMapping = require('winston-elasticsearch/index-template-mapping.json');
@@ -41,7 +40,7 @@ export const log = (level: Severity, message: string, name: string, traceID?: st
   // Console logs for debugging only.
   if (debugMode) {
     if (traceID) {
-      console.log(`level: ${level}, message: ${message}, name: ${name}, traceID: ${traceID}, meta:`);
+      console.log(`level: ${level}, message: ${message}, name: ${name}, traceID: ${traceID}, meta: ${meta}`);
     } else {
       console.log(`level: ${level}, message: ${message}, name: ${name}, meta:`);
     }
@@ -78,13 +77,13 @@ export function wrapper(func: Function) :
       log(Severity.INFO, 'request', func.name, traceID, reqInfo);
 
       const res = await func(call, callback);
-      apm.endTransaction(statusToString(grpc.status.OK));
+      apm.endTransaction(grpc.status[grpc.status.OK]);
       const resInfo: object = extractResLog(res);
       log(Severity.INFO, 'response', func.name, traceID, resInfo);
       callback(null, res);
     } catch (err) {
       const validatedErr : ApplicationError = validateGrpcError(err);
-      log(Severity.ERROR, func.name, err.message, getCurrTraceId());
+      log(Severity.ERROR, func.name, err, getCurrTraceId());
       apm.endTransaction(validatedErr.name);
       callback(validatedErr);
     }

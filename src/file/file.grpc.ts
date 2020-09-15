@@ -3,7 +3,7 @@ import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { getDisplayError } from './../utils/errors/error.helper';
-import { IdInvalidError } from './../utils/errors/client.error';
+import { FileIDInvalidError } from './../utils/errors/client.error';
 
 interface FailedFile {
   id: string;
@@ -119,7 +119,7 @@ export class FileMethods {
   public static async GetDescendantsByID(call: any): Promise<{ descendants: {file: ResFile, parent: ResFile}[] }> {
     const folderID: string = call.request.id;
 
-    if (!folderID) throw new IdInvalidError();
+    if (!folderID) throw new FileIDInvalidError('no folderID given');
 
     const descendants: {file: IFile, parent: IFile}[] = await FileService.getDescendantsByID(folderID);
     const ResFileDescendants: {file: ResFile, parent: ResFile}[] = descendants.map((e) => {
@@ -143,7 +143,7 @@ export class FileMethods {
 
   public static async GetAncestors(call: any): Promise<{ancestors: string[]}> {
     const fileID: string = call.request.id;
-    if (!fileID) throw new IdInvalidError();
+    if (!fileID) throw new FileIDInvalidError('no fileID given');
 
     const ancestors = await FileService.getAncestors(fileID);
 
