@@ -24,12 +24,7 @@ pipeline {
       }
         stage('build dockerfile of tests') {
             steps {
-              sh "docker build -t unittest -f test.Dockerfile ." 
-            }  
-          }
-        stage('run unit tests') {   
-            steps {
-                sh "docker run unittest"  
+              sh  'docker-compose -f docker-compose.test.yml up' 
             }
         post {
           always {
