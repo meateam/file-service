@@ -1,12 +1,12 @@
 version: '3.3'
 services:
 
-  # mongo:
-  #   image: mongo:latest
-  #   ports:
-  #     - 27017:27017
-  #   volumes:
-  #     - mongodb_data_container:/data/db
+  mongo:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
 
   file_service_test:
     build:
@@ -14,8 +14,8 @@ services:
         dockerfile: test.Dockerfile
     environment:
       MONGO_HOST: 'mongo'
-    # depends_on:
-    #   - mongo
+    depends_on:
+      - mongo
 
 volumes:
   mongodb_data_container:
