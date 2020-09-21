@@ -14,8 +14,8 @@ services:
         dockerfile: test.Dockerfile
     environment:
       MONGO_HOST: 'mongo'
-    depends_on:
-      - mongo
+    # depends_on:
+    #   - mongo
 
 volumes:
   mongodb_data_container:
