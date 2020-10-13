@@ -123,6 +123,18 @@ export class UploadService {
   }
 
   /**
+ * Delete an upload from the DB by its file key.
+ * @param key - the key of the file is create when upload created.
+ * @param bucket - the basket key that holds the file.
+ */
+  public static async deleteUploadByKey(key: string, bucket: string): Promise<void> {
+    const deletedUpload: IUpload = await UploadRepository.deleteByKey(key, bucket);
+    if (deletedUpload) {
+      await QuotaService.updateUsed(deletedUpload.ownerID, -deletedUpload.size);
+    }
+  }
+
+  /**
    * Reverses a given string.
    * @param str - the string to be reversed.
    */
