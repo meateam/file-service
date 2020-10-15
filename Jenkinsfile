@@ -11,6 +11,7 @@ pipeline {
       spec: 
           containers: 
             - name: dind-slave
+            DOCKER_HOST=tcp://localhost:4243
               image: nodefactory/dind-with-compose
               command: [ "sleep", "10m" ]
               resources: 
@@ -55,7 +56,7 @@ pipeline {
       // run unit test using docker-compose with mongo 
       stage('build dockerfile of tests') {
           steps {
-            sh ' sudo docker-compose -f docker-compose.test.yml up --exit-code-from file_service_test'
+            sh 'docker-compose -f docker-compose.test.yml up --exit-code-from file_service_test'
           }
           post {
             always {
