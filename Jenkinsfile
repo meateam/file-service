@@ -11,8 +11,8 @@ pipeline {
       spec: 
           containers: 
             - name: dind-slave
-            DOCKER_HOST=tcp://localhost:4243
               image: nodefactory/dind-with-compose
+              DOCKER_HOST=tcp://localhost:4243
               command: [ "sleep", "10m" ]
               resources: 
                   requests: 
