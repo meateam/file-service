@@ -2,7 +2,7 @@
 pipeline {
   agent {    
        kubernetes {
-       defaultContainer 'dind-slave'  
+       defaultContainer 'dind-slave' 
        yaml """
       apiVersion: v1 
       kind: Pod 
@@ -12,7 +12,10 @@ pipeline {
           containers: 
             - name: dind-slave
               image: nodefactory/dind-with-compose
-              DOCKER_HOST=tcp://localhost:4243
+              env: 
+              - name: DOCKER_HOST
+                value: 'tcp://localhost:4243'
+
               command: [ "sleep", "10m" ]
               resources: 
                   requests: 
