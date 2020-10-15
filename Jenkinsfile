@@ -12,6 +12,7 @@ pipeline {
           containers: 
             - name: dind-slave
               image: nodefactory/dind-with-compose
+              command: [ "sleep", "10m" ]
               resources: 
                   requests: 
                       cpu: 20m 
