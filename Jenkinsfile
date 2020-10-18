@@ -17,8 +17,6 @@ pipeline {
                   requests: 
                       cpu: 20m 
                       memory: 512Mi 
-              securityContext: 
-                  privileged: true 
               volumeMounts: 
                 - name: docker-graph-storage 
                   mountPath: /usr/local/bin/docker-compose 
