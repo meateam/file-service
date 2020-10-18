@@ -11,7 +11,7 @@ pipeline {
       spec:
           containers: 
             - name: dind-slave
-              image: docker/compose
+              image: nodefactory/dind-with-compose
               command: [ "sleep", "10m" ]
               resources: 
                   requests: 
