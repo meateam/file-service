@@ -11,7 +11,7 @@ pipeline {
       spec:
           containers: 
             - name: dind-slave
-              image: nodefactory/dind-with-compose
+              image: aymdev/dind-compose
               command: [ "sleep", "10m" ]
               resources: 
                   requests: 
@@ -21,7 +21,7 @@ pipeline {
                   privileged: true 
               volumeMounts: 
                 - name: docker-graph-storage 
-                  mountPath: /var/lib/docker-compose
+                  mountPath: /var/lib/docker
           volumes: 
             - name: docker-graph-storage 
               emptyDir: {}
