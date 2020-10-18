@@ -21,10 +21,10 @@ pipeline {
                   privileged: true 
               volumeMounts: 
                 - name: docker-graph-storage 
-                  mountPath: /var/lib/docker
+                  mountPath: /var/run/docker.sock
           volumes: 
             - name: docker-graph-storage 
-              emptyDir: {}
+              /var/run/docker.sock
  """
     }
   }
