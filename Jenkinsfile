@@ -11,7 +11,7 @@ pipeline {
       spec: 
           containers: 
             - name: dind-slave
-              image: nodefactory/dind-with-compose
+              image: docker/compose
               env: 
               - name: DOCKER_HOST
                 value: 'tcp://localhost:4243'
