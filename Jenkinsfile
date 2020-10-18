@@ -9,8 +9,6 @@ pipeline {
       metadata: 
           name: k8s-worker
       spec:
-        securityContext:
-          runAsUser: jenkins 
           containers: 
             - name: dind-slave
               image: docker/compose
@@ -23,10 +21,10 @@ pipeline {
                   privileged: true 
               volumeMounts: 
                 - name: docker-graph-storage 
-                  mountPath: /var/lib/docker-compose 
+                  mountPath: /var/run/docker.sock 
           volumes: 
             - name: docker-graph-storage 
-              emptyDir: {}
+              path: /var/run/docker.sock
  """
     }
   }
