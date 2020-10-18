@@ -8,14 +8,12 @@ pipeline {
       kind: Pod 
       metadata: 
           name: k8s-worker
-      spec: 
+      spec:
+        securityContext:
+          runAsUser: jenkins 
           containers: 
             - name: dind-slave
               image: docker/compose
-              env: 
-              - name: DOCKER_HOST
-                value: 'tcp://localhost:4243'
-
               command: [ "sleep", "10m" ]
               resources: 
                   requests: 
