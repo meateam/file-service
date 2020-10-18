@@ -17,14 +17,17 @@ pipeline {
                   requests: 
                       cpu: 20m 
                       memory: 512Mi 
+              env: 
+                - name: DOCKER_HOST 
+                  value: tcp://localhost:2375 
               securityContext: 
                   privileged: true 
               volumeMounts: 
                 - name: docker-graph-storage 
-                  mountPath: /var/run/docker.sock
+                  mountPath: /var/lib/docker
           volumes: 
             - name: docker-graph-storage 
-              /var/run/docker.sock
+              emptyDir: {}
  """
     }
   }
