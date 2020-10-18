@@ -5,7 +5,7 @@ COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
 
 RUN npm config set unsafe-perm true
 RUN npm config set -g production false
-RUN npm install --silent
+# RUN npm install --silent
 RUN npm install -g mocha
 COPY . .
 EXPOSE 8080
