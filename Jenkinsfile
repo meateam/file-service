@@ -21,7 +21,7 @@ pipeline {
                   privileged: true 
               volumeMounts: 
                 - name: docker-graph-storage 
-                  mountPath: /var/lib/docker 
+                  mountPath: /usr/local/bin/docker-compose 
           volumes: 
             - name: docker-graph-storage 
               emptyDir: {}
