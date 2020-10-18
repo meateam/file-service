@@ -56,7 +56,7 @@ pipeline {
       stage('build dockerfile of tests') {
           steps {
             container('dind-slave'){
-            sh 'echo whoami'
+            sh 'whoami'
             sh 'docker-compose -f docker-compose.test.yml up --exit-code-from file_service_test'
           }
           post {
