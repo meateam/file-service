@@ -12,7 +12,6 @@ pipeline {
           containers: 
             - name: dind-slave
               image: aymdev/dind-compose
-              command: [ "sleep", "10m" ]
               resources: 
                   requests: 
                       cpu: 20m 
@@ -21,7 +20,7 @@ pipeline {
                   privileged: true 
               volumeMounts: 
                 - name: docker-graph-storage 
-                  mountPath: /var/lib/docker
+                  mountPath: /var/lib/docker 
           volumes: 
             - name: docker-graph-storage 
               emptyDir: {}
@@ -55,9 +54,7 @@ pipeline {
       // run unit test using docker-compose with mongo 
       stage('build dockerfile of tests') {
           steps {
-            container('dind-slave'){
             sh 'docker-compose -f docker-compose.test.yml up --exit-code-from file_service_test'
-            }
           }
           post {
             always {
