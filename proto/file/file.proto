@@ -21,6 +21,7 @@ service FileService {
   rpc GetAncestors(GetAncestorsRequest) returns (GetAncestorsResponse) {}
   rpc GetDescendantsByID(GetDescendantsByIDRequest) returns (GetDescendantsByIDResponse) {}
   rpc DeleteFileByID(DeleteFileByIDRequest) returns (DeleteFileByIDResponse) {}
+  rpc GetFileSizeByID(GetFileSizeByIDRequest) returns (GetFileSizeByIDResponse) {}
 }
 
 // Used for both upload and update
@@ -219,4 +220,12 @@ message DeleteFileByIDRequest {
 
 message DeleteFileByIDResponse {
   File file = 1;
+}
+
+message GetFileSizeByIDRequest {
+  string id = 1;
+}
+
+message GetFileSizeByIDResponse {
+  int64 fileSize = 1;
 }

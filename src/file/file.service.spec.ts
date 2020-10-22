@@ -976,6 +976,28 @@ describe('File Logic', () => {
 
 });
 
+describe('#getFileSize', () => {
+  it('should return the size of the folder or file', async () => {
+    const structure: IFile[] = await generateFolderStructure();
+
+    // First level assertion
+    const folder1Size: number = await FileService.getFileSize(structure[0].id);
+    expect(folder1Size).to.be.equal(390);
+
+    // Second level assertion
+    const folder2Size: number = await FileService.getFileSize(structure[3].id);
+    expect(folder2Size).to.be.equal(20);
+
+    // Third level assertion
+    const folder3Size: number = await FileService.getFileSize(structure[4].id);
+    expect(folder3Size).to.be.equal(0);
+
+    // Four level assertion
+    const fileSize: number = await FileService.getFileSize(structure[1].id);
+    expect(fileSize).to.be.equal(120);
+  });
+});
+
 async function generateFolderStructure(): Promise<IFile[]> {
   const key2: string = UploadService.generateKey();
   const key3: string = UploadService.generateKey();

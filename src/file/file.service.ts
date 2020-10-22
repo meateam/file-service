@@ -317,6 +317,20 @@ export class FileService {
   }
 
   /**
+   * Gets the size of a file (folder/file) recursively.
+   * @param fileID -the given folder/file
+   * @returns the size of the folder/file (number).
+  */
+  public static async getFileSize(fileID: string | null): Promise<number> {
+    const file: IFile = await FilesRepository.getById(fileID);
+    if (file.type !== FolderContentType) return file.size;
+
+    const children: { file: IFile, parent: IFile }[] = await this.getDescendantsByID(fileID);
+    const fileSizeSum = (children.length > 0) ? children.map(item => item.file.size).reduce((prev, next) => prev + next) : 0;
+    return fileSizeSum;
+  }
+
+  /**
    * Returns true if the folder is an ancestor of the file
    * @param fileID - the file id
    * @param folderID - the folder id
@@ -403,5 +417,4 @@ export class FileService {
   private static isFolder(file: IFile): boolean {
     return (file.type === FolderContentType);
   }
-
 }
