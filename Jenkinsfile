@@ -1,4 +1,4 @@
-//file services meateam
+//file services meateams
 pipeline {
   agent any
     stages {
