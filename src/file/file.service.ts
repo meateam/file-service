@@ -111,6 +111,7 @@ export class FileService {
       // If a file was not deleted, mark the path so it would not be deleted.
       if (!currFile) {
         pathSuccess = false;
+        
       } else {
         await QuotaService.updateUsed(currFile.ownerID, -currFile.size);
         deletedFiles.push({ id: currFile.id, key: currFile.key, bucket: currFile.bucket });
