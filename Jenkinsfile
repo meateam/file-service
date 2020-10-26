@@ -1,4 +1,4 @@
-//file services meateams
+//file services meateamss
 pipeline {
   agent {    
        kubernetes {
