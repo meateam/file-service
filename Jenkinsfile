@@ -66,7 +66,7 @@ pipeline {
       stage('login to azure container registry') {
           when {
             anyOf {
-              branch 'master'; branch 'develop'; branch 'devops/ci'
+              branch 'master'; branch 'develop'
             }
           } 
           steps{ 
@@ -79,7 +79,7 @@ pipeline {
         stage('build dockerfile of system only for master and develop') {
             when {
               anyOf {
-                 branch 'master'; branch 'develop'; branch 'devops/ci'
+                 branch 'master'; branch 'develop'
               }
             }
             steps {
