@@ -158,7 +158,10 @@ export class FileMethods {
     const fileID: string = call.request.id;
     if (!fileID) throw new IdInvalidError();
 
-    const fileSize: number = await FileService.getFileSize(fileID);
+    const queryFile: ResFile = call.request.queryFile || {};
+    const queryIFile = new IFile(queryFile);
+
+    const fileSize: number = await FileService.getFileSize(fileID, queryIFile);
     return { fileSize };
   }
 }

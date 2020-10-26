@@ -130,7 +130,13 @@ export class FileService {
       await this.checkAdoption(fileId, parentID);
     }
 
-    if (partialFile.size) {
+    if (partialFile.ownerID) {
+      const file: IFile = await FilesRepository.getById(fileId);
+      if (partialFile.ownerID !== file.ownerID) {
+        await this.updateQuota(fileId, file.size, partialFile.ownerID);
+        await this.updateQuota(fileId, 0);
+      }
+    } else if (partialFile.size) {
       await this.updateQuota(fileId, partialFile.size);
     }
 
@@ -142,10 +148,10 @@ export class FileService {
    * @param fileId - the id of the file.
    * @param size - the size of the new file.
    */
-  public static async updateQuota(fileId: string, size: number) {
+  public static async updateQuota(fileId: string, size: number, ownerId?: string) {
     const file: IFile = await FilesRepository.getById(fileId);
     if (file) {
-      await QuotaService.updateUsed(file.ownerID, size - file.size);
+      await QuotaService.updateUsed(ownerId ? ownerId : file.ownerID, size - file.size);
     }
   }
 
@@ -292,12 +298,13 @@ export class FileService {
     return ancestors.reverse();
   }
 
-  public static async getDescendantsByID(fileID: string): Promise<{ file: IFile, parent: IFile }[]> {
+  public static async getDescendantsByID(fileID: string, queryFile?: Partial<IFile>): Promise<{ file: IFile, parent: IFile }[]> {
+    const query: Partial<IFile> = this.extractQuery(queryFile);
     const filesQueue = [fileID];
     const descendants: { file: IFile, parent: IFile }[] = [];
     while (filesQueue.length > 0) {
       const currentFile = filesQueue.pop();
-      const children = await this.getFilesByFolder(currentFile, null);
+      const children = await this.getFilesByFolder(currentFile, null, query);
       const childrenWithParents: { file: IFile, parent: IFile }[] = [];
       for (let i = 0; i < children.length; i++) {
         let parent = null;
@@ -321,11 +328,11 @@ export class FileService {
    * @param fileID -the given folder/file
    * @returns the size of the folder/file (number).
   */
-  public static async getFileSize(fileID: string | null): Promise<number> {
+  public static async getFileSize(fileID: string | null, queryFile?: Partial<IFile>): Promise<number> {
     const file: IFile = await FilesRepository.getById(fileID);
     if (file.type !== FolderContentType) return file.size;
 
-    const children: { file: IFile, parent: IFile }[] = await this.getDescendantsByID(fileID);
+    const children: { file: IFile, parent: IFile }[] = await this.getDescendantsByID(fileID, queryFile);
     const fileSizeSum = (children.length > 0) ? children.map(item => item.file.size).reduce((prev, next) => prev + next) : 0;
     return fileSizeSum;
   }

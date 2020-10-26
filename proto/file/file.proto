@@ -224,6 +224,7 @@ message DeleteFileByIDResponse {
 
 message GetFileSizeByIDRequest {
   string id = 1;
+  File queryFile = 2;
 }
 
 message GetFileSizeByIDResponse {
