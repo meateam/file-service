@@ -298,13 +298,12 @@ export class FileService {
     return ancestors.reverse();
   }
 
-  public static async getDescendantsByID(fileID: string, queryFile?: Partial<IFile>): Promise<{ file: IFile, parent: IFile }[]> {
-    const query: Partial<IFile> = this.extractQuery(queryFile);
+  public static async getDescendantsByID(fileID: string): Promise<{ file: IFile, parent: IFile }[]> {
     const filesQueue = [fileID];
     const descendants: { file: IFile, parent: IFile }[] = [];
     while (filesQueue.length > 0) {
       const currentFile = filesQueue.pop();
-      const children = await this.getFilesByFolder(currentFile, null, query);
+      const children = await this.getFilesByFolder(currentFile, null);
       const childrenWithParents: { file: IFile, parent: IFile }[] = [];
       for (let i = 0; i < children.length; i++) {
         let parent = null;
@@ -328,12 +327,18 @@ export class FileService {
    * @param fileID -the given folder/file
    * @returns the size of the folder/file (number).
   */
-  public static async getFileSize(fileID: string | null, queryFile?: Partial<IFile>): Promise<number> {
+  public static async getFileSize(fileID: string | null, ownerID?: string): Promise<number> {
     const file: IFile = await FilesRepository.getById(fileID);
-    if (file.type !== FolderContentType) return file.size;
+    if  (!file) throw new FileNotFoundError();
 
-    const children: { file: IFile, parent: IFile }[] = await this.getDescendantsByID(fileID, queryFile);
-    const fileSizeSum = (children.length > 0) ? children.map(item => item.file.size).reduce((prev, next) => prev + next) : 0;
+    if (file.type !== FolderContentType) {
+      if (ownerID && ownerID !== file.ownerID) throw new FileNotFoundError();
+      return file.size;
+    }
+
+    const children: { file: IFile, parent: IFile }[] = await this.getDescendantsByID(fileID);
+    const fileSizeSum = (children.length > 0) ?
+    children.filter(item => item.file.ownerID === ownerID || !ownerID).map(item => item.file.size).reduce((prev, next) => prev + next) : 0;
     return fileSizeSum;
   }
 

@@ -2077,8 +2077,8 @@ type GetFileSizeByIDRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id        string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	QueryFile *File  `protobuf:"bytes,2,opt,name=queryFile,proto3" json:"queryFile,omitempty"`
+	Id      string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OwnerID string `protobuf:"bytes,2,opt,name=ownerID,proto3" json:"ownerID,omitempty"`
 }
 
 func (x *GetFileSizeByIDRequest) Reset() {
@@ -2120,11 +2120,11 @@ func (x *GetFileSizeByIDRequest) GetId() string {
 	return ""
 }
 
-func (x *GetFileSizeByIDRequest) GetQueryFile() *File {
+func (x *GetFileSizeByIDRequest) GetOwnerID() string {
 	if x != nil {
-		return x.QueryFile
+		return x.OwnerID
 	}
-	return nil
+	return ""
 }
 
 type GetFileSizeByIDResponse struct {
@@ -2415,12 +2415,11 @@ var file_file_file_proto_rawDesc = []byte{
 	0x22, 0x38, 0x0a, 0x16, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x46, 0x69, 0x6c, 0x65, 0x42, 0x79,
 	0x49, 0x44, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1e, 0x0a, 0x04, 0x66, 0x69,
 	0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x66, 0x69, 0x6c, 0x65, 0x2e,
-	0x46, 0x69, 0x6c, 0x65, 0x52, 0x04, 0x66, 0x69, 0x6c, 0x65, 0x22, 0x52, 0x0a, 0x16, 0x47, 0x65,
+	0x46, 0x69, 0x6c, 0x65, 0x52, 0x04, 0x66, 0x69, 0x6c, 0x65, 0x22, 0x42, 0x0a, 0x16, 0x47, 0x65,
 	0x74, 0x46, 0x69, 0x6c, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x42, 0x79, 0x49, 0x44, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x02, 0x69, 0x64, 0x12, 0x28, 0x0a, 0x09, 0x71, 0x75, 0x65, 0x72, 0x79, 0x46, 0x69, 0x6c,
-	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0a, 0x2e, 0x66, 0x69, 0x6c, 0x65, 0x2e, 0x46,
-	0x69, 0x6c, 0x65, 0x52, 0x09, 0x71, 0x75, 0x65, 0x72, 0x79, 0x46, 0x69, 0x6c, 0x65, 0x22, 0x35,
+	0x52, 0x02, 0x69, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x6f, 0x77, 0x6e, 0x65, 0x72, 0x49, 0x44, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6f, 0x77, 0x6e, 0x65, 0x72, 0x49, 0x44, 0x22, 0x35,
 	0x0a, 0x17, 0x47, 0x65, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x53, 0x69, 0x7a, 0x65, 0x42, 0x79, 0x49,
 	0x44, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x66, 0x69, 0x6c,
 	0x65, 0x53, 0x69, 0x7a, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x66, 0x69, 0x6c,
@@ -2583,52 +2582,51 @@ var file_file_file_proto_depIdxs = []int32{
 	29, // 8: file.UpdateFilesResponse.failedFiles:type_name -> file.FailedFile
 	38, // 9: file.GetDescendantsByIDResponse.descendants:type_name -> file.GetDescendantsByIDResponse.Descendant
 	26, // 10: file.DeleteFileByIDResponse.file:type_name -> file.File
-	26, // 11: file.GetFileSizeByIDRequest.queryFile:type_name -> file.File
-	26, // 12: file.GetDescendantsByIDResponse.Descendant.file:type_name -> file.File
-	26, // 13: file.GetDescendantsByIDResponse.Descendant.parent:type_name -> file.File
-	2,  // 14: file.FileService.GenerateKey:input_type -> file.GenerateKeyRequest
-	0,  // 15: file.FileService.CreateUpload:input_type -> file.CreateUploadRequest
-	0,  // 16: file.FileService.CreateUpdate:input_type -> file.CreateUploadRequest
-	4,  // 17: file.FileService.UpdateUploadID:input_type -> file.UpdateUploadIDRequest
-	6,  // 18: file.FileService.GetUploadByID:input_type -> file.GetUploadByIDRequest
-	8,  // 19: file.FileService.DeleteUploadByKey:input_type -> file.DeleteUploadByKeyRequest
-	10, // 20: file.FileService.DeleteUploadByID:input_type -> file.DeleteUploadByIDRequest
-	12, // 21: file.FileService.GetFileByID:input_type -> file.GetByFileByIDRequest
-	13, // 22: file.FileService.GetFileByKey:input_type -> file.GetFileByKeyRequest
-	14, // 23: file.FileService.GetFilesByFolder:input_type -> file.GetFilesByFolderRequest
-	16, // 24: file.FileService.GetDescendantsByFolder:input_type -> file.GetDescendantsByFolderRequest
-	18, // 25: file.FileService.CreateFile:input_type -> file.CreateFileRequest
-	19, // 26: file.FileService.DeleteFile:input_type -> file.DeleteFileRequest
-	22, // 27: file.FileService.IsAllowed:input_type -> file.IsAllowedRequest
-	27, // 28: file.FileService.UpdateFiles:input_type -> file.UpdateFilesRequest
-	30, // 29: file.FileService.GetAncestors:input_type -> file.GetAncestorsRequest
-	32, // 30: file.FileService.GetDescendantsByID:input_type -> file.GetDescendantsByIDRequest
-	34, // 31: file.FileService.DeleteFileByID:input_type -> file.DeleteFileByIDRequest
-	36, // 32: file.FileService.GetFileSizeByID:input_type -> file.GetFileSizeByIDRequest
-	3,  // 33: file.FileService.GenerateKey:output_type -> file.KeyResponse
-	1,  // 34: file.FileService.CreateUpload:output_type -> file.CreateUploadResponse
-	1,  // 35: file.FileService.CreateUpdate:output_type -> file.CreateUploadResponse
-	5,  // 36: file.FileService.UpdateUploadID:output_type -> file.UpdateUploadIDResponse
-	7,  // 37: file.FileService.GetUploadByID:output_type -> file.GetUploadByIDResponse
-	9,  // 38: file.FileService.DeleteUploadByKey:output_type -> file.DeleteUploadByKeyResponse
-	11, // 39: file.FileService.DeleteUploadByID:output_type -> file.DeleteUploadByIDResponse
-	26, // 40: file.FileService.GetFileByID:output_type -> file.File
-	26, // 41: file.FileService.GetFileByKey:output_type -> file.File
-	15, // 42: file.FileService.GetFilesByFolder:output_type -> file.GetFilesByFolderResponse
-	17, // 43: file.FileService.GetDescendantsByFolder:output_type -> file.GetDescendantsByFolderResponse
-	26, // 44: file.FileService.CreateFile:output_type -> file.File
-	21, // 45: file.FileService.DeleteFile:output_type -> file.DeleteFileResponse
-	23, // 46: file.FileService.IsAllowed:output_type -> file.IsAllowedResponse
-	28, // 47: file.FileService.UpdateFiles:output_type -> file.UpdateFilesResponse
-	31, // 48: file.FileService.GetAncestors:output_type -> file.GetAncestorsResponse
-	33, // 49: file.FileService.GetDescendantsByID:output_type -> file.GetDescendantsByIDResponse
-	35, // 50: file.FileService.DeleteFileByID:output_type -> file.DeleteFileByIDResponse
-	37, // 51: file.FileService.GetFileSizeByID:output_type -> file.GetFileSizeByIDResponse
-	33, // [33:52] is the sub-list for method output_type
-	14, // [14:33] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	26, // 11: file.GetDescendantsByIDResponse.Descendant.file:type_name -> file.File
+	26, // 12: file.GetDescendantsByIDResponse.Descendant.parent:type_name -> file.File
+	2,  // 13: file.FileService.GenerateKey:input_type -> file.GenerateKeyRequest
+	0,  // 14: file.FileService.CreateUpload:input_type -> file.CreateUploadRequest
+	0,  // 15: file.FileService.CreateUpdate:input_type -> file.CreateUploadRequest
+	4,  // 16: file.FileService.UpdateUploadID:input_type -> file.UpdateUploadIDRequest
+	6,  // 17: file.FileService.GetUploadByID:input_type -> file.GetUploadByIDRequest
+	8,  // 18: file.FileService.DeleteUploadByKey:input_type -> file.DeleteUploadByKeyRequest
+	10, // 19: file.FileService.DeleteUploadByID:input_type -> file.DeleteUploadByIDRequest
+	12, // 20: file.FileService.GetFileByID:input_type -> file.GetByFileByIDRequest
+	13, // 21: file.FileService.GetFileByKey:input_type -> file.GetFileByKeyRequest
+	14, // 22: file.FileService.GetFilesByFolder:input_type -> file.GetFilesByFolderRequest
+	16, // 23: file.FileService.GetDescendantsByFolder:input_type -> file.GetDescendantsByFolderRequest
+	18, // 24: file.FileService.CreateFile:input_type -> file.CreateFileRequest
+	19, // 25: file.FileService.DeleteFile:input_type -> file.DeleteFileRequest
+	22, // 26: file.FileService.IsAllowed:input_type -> file.IsAllowedRequest
+	27, // 27: file.FileService.UpdateFiles:input_type -> file.UpdateFilesRequest
+	30, // 28: file.FileService.GetAncestors:input_type -> file.GetAncestorsRequest
+	32, // 29: file.FileService.GetDescendantsByID:input_type -> file.GetDescendantsByIDRequest
+	34, // 30: file.FileService.DeleteFileByID:input_type -> file.DeleteFileByIDRequest
+	36, // 31: file.FileService.GetFileSizeByID:input_type -> file.GetFileSizeByIDRequest
+	3,  // 32: file.FileService.GenerateKey:output_type -> file.KeyResponse
+	1,  // 33: file.FileService.CreateUpload:output_type -> file.CreateUploadResponse
+	1,  // 34: file.FileService.CreateUpdate:output_type -> file.CreateUploadResponse
+	5,  // 35: file.FileService.UpdateUploadID:output_type -> file.UpdateUploadIDResponse
+	7,  // 36: file.FileService.GetUploadByID:output_type -> file.GetUploadByIDResponse
+	9,  // 37: file.FileService.DeleteUploadByKey:output_type -> file.DeleteUploadByKeyResponse
+	11, // 38: file.FileService.DeleteUploadByID:output_type -> file.DeleteUploadByIDResponse
+	26, // 39: file.FileService.GetFileByID:output_type -> file.File
+	26, // 40: file.FileService.GetFileByKey:output_type -> file.File
+	15, // 41: file.FileService.GetFilesByFolder:output_type -> file.GetFilesByFolderResponse
+	17, // 42: file.FileService.GetDescendantsByFolder:output_type -> file.GetDescendantsByFolderResponse
+	26, // 43: file.FileService.CreateFile:output_type -> file.File
+	21, // 44: file.FileService.DeleteFile:output_type -> file.DeleteFileResponse
+	23, // 45: file.FileService.IsAllowed:output_type -> file.IsAllowedResponse
+	28, // 46: file.FileService.UpdateFiles:output_type -> file.UpdateFilesResponse
+	31, // 47: file.FileService.GetAncestors:output_type -> file.GetAncestorsResponse
+	33, // 48: file.FileService.GetDescendantsByID:output_type -> file.GetDescendantsByIDResponse
+	35, // 49: file.FileService.DeleteFileByID:output_type -> file.DeleteFileByIDResponse
+	37, // 50: file.FileService.GetFileSizeByID:output_type -> file.GetFileSizeByIDResponse
+	32, // [32:51] is the sub-list for method output_type
+	13, // [13:32] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_file_file_proto_init() }
