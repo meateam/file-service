@@ -72,9 +72,11 @@ export class FileServer {
     const fileService = {
       GenerateKey: wrapper(UploadMethods.GenerateKey),
       CreateUpload: wrapper(UploadMethods.CreateUpload),
+      CreateUpdate: wrapper(UploadMethods.CreateUpdate),
       UpdateUploadID: wrapper(UploadMethods.UpdateUploadID),
       GetUploadByID: wrapper(UploadMethods.GetUploadByID),
       DeleteUploadByID: wrapper(UploadMethods.DeleteUploadByID),
+      DeleteUploadByKey: wrapper(UploadMethods.DeleteUploadByKey),
       GetFileByID: wrapper(FileMethods.GetFileByID),
       GetFileByKey: wrapper(FileMethods.GetFileByKey),
       GetFilesByFolder: wrapper(FileMethods.GetFilesByFolder),
@@ -92,7 +94,8 @@ export class FileServer {
 
     const quotaService = {
       GetOwnerQuota: wrapper(QuotaMethods.GetOwnerQuota),
-      IsAllowedToGetQuota: wrapper(QuotaMethods.IsAllowedToGetQuota)
+      IsAllowedToGetQuota: wrapper(QuotaMethods.IsAllowedToGetQuota),
+      UpdateQuota: wrapper(QuotaMethods.UpdateQuota)
     };
 
     this.server.addService(quota_proto.QuotaService.service, quotaService);

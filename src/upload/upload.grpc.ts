@@ -21,6 +21,17 @@ export class UploadMethods {
     return UploadService.createUpload(key, bucket, name, ownerID, parent, size);
   }
 
+  // Creates an upload object, present while updateing a file.
+  public static async CreateUpdate(call: any, callback: any): Promise<IUpload> {
+    const key: string = UploadService.generateKey();
+    const bucket: string = call.request.bucket;
+    const name: string = call.request.name;
+    const ownerID: string = call.request.ownerID;
+    const parent: string = call.request.parent;
+    const size: number = parseInt(call.request.size, 10);
+    return UploadService.createUpdate(key, bucket, name, ownerID, parent, size);
+  }
+
   // Updates the uploadID.
   public static async UpdateUploadID(call: any, callback: any): Promise<IUpload> {
     const key: string = call.request.key;
@@ -39,5 +50,12 @@ export class UploadMethods {
   public static async DeleteUploadByID(call: any, callback: any): Promise<void> {
     const id: string = call.request.uploadID;
     return UploadService.deleteUpload(id);
+  }
+
+  //  Delete an upload from the DB by its file key.
+  public static async DeleteUploadByKey(call: any, callback: any): Promise<void> {
+    const key: string = call.request.key;
+    const bucket: string = call.request.bucket;
+    return UploadService.deleteUploadByKey(key, bucket);
   }
 }

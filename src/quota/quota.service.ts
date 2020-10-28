@@ -36,8 +36,8 @@ export class QuotaService {
    * 	if change is negative then the used field is decreased.
    */
   public static async updateUsed(ownerID: string, change: number) {
-    const quota = await this.getByOwnerID(ownerID);
-    if (quota.used + change < 0) {
+    const quota: IQuota = await this.getByOwnerID(ownerID);
+    if (Number(quota.used) + Number(change) < 0) {
       throw new ServerError('negative used quota');
     }
 

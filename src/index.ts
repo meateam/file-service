@@ -71,7 +71,7 @@ async function connect(): Promise<{success: boolean, error: Error}> {
   let error: Error = null;
   await mongoose.connect(
     mongoConnectionString,
-    { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false, autoIndex: autoIndex == 'true' },
+    { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false, autoIndex: autoIndex === 'true' },
     async (err) => {
       if (!err) {
         success = true;
