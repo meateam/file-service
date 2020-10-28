@@ -23,5 +23,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-[unreleased]: https://github.com/meateam/file-service/compare/develop...master
-[2.0.0]: https://github.com/meateam/file-service/compare/v2.0.0...v1.3
+[unreleased]: https://github.com/meateam/file-service/compare/master...develop
+[2.0.0]: https://github.com/meateam/file-service/compare/v1.3...v2.0.0
