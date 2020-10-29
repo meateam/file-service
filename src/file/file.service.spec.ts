@@ -8,6 +8,7 @@ import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, FileParentAppIDNotEqual } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
+import { fileModel } from '../file/file.model';
 import { QuotaService } from '../quota/quota.service';
 import { QuotaExceededError } from '../utils/errors/quota.error';
 import { UploadService } from '../upload/upload.service';
@@ -49,11 +50,14 @@ const ExceedQuotaSize: number = 11 * GB;
 describe('File Logic', () => {
 
   before(async () => {
-    // Remove files from DB
+    await mongoose.connection.db.dropDatabase();
     const collections = ['files', 'uploads'];
     for (const i in collections) {
       mongoose.connection.db.createCollection(collections[i], (err) => { });
     }
+    // ensure that the model indexes are created
+    await uploadModel.ensureIndexes();
+    await fileModel.ensureIndexes();
   });
 
   beforeEach(async () => {
@@ -98,25 +102,21 @@ describe('File Logic', () => {
     });
 
     it('should throw an error when {ownerID, parent, name} already exist', async () => {
-      uploadModel.on('index', async () => { // <-- Wait for model's indexes to finish
-        const newUpload1: IUpload =
-          await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1', USER.id, null)
-            .should.eventually.exist;
-        const newUpload2: IUpload =
-          await UploadService.createUpload(KEY2, 'BUCKET2', 'name1', USER.id, null)
-            .should.eventually.be.rejectedWith(UniqueIndexExistsError);
-      });
+      const newUpload1: IUpload =
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1', USER.id, null)
+          .should.eventually.exist;
+      const newUpload2: IUpload =
+        await UploadService.createUpload(KEY2, 'BUCKET2', 'name1', USER.id, null)
+          .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should not throw an error when key already exists but bucket not', async () => {
-      uploadModel.on('index', async () => { // <-- Wait for model's indexes to finish
-        const newUpload1: IUpload =
-          await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1', USER.id, null)
-            .should.eventually.exist;
-        const newUpload2: IUpload =
-          await UploadService.createUpload(testUpload.key, 'BUCKET2', 'name2', '654321', null)
-            .should.not.eventually.exist;
-      });
+      const newUpload1: IUpload =
+        await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1', USER.id, null)
+          .should.eventually.exist;
+      const newUpload2: IUpload =
+        await UploadService.createUpload(testUpload.key, 'BUCKET2', 'name2', '654321', null)
+          .should.eventually.exist;
     });
 
     it('should throw an error if file with the same name, ownerID and parent exists', async () => {
@@ -163,15 +163,14 @@ describe('File Logic', () => {
 
   describe('#createUpdate', () => {
 
-    it('should throw an error when {ownerID, parent, name} already exist', async () => {
-      uploadModel.on('index', async () => { // <-- Wait for model's indexes to finish
-        const newUpload1: IUpload =
-          await UploadService.createUpload(testUpload.key, testUpload.bucket, 'name1', USER.id, null)
-            .should.eventually.exist;
-        const newUpload2: IUpload =
-          await UploadService.createUpload(KEY2, 'BUCKET2', 'name1', USER.id, null)
-            .should.eventually.be.rejectedWith(UniqueIndexExistsError);
-      });
+    it('should not throw an error when {ownerID, parent, name} already exist', async () => {
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY3, size);
+      const newUpdate1: IUpload =
+        await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, null)
+          .should.eventually.exist;
+      const newUpdate2: IUpload =
+        await UploadService.createUpdate(KEY2, bucket, 'file.txt', USER.id, null)
+          .should.eventually.exist;
     });
 
     it('should return a new upload', async () => {
