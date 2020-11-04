@@ -40,6 +40,15 @@ export class UploadMethods {
     return UploadService.updateUpload(uploadID, key, bucket);
   }
 
+  // Updates the uploadID.
+  public static async UpdateUploadRemainSize(call: any, callback: any): Promise<IUpload> {
+    const key: string = call.request.key;
+    const bucket: string = call.request.bucket;
+    const sizePassed: number = call.request.sizePassed;
+
+    return UploadService.updateUploadSize(sizePassed, key, bucket);
+  }
+
   // Get an upload metadata by its id in the DB.
   public static async GetUploadByID(call: any, callback: any): Promise<IUpload> {
     const id: string = call.request.uploadID;

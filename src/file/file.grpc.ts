@@ -149,4 +149,18 @@ export class FileMethods {
 
     return { ancestors };
   }
+
+  /**
+   * Get a folder/file size recursively
+   * @param call
+   */
+  public static async GetRecursiveSize(call: any): Promise<{ fileSize: number }> {
+    const fileID: string = call.request.id;
+    if (!fileID) throw new IdInvalidError();
+
+    const ownerID: string = call.request.ownerID;
+
+    const fileSize: number = await FileService.getFileSize(fileID, ownerID);
+    return { fileSize };
+  }
 }

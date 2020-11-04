@@ -25,3 +25,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [unreleased]: https://github.com/meateam/file-service/compare/master...develop
 [v2.0.0]: https://github.com/meateam/file-service/compare/v1.3...v2.0.0
+* FEAT([218](https://github.com/meateam/file-service/pull/218)): new RPC methods GetFileSizeByID and UpdateUploadSize, added an optional argument at updateQuota function

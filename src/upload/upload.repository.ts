@@ -50,6 +50,15 @@ export class UploadRepository {
   }
 
   /**
+   * Retrieve an upload by its key and bucket.
+   * @param key - the key of the upload. is unique with bucket.
+   * @param bucket - the bucket of the upload.
+   */
+  static getByKey(key: string, bucket: string): Promise<IUpload | null> {
+    return uploadModel.findOne({ key, bucket }).exec();
+  }
+
+  /**
    * Update the upload ID with the given ID
    * @param key - the key of the upload. is unique with bucket.
    * @param bucket - the bucket of the upload.
@@ -57,6 +66,16 @@ export class UploadRepository {
    */
   static updateByKey(key: string, bucket: string, uploadID: string): Promise<IUpload> {
     return uploadModel.findOneAndUpdate({ key, bucket }, { uploadID }, { new: true }).exec();
+  }
+
+   /**
+   * Update the upload size with the given size.
+   * @param key - the key of the upload. is unique with bucket.
+   * @param bucket - the bucket of the upload.
+   * @param size - the new size.
+   */
+  static updateSizeByKey(key: string, bucket: string, size: number): Promise<IUpload> {
+    return uploadModel.findOneAndUpdate({ key, bucket }, { size }, { new: true }).exec();
   }
 
   /**
