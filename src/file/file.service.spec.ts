@@ -5,7 +5,7 @@ import chaiSubset from 'chai-subset';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, UploadNotFoundError } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { fileModel } from '../file/file.model';
@@ -13,6 +13,7 @@ import { QuotaService } from '../quota/quota.service';
 import { QuotaExceededError } from '../utils/errors/quota.error';
 import { UploadService } from '../upload/upload.service';
 import { IQuota } from '../quota/quota.interface';
+import { UploadSizeError } from '../utils/errors/server.error';
 
 const expect: Chai.ExpectStatic = chai.expect;
 chai.should();
@@ -229,6 +230,40 @@ describe('File Logic', () => {
       expect(myUpload.bucket).to.be.equal(testUpload.bucket);
       expect(myUpload.name).to.be.equal(testUpload.name);
       expect(myUpload.key).to.be.equal(testUpload.key);
+    });
+  });
+
+  describe('#updateUploadRemainSize', () => {
+    it('should update upload size and decrease quota usage', async () => {
+      const newUpload: IUpload =
+      await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * KB).should.eventually.exist;
+      expect(newUpload).to.exist;
+      expect(newUpload.size).to.be.equal(6 * KB);
+
+      const quotaAfterUpload = await QuotaService.getByOwnerID(USER.id);
+      expect(quotaAfterUpload.used).to.be.equal(6 * KB);
+
+      const updateSize: IUpload = await UploadService.updateUploadSize(3 * KB, testUpload.key, testUpload.bucket);
+      expect(updateSize).to.exist;
+      expect(updateSize.size).to.be.equal(3 * KB);
+
+      const quotaAfterDelete: IQuota = await QuotaService.getByOwnerID(USER.id);
+      expect(quotaAfterDelete.used).to.be.equal(3 * KB);
+    });
+
+    it('should throw UploadNotFoundError error', async () => {
+      await UploadService.updateUploadSize(3 * KB, testUpload.key, 'bucketNotExists')
+          .should.eventually.be.rejectedWith(UploadNotFoundError);
+    });
+
+    it('should throw UploadSizeError error', async () => {
+      const newUpload: IUpload =
+      await UploadService.createUpload(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 6 * KB).should.eventually.exist;
+      expect(newUpload).to.exist;
+      expect(newUpload.size).to.be.equal(6 * KB);
+
+      await UploadService.updateUploadSize(7 * KB, testUpload.key, testUpload.bucket)
+          .should.eventually.be.rejectedWith(UploadSizeError);
     });
   });
 

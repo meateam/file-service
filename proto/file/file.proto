@@ -7,6 +7,7 @@ service FileService {
   rpc CreateUpload(CreateUploadRequest) returns (CreateUploadResponse) {}
   rpc CreateUpdate(CreateUploadRequest) returns (CreateUploadResponse) {}
   rpc UpdateUploadID(UpdateUploadIDRequest) returns (UpdateUploadIDResponse) {}
+  rpc UpdateUploadSize(UpdateUploadSizeRequest) returns (UpdateUploadSizeResponse) {}
   rpc GetUploadByID(GetUploadByIDRequest) returns (GetUploadByIDResponse) {}
   rpc DeleteUploadByKey(DeleteUploadByKeyRequest) returns (DeleteUploadByKeyResponse) {}
   rpc DeleteUploadByID(DeleteUploadByIDRequest) returns (DeleteUploadByIDResponse) {}
@@ -53,6 +54,16 @@ message UpdateUploadIDRequest {
 }
 
 message UpdateUploadIDResponse {
+
+}
+
+message UpdateUploadSizeRequest {
+  string key = 1;
+  string sizePassed = 2;
+  string bucket = 3;
+}
+
+message UpdateUploadSizeResponse {
 
 }
 

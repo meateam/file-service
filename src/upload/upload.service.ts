@@ -1,6 +1,7 @@
 import { ObjectID } from 'mongodb';
 import FilesRepository from '../file/file.repository';
 import { FileExistsWithSameName, UploadNotFoundError, FileNotFoundError } from '../utils/errors/client.error';
+import { UploadSizeError } from '../utils/errors/server.error';
 import { IUpload } from '../upload/upload.interface';
 import { UploadRepository } from '../upload/upload.repository';
 import { QuotaService } from '../quota/quota.service';
@@ -99,6 +100,26 @@ export class UploadService {
     bucket: string,
   ): Promise<IUpload> {
     return await UploadRepository.updateByKey(key, bucket, uploadID);
+  }
+
+    /**
+	 * Updated the upload remain size
+	 * @param sizePassed - the substance of the remaining size
+	 * @param key - of the upload
+	 * @param bucket - together with bucket, create a unique identifier
+	 */
+  public static async updateUploadSize(
+    sizePassed: number,
+    key: string,
+    bucket: string,
+  ): Promise<IUpload> {
+    const upload = await UploadRepository.getByKey(key, bucket);
+    if (!upload) throw new UploadNotFoundError();
+
+    if (upload.size - sizePassed < 0) throw new UploadSizeError();
+
+    await QuotaService.updateUsed(upload.ownerID, -sizePassed);
+    return await UploadRepository.updateSizeByKey(key, bucket, upload.size - sizePassed);
   }
 
   /**
