@@ -6,7 +6,7 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.3.0 && \
 WORKDIR /usr/src/app
 COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
 RUN npm install --silent && cp -r node_modules ../
-RUN npm install -g typescript
+RUN npm install typescript
 COPY . .
 RUN npm run build-ts
 
