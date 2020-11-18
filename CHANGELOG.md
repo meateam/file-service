@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- FEAT([219](https://github.com/meateam/file-service/pull/219)): inserted basic CI. 
+- FEAT([219](https://github.com/meateam/file-service/pull/219)): inserted basic CI.
 
 - FEAT([214](https://github.com/meateam/file-service/pull/214/files)): new RPC method GetFileSizeByID
 
@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - BUG([195](https://github.com/meateam/file-service/issues/195)): uploads with same `fileName-parntID-ownerID` cannot exist simultaneously.
 
 ## [Unreleased]
+
+### Refactor
+
+- REFACTOR([95](https://github.com/meateam/drive-project/issues/96)): upgrade docker compose to v3 and use env_file
 
 [unreleased]: https://github.com/meateam/file-service/compare/master...develop
 [v2.0.0]: https://github.com/meateam/file-service/compare/v1.3...v2.0.0
