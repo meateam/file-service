@@ -3,8 +3,10 @@ import { ServerError } from '../utils/errors/application.error';
 import { IQuota } from './quota.interface';
 import { MongoError } from 'mongodb';
 import { UniqueIndexExistsError } from '../utils/errors/client.error';
+import { getMongoErrorIndixes } from '../utils/mongo.error';
 import { NextFunction } from 'connect';
 import { userQuotaLimit } from '../config';
+import { status } from 'grpc';
 
 const KiB = 1024;
 const MiB = 1024 * KiB;
@@ -36,7 +38,8 @@ export const quotaSchema: Schema = new Schema(
 // handleE11000 is called when there is a duplicateKey Error
 const handleE11000 = function (error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    next(new UniqueIndexExistsError(this.key));
+    const msg = getMongoErrorIndixes(error);
+    next(new UniqueIndexExistsError('quota', msg.indexName, msg.values));
   } else {
     next();
   }
@@ -48,7 +51,7 @@ quotaSchema.post('findOneAndUpdate', handleE11000);
 
 quotaSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   if (error.name === 'MongoError') {
-    next(new ServerError(error.message));
+    next(new ServerError(`Mongo Error: ${error.message || error.errmsg}`));
   }
   next(error);
 });

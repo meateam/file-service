@@ -1,10 +1,11 @@
 import { ObjectID } from 'mongodb';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import FilesRepository from './file.repository';
-import { FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
+import { FileNotFoundError, ArgumentInvalidError, OwnerIDInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel } from './file.model';
+import { status } from 'grpc';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -158,11 +159,18 @@ export class FileService {
   private static async checkAdoption(fileID: string, parentID: string): Promise<void> {
     const parent: IFile = await this.getById(parentID);
     if (parent && (parent.type !== FolderContentType)) {
-      throw new ArgumentInvalidError(`parent: ${parentID} is not a folder`);
+      throw new ArgumentInvalidError('parent', parentID, `parent: ${parentID} is not a folder`);
     }
     const file: IFile = await this.getById(fileID);
+    if (fileID === parentID) {
+      throw new ClientError(
+        status.INVALID_ARGUMENT,
+        `cyclic nesting error: Trying to put the file ${fileID} inside itself`);
+    }
     if (file.type === FolderContentType && await this.isFolderAnAncestor(parentID, fileID)) {
-      throw new ClientError('cyclic nesting error');
+      throw new ClientError(
+        status.FAILED_PRECONDITION,
+        `cyclic nesting error: The folder ${fileID} is an ancestor of ${parentID}, therefore it cant be inside it`);
     }
     return;
   }
@@ -170,6 +178,7 @@ export class FileService {
   /**
    * updateMany updates a list of files.
    * @param files - List of files to update with their updated fields and their id.
+   * @returns - List of fileId-error message of files that failed to update.
    */
   static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ id: string, error: Error }[]> {
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
@@ -220,7 +229,7 @@ export class FileService {
     if (!ownerID) {
       if (!parent) {
         // If parent is null and there is no ownerID, then the folder can't be found.
-        throw new ClientError('no owner id sent');
+        throw new OwnerIDInvalidError();
       }
     } else {
       // Add ownerID to the query
@@ -267,15 +276,6 @@ export class FileService {
   }
 
   /**
-   * Makes sure a key is not in use in the database, to preserve uniqueness.
-   * @param key - the key to check.
-   */
-  private static async isKeyNotInUse(key: string): Promise<boolean> {
-    const fileByKey: IFile = await FileService.getByKey(key);
-    return fileByKey == null;
-  }
-
-  /**
    * Returns an array with the fileIDs of the ancestors of a given fileId.
    * If the file does not exists or its a root folder the return value is [].
    * @param fileID - the id of the file.
@@ -291,7 +291,11 @@ export class FileService {
 
     return ancestors.reverse();
   }
-
+  /**
+   * getDescendantsByID gets the descendants of a folder by its file ID.
+   * @param fileID - The fileID of the folder.
+   * @returns an array of file and its parent.
+   */
   public static async getDescendantsByID(fileID: string): Promise<{ file: IFile, parent: IFile }[]> {
     const filesQueue = [fileID];
     const descendants: { file: IFile, parent: IFile }[] = [];
@@ -324,16 +328,6 @@ export class FileService {
   private static async isFolderAnAncestor(fileID: string, folderID: string): Promise<boolean> {
     const ancestors: string[] = await this.getAncestors(fileID);
     return ancestors.includes(folderID) || (fileID === folderID);
-  }
-
-  /**
-   * Checks if there is a file with a given name in a given folder.
-   * @param name - the name of the file.
-   * @param folderId - the id of the folder.
-   */
-  private static async isFileInFolder(name: string, folderId: string, ownerID: string): Promise<boolean> {
-    const file: IFile = await FilesRepository.getFileInFolderByName(folderId, name, ownerID);
-    return (file != null);
   }
 
   /**
@@ -398,10 +392,6 @@ export class FileService {
     }
 
     return childrenArray;
-  }
-
-  private static isFolder(file: IFile): boolean {
-    return (file.type === FolderContentType);
   }
 
 }
