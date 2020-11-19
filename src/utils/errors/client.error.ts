@@ -96,18 +96,6 @@ export class FileExistsWithSameName extends ClientError {
   }
 }
 
-// export class FileExistsWithSameName extends UniqueIndexExistsError {
-//   constructor(message?: string) {
-//     super(grpc.status.ALREADY_EXISTS, message || 'file already exists in the folder', grpc.status.ALREADY_EXISTS);
-//   }
-// }
-
-// export class FileExistsInS3 extends UniqueIndexExistsError {
-//   constructor(message?: string) {
-//     super(grpc.status.ALREADY_EXISTS, message || 'file already exists in the folder', grpc.status.ALREADY_EXISTS);
-//   }
-// }
-
 export class ObjectNotFoundError extends ClientError {
 
 }
