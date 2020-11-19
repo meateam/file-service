@@ -542,17 +542,14 @@ describe('File Logic', () => {
     });
 
     it('should change a floating file to unique properties of another (trinity)', async () => {
-      const key3: string = UploadService.generateKey();
-      const key4: string = UploadService.generateKey();
-
       const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY, 20, true);
       const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
-      FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY, 20, true).should.eventually.exist;
+      FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY3, 20, true).should.eventually.exist;
       //  rename file:
       await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.exist;
       const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, null);
       const file11: IFile = await FileService.create(
-        null, 'file1.txt', USER.id, 'text', father.id, key3, 20);
+        null, 'file1.txt', USER.id, 'text', father.id, KEY4, 20);
       //  move file:
       await FileService.updateById(file1.id, { parent: father.id }).should.eventually.exist;
     });
