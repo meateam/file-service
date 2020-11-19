@@ -45,7 +45,7 @@ export class FileExistsWithSameName extends ClientError {
 
 export class FileParentAppIDNotEqual extends ClientError {
   constructor(message?: string) {
-    super(message || 'file parent app id is not the same', grpc.status.INVALID_ARGUMENT);
+    super(message || 'the appID of the child must be equal to his parent', grpc.status.PERMISSION_DENIED);
   }
 }
 
