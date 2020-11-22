@@ -1,7 +1,7 @@
 import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
-import { UniqueIndexExistsError, FileExistsWithSameName } from '../utils/errors/client.error';
+import { UniqueIndexExistsError, FileExistsWithSameName, FileParentAppIDNotEqual } from '../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
@@ -25,6 +25,10 @@ export const fileSchema: Schema = new Schema(
       default: '',
     },
     ownerID: {
+      type: String,
+      required: true,
+    },
+    appID: {
       type: String,
       required: true,
     },
@@ -58,7 +62,7 @@ export const fileSchema: Schema = new Schema(
   }
 );
 
-fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: false });
+fileSchema.index({ name: 1, parent: 1, ownerID: 1, appID: 1 }, { unique: false });
 fileSchema.index({ key: 1, bucket: 1 }, { unique: true, sparse: true });
 
 fileSchema.virtual('id').get(function () {
@@ -121,14 +125,20 @@ fileSchema.pre('save', async function (next: NextFunction) {
   const name = (<any>this).name;
   const parent = (<any>this).parent;
   const ownerID = (<any>this).ownerID;
+  const appID = (<any>this).appID;
 
-  const query: any = { name, parent };
+  const parentFile = await fileModel.findById(parent);
+
+  const query: any = { name, parent, appID };
   if (!parent) {
     query.ownerID = ownerID;
   }
 
   const existingFile = await fileModel.findOne(query);
-  if (existingFile && !existingFile.float) {
+
+  if (parentFile && parentFile.appID !== appID) {
+    next(new FileParentAppIDNotEqual());
+  } else if (existingFile && !existingFile.float) {
     next(new FileExistsWithSameName());
   } else {
     next();
