@@ -55,6 +55,7 @@ message UpdateUploadIDResponse {
 
 }
 
+
 message GetUploadByIDRequest {
   string uploadID = 1;
 }
@@ -121,6 +122,7 @@ message CreateFileRequest {
   string ownerID = 5;
   string bucket = 6;
   string parent = 7;
+  string appID = 8;
 }
 
 message DeleteFileRequest {
@@ -176,6 +178,7 @@ message File {
   int64 updatedAt = 12;
   repeated File children = 13; 
   bool float = 14;
+  string appID = 15;
 }
 
 message UpdateFilesRequest {
