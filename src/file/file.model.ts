@@ -2,7 +2,7 @@ import { Schema, model, Document } from 'mongoose';
 import { ServerError } from '../utils/errors/application.error';
 import { IFile } from './file.interface';
 import { UniqueIndexExistsError } from '../utils/errors/client.error';
-import { getMongoErrorIndixes } from '../utils/mongo.error';
+import { getMongoErrorindexes } from '../utils/mongo.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
@@ -88,7 +88,7 @@ fileSchema.virtual('fullExtension')
  */
 function handleE11000(error: MongoError, _: any, next: NextFunction) {
   if (error.name === 'MongoError' && error.code === 11000) {
-    const msg = getMongoErrorIndixes(error);
+    const msg = getMongoErrorindexes(error);
     next(new UniqueIndexExistsError('file', msg.indexName, msg.values));
   } else {
     next();

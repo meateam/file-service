@@ -84,7 +84,7 @@ export class UniqueIndexExistsError extends ClientError {
     metadata.add('values', uniqueIndexValues);
     super(
         grpc.status.ALREADY_EXISTS,
-        message || `unique index ${uniqueIndexFields} has duplicate leys: ${uniqueIndexValues} already in use`,
+        message || `unique index duplicate error: The unique index <${uniqueIndexFields}> already has the keys: ${uniqueIndexValues}`,
         metadata,
       );
   }
