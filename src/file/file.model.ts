@@ -29,6 +29,10 @@ export const fileSchema: Schema = new Schema(
       type: String,
       required: true,
     },
+    appID: {
+      type: String,
+      required: true,
+    },
     size: {
       type: Number,
       default: 0,
@@ -59,7 +63,7 @@ export const fileSchema: Schema = new Schema(
   }
 );
 
-fileSchema.index({ name: 1, parent: 1, ownerID: 1 }, { unique: true, partialFilterExpression: { float : false } });
+fileSchema.index({ name: 1, parent: 1, ownerID: 1, appID: 1 }, { unique: true, partialFilterExpression: { float : false } });
 fileSchema.index({ key: 1, bucket: 1 }, { unique: true, sparse: true });
 
 fileSchema.virtual('id').get(function () {

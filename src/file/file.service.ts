@@ -1,7 +1,7 @@
 import { ObjectID } from 'mongodb';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import FilesRepository from './file.repository';
-import { FileNotFoundError, ArgumentInvalidError, OwnerIDInvalidError } from '../utils/errors/client.error';
+import { FileNotFoundError, ArgumentInvalidError, OwnerIDInvalidError, FileParentAppIDNotEqual } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel } from './file.model';
@@ -36,6 +36,7 @@ export class FileService {
     name: string,
     ownerID: string,
     type: string,
+    appID: string,
     folderID: string = '',
     key: string | null = null,
     size: number = 0,
@@ -46,6 +47,9 @@ export class FileService {
       throw new ServerError('No key sent');
     }
 
+    // validates that the parent (if exists) has the same appID as the requested file.
+    await validateParentAppID(folderID, appID);
+
     // basicFile is without key and bucket - in case it is a folder.
     let basicFile: IFile = {
       type,
@@ -53,10 +57,11 @@ export class FileService {
       ownerID,
       size,
       float,
+      appID,
       parent: folderID,
     };
 
-    // Create the file id by reversing key, and add ket and bucket.
+    // Create the file id by reversing key, and add key and bucket.
     if (key && bucket) {
       basicFile = { ...basicFile, bucket, key };
     }
@@ -394,4 +399,19 @@ export class FileService {
     return childrenArray;
   }
 
+}
+
+/**
+ * validateParentAppID validates that a file parent (If exists) have the same appID of the file.
+ * If the parent exists but the appID is different throws an error.
+ * @param parentID - the file ID of the file's parent (null if not exists)
+ * @param appID - an appID of the file
+ */
+async function validateParentAppID(parentID: string | null, appID: string): Promise<void> {
+  if (parentID) {
+    const parentFile = await fileModel.findById(parentID);
+    if (parentFile.appID !== appID) {
+      throw new FileParentAppIDNotEqual(appID, parentFile.appID);
+    }
+  }
 }

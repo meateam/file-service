@@ -9,9 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Refactor
 
-- REFACTOR([95](https://github.com/meateam/drive-project/issues/96)): upgrade docker compose to v3 and use env_file
 - errors are more informative.
 
+## [v3.0.0] - 2020-11-16
+
+## Added
+
+-FEAT([203](https://github.com/meateam/file-service/issues/203)): upload requires a new field named appID that tells which app uploaded the file.
+
+### Refactor
+
+- REFACTOR([95](https://github.com/meateam/drive-project/issues/96)): upgrade docker compose to v3 and use env_file
 
 ## [v2.0.0] - 2020-10-28
 
@@ -29,5 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - BUG([195](https://github.com/meateam/file-service/issues/195)): uploads with same `fileName-parntID-ownerID` cannot exist simultaneously.
 
+
 [unreleased]: https://github.com/meateam/file-service/compare/master...develop
 [v2.0.0]: https://github.com/meateam/file-service/compare/v1.3...v2.0.0
+[v3.0.0]: https://github.com/meateam/file-service/compare/v2.0.0...v3.0.0

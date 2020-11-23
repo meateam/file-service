@@ -96,8 +96,12 @@ export class FileExistsWithSameName extends ClientError {
   }
 }
 
-export class ObjectNotFoundError extends ClientError {
+export class ObjectNotFoundError extends ClientError {}
 
+export class FileParentAppIDNotEqual extends ClientError {
+  constructor(fileAppID: string, parentAppID: string, message?: string) {
+    super(grpc.status.PERMISSION_DENIED, message || `the given appID: ${fileAppID} does not match the parent's appID: ${parentAppID}. Those appIDs must be equal`);
+  }
 }
 
 export class FileNotFoundError extends ClientError {

@@ -5,7 +5,7 @@ import chaiSubset from 'chai-subset';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, OwnerIDInvalidError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, OwnerIDInvalidError, FileParentAppIDNotEqual } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { fileModel } from '../file/file.model';
@@ -115,8 +115,8 @@ describe('File Logic', () => {
     });
 
     it('should throw an error if file with the same name, ownerID and parent exists', async () => {
-      await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY, KEY2), size;
-      await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, KEY)
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY2), size;
+      await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, null)
         .should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
 
@@ -132,12 +132,12 @@ describe('File Logic', () => {
     });
 
     it('should throw exceeded quota error', async () => {
-      await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, KEY, ExceedQuotaSize)
+      await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, null, ExceedQuotaSize)
         .should.eventually.be.rejectedWith(QuotaExceededError);
     });
 
     it('should throw negative used quota', async () => {
-      await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, KEY, -256)
+      await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, null, -256)
         .should.eventually.be.rejectedWith(ServerError, 'negative used quota');
     });
 
@@ -159,7 +159,7 @@ describe('File Logic', () => {
   describe('#createUpdate', () => {
 
     it('should not throw an error when {ownerID, parent, name} already exist', async () => {
-      await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY3, size);
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY3, size);
       const newUpdate1: IUpload =
         await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, null)
           .should.eventually.exist;
@@ -169,8 +169,8 @@ describe('File Logic', () => {
     });
 
     it('should return a new upload', async () => {
-      await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY, KEY2, size);
-      const newUpdate: IUpload = await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY2, size);
+      const newUpdate: IUpload = await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, null, size).should.eventually.exist;
       expect(newUpdate).to.exist;
       expect(newUpdate.bucket).to.be.equal(bucket);
       expect(newUpdate.name).to.be.equal('file.txt');
@@ -183,15 +183,15 @@ describe('File Logic', () => {
     });
 
     it('should throw exceeded quota error', async () => {
-      await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY, KEY2, size);
-      await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, KEY, 101 * GB)
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY2, size);
+      await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, null, 101 * GB)
         .should.eventually.be.rejectedWith(QuotaExceededError);
     });
 
     it('should stay same quota usage by the negative size of the upload', async () => {
       const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
-      await FileService.create(bucket, testUpload.name, USER.id, 'text', KEY, KEY2);
-      const newUpload: IUpload = await UploadService.createUpdate(KEY, bucket, testUpload.name, USER.id, KEY, -500).should.eventually.exist;
+      await FileService.create(bucket, testUpload.name, USER.id, 'text', 'drive', null, KEY);
+      const newUpload: IUpload = await UploadService.createUpdate(KEY, bucket, testUpload.name, USER.id, null, -500).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
@@ -203,8 +203,8 @@ describe('File Logic', () => {
 
     it('should increase quota usage by the size of the upload', async () => {
       const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
-      const newFile: IFile = await FileService.create(bucket, testUpload.name, USER.id, 'text', KEY, KEY2, size);
-      const newUpload: IUpload = await UploadService.createUpdate(KEY, bucket, testUpload.name, USER.id, KEY, 6 * KB).should.eventually.exist;
+      const newFile: IFile = await FileService.create(bucket, testUpload.name, USER.id, 'text', 'drive', null, KEY, size);
+      const newUpload: IUpload = await UploadService.createUpdate(KEY, bucket, testUpload.name, USER.id, null, 6 * KB).should.eventually.exist;
       expect(newUpload).to.exist;
       expect(newUpload.bucket).to.be.equal(bucket);
       expect(newUpload.name).to.be.equal(testUpload.name);
@@ -265,28 +265,44 @@ describe('File Logic', () => {
 
   describe('#createFile', () => {
     it('should throw an error when key is not sent with file', async () => {
-      await FileService.create(bucket, 'myFolder', USER.id, 'Text', '', '', size)
+      await FileService.create(bucket, 'myFolder', USER.id, 'Text', 'drive', '', '', size)
         .should.eventually.be.rejectedWith(ServerError, 'No key sent');
     });
 
     it('should not throw an error if key is not sent with a folder', async () => {
-      await FileService.create(bucket, 'myFolder', USER.id, FolderContentType).should.eventually.exist;
+      await FileService.create(bucket, 'myFolder', USER.id, FolderContentType, 'drive').should.eventually.exist;
     });
 
     it('should throw error: same owner, folder and filename', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', USER.id, 'Other', null, KEY2, size)
+      await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'drive', null, KEY2, size)
         .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should not throw error: same folder and filename, different owner', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', '654321', 'Other', null, KEY2, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', '654321', 'Other', 'drive', null, KEY2, size).should.eventually.exist;
+    });
+
+    it('should not throw error: same folder and filename, different appID', async () => {
+      await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'dropbox', null, KEY2, size).should.eventually.exist;
+    });
+
+    it('should throw error: parent app id is not the same', async () => {
+      const parent = await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'dropbox', parent.id, KEY2, size)
+        .should.eventually.be.rejectedWith(FileParentAppIDNotEqual);
+    });
+
+    it('should create file when parent app id is the same', async () => {
+      const parent = await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
+      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'drive', parent.id, KEY2, size).should.eventually.exist;
     });
 
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.key).to.equal(KEY);
@@ -297,7 +313,7 @@ describe('File Logic', () => {
 
     it('should create a file with space in the name in root', async () => {
       const file: IFile = await FileService.create(
-        bucket, 'file name with space.txt', USER.id, 'text', KEY2, KEY, size);
+        bucket, 'file name with space.txt', USER.id, 'text', 'drive', null, KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.key).to.equal(KEY);
@@ -308,7 +324,7 @@ describe('File Logic', () => {
 
     it('should create a folder with space in the name in root', async () => {
       const folder: IFile = await FileService.create(
-        bucket, 'my folder name', USER.id, FolderContentType);
+        bucket, 'my folder name', USER.id, FolderContentType, 'drive');
       expect(folder).to.exist;
       expect(folder).to.have.property('createdAt');
       expect(folder.displayName).to.equal('my folder name');
@@ -319,40 +335,40 @@ describe('File Logic', () => {
     // Test folders creation
     it('should create two sibling folders in the root', async () => {
       const folder1: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType);
+        null, 'folder1', USER.id, FolderContentType, 'drive');
       const folder2: IFile = await FileService.create(
-        null, 'folder2', USER.id, FolderContentType);
+        null, 'folder2', USER.id, FolderContentType, 'drive');
     });
 
     it('should create two sibling folders with the same parent', async () => {
       const parent: IFile = await FileService.create(
-        null, 'parent', USER.id, FolderContentType);
+        null, 'parent', USER.id, FolderContentType, 'drive');
       const folder1: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, parent.id);
+        null, 'folder1', USER.id, FolderContentType, 'drive', parent.id);
       const folder2: IFile = await FileService.create(
-        null, 'folder2', USER.id, FolderContentType, parent.id);
+        null, 'folder2', USER.id, FolderContentType, 'drive', parent.id);
     });
 
     it('should create a folder within a folder with the same name', async () => {
       const folder1: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType);
+        null, 'folder1', USER.id, FolderContentType, 'drive');
       const folder2: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, folder1.id);
+        null, 'folder1', USER.id, FolderContentType, 'drive', folder1.id);
     });
 
     it('should throw an error when two sibling are folders with the same {parent, name, owner}', async () => {
       const parent: IFile = await FileService.create(
-        null, 'parent', USER.id, FolderContentType);
+        null, 'parent', USER.id, FolderContentType, 'drive');
       const folder1: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, parent.id);
+        null, 'folder1', USER.id, FolderContentType, 'drive', parent.id);
       const folder2: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, parent.id).should.eventually.be.rejectedWith(UniqueIndexExistsError);
+        null, 'folder1', USER.id, FolderContentType, 'drive', parent.id).should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     // Quota testing
     it('should increase owner quota used files size', async () => {
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, 256);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 256);
 
       const updatedQuota = await QuotaService.getByOwnerID(USER.id);
       expect(updatedQuota.used).to.equal(file.size);
@@ -380,7 +396,7 @@ describe('File Logic', () => {
       expect(quotaAfterDelete.used).to.be.equal(0);
 
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, 2 * GB);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 2 * GB);
 
       const newQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
       expect(newQuota.used).to.be.equal(file.size);
@@ -403,7 +419,7 @@ describe('File Logic', () => {
       expect(quotaAfterCreatedUpload.used).to.be.equal(newUpload.size);
 
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, 2 * GB).should.eventually.be.rejectedWith(QuotaExceededError);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 2 * GB).should.eventually.be.rejectedWith(QuotaExceededError);
 
       const quotaAfterCreateTry = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterCreateTry.used).to.be.equal(newUpload.size);
@@ -411,19 +427,19 @@ describe('File Logic', () => {
 
     it('should throw exceeded owner quota files size used', async () => {
       await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, ExceedQuotaSize)
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, ExceedQuotaSize)
         .should.eventually.be.rejectedWith(QuotaExceededError);
     });
 
     it('should throw negative used quota', async () => {
       await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, -256)
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, -256)
         .should.eventually.be.rejectedWith(ServerError, 'negative used quota');
     });
 
     it('should create a file in root, parent is empty string', async () => {
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', '', KEY, size);
+        bucket, 'file.txt', USER.id, 'text', 'drive', '', KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.key).to.equal(KEY);
@@ -434,7 +450,7 @@ describe('File Logic', () => {
 
     it('should create a file without extension', async () => {
       const file: IFile = await FileService.create(
-        bucket, 'file', USER.id, 'text', null, KEY, size);
+        bucket, 'file', USER.id, 'text', 'drive', null, KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.key).to.equal(KEY);
@@ -444,16 +460,16 @@ describe('File Logic', () => {
     });
 
     it('should create a file in a given folder', async () => {
-      const folder: IFile = await FileService.create(null, 'myFolder', USER.id, FolderContentType);
-      const file: IFile = await FileService.create(bucket, 'tmp', USER.id, 'Text', folder.id, KEY, size);
+      const folder: IFile = await FileService.create(null, 'myFolder', USER.id, FolderContentType, 'drive');
+      const file: IFile = await FileService.create(bucket, 'tmp', USER.id, 'Text', 'drive', folder.id, KEY, size);
       expect(file.parent.toString()).to.equal(folder.id);
     });
 
     it('should create a file at the root folder', async () => {
-      const file1 = await FileService.create(bucket, 'tmp', USER.id, 'text', null, KEY);
+      const file1 = await FileService.create(bucket, 'tmp', USER.id, 'text', 'drive', null, KEY);
       const newKey = UploadService.generateKey();
       const file2: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', null, newKey);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, newKey);
       const filesInRoot: IFile[] = await FileService.getFilesByFolder(null, USER.id);
       expect(filesInRoot.length).to.equal(2);
       expect(file1.parent).to.be.null;
@@ -461,8 +477,8 @@ describe('File Logic', () => {
     });
 
     it('should throw an error when KEY already exists', async () => {
-      await FileService.create(bucket, 'tmp1', USER.id, 'text', null, KEY);
-      await FileService.create(bucket, 'tmp2', USER.id, 'text', null, KEY)
+      await FileService.create(bucket, 'tmp1', USER.id, 'text', 'drive', null, KEY);
+      await FileService.create(bucket, 'tmp2', USER.id, 'text', 'drive', null, KEY)
         .should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
@@ -470,7 +486,7 @@ describe('File Logic', () => {
 
   describe('#updateById', () => {
     it('should update a file', async () => {
-      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('id');
 
@@ -496,7 +512,7 @@ describe('File Logic', () => {
     });
 
     it('should update a file with size 0', async () => {
-      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY2, KEY, 0);
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 0);
       expect(file).to.exist;
       expect(file).to.have.property('id');
 
@@ -524,39 +540,39 @@ describe('File Logic', () => {
     it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
       const key3: string = UploadService.generateKey();
 
-      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
-      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', 'drive', null, KEY2);
       //  rename file:
       await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
-      const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, null);
+      const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, 'drive', null);
       const file11: IFile = await FileService.create(
-        null, 'file1.txt', USER.id, 'text', father.id, key3, 20);
+        null, 'file1.txt', USER.id, 'text', 'drive', father.id, key3, 20);
       //  move file:
       await FileService.updateById(file1.id, { parent: father.id }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should throw an error when changing a file to unique properties of another (key)', async () => {
-      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY);
-      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', 'drive', null, KEY2);
       await FileService.updateById(file1.id, { key: KEY2 }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
     });
 
     it('should change a floating file to unique properties of another (trinity)', async () => {
-      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY, 20, true);
-      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', null, KEY2);
-      FileService.create(bucket, 'file1.txt', USER.id, 'text', null, KEY3, 20, true).should.eventually.exist;
+      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY, 20, true);
+      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', 'drive', null, KEY2);
+      FileService.create(bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY3, 20, true).should.eventually.exist;
       //  rename file:
       await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.exist;
-      const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, null);
+      const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, 'drive', null);
       const file11: IFile = await FileService.create(
-        null, 'file1.txt', USER.id, 'text', father.id, KEY4, 20);
+        null, 'file1.txt', USER.id, 'text', 'drive', father.id, KEY4, 20);
       //  move file:
       await FileService.updateById(file1.id, { parent: father.id }).should.eventually.exist;
     });
 
     it('should not update a file id', async () => {
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', KEY2, KEY, size);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('id');
 
@@ -585,9 +601,9 @@ describe('File Logic', () => {
 
   describe('#updateMany', () => {
     it('should update all files', async () => {
-      const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', null, UploadService.generateKey());
+      const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', 'drive', null, UploadService.generateKey());
       const file2: IFile = await FileService.create(
-        'asddd', 'file.txt', 'asdadsasdsadsa', 'text', null, UploadService.generateKey());
+        'asddd', 'file.txt', 'asdadsasdsadsa', 'text', 'drive', null, UploadService.generateKey());
       expect(file1).to.exist;
       expect(file1).to.have.property('id');
       expect(file2).to.exist;
@@ -608,9 +624,9 @@ describe('File Logic', () => {
       expect(updatedFile2).to.have.property('size', partialFile.size);
     });
     it('should update all files with parent null', async () => {
-      const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', KEY, UploadService.generateKey());
+      const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', 'drive', null, UploadService.generateKey());
       const file2: IFile = await FileService.create(
-        'asddd', 'file.txt', 'asdadsasdsadsa', 'text', KEY, UploadService.generateKey());
+        'asddd', 'file.txt', 'asdadsasdsadsa', 'text', 'drive', null, UploadService.generateKey());
       expect(file1).to.exist;
       expect(file1).to.have.property('id');
       expect(file2).to.exist;
@@ -632,7 +648,7 @@ describe('File Logic', () => {
     });
 
     it('should not update folders parent to itself', async () => {
-      const folder = await FileService.create('bucketName', 'folderName', USER.id, FolderContentType, KEY, KEY2);
+      const folder = await FileService.create('bucketName', 'folderName', USER.id, FolderContentType, 'drive', null, KEY);
       expect(folder).to.exist;
       expect(folder).to.have.property('id');
 
@@ -664,8 +680,8 @@ describe('File Logic', () => {
     });
 
     it('should update file`s parent', async () => {
-      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
-      const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, null);
+      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+      const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, 'drive', null);
       const partialFile: (Partial<IFile>) = { parent: folder.id };
 
       const failed = await FileService.updateMany([file.id], partialFile);
@@ -673,8 +689,8 @@ describe('File Logic', () => {
     });
 
     it('should update a folder parent', async () => {
-      const folder1 = await FileService.create(bucket, 'folder1', USER.id, FolderContentType, null);
-      const folder2 = await FileService.create(bucket, 'folder2', USER.id, FolderContentType, null);
+      const folder1 = await FileService.create(bucket, 'folder1', USER.id, FolderContentType, 'drive', null);
+      const folder2 = await FileService.create(bucket, 'folder2', USER.id, FolderContentType, 'drive', null);
       const partialFile: (Partial<IFile>) = { parent: folder2.id };
 
       const failed = await FileService.updateMany([folder1.id], partialFile);
@@ -682,8 +698,8 @@ describe('File Logic', () => {
     });
 
     it('should update a file or folder parent to null(root)', async () => {
-      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
-      const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, null);
+      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+      const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, 'drive', null);
       const partialFile: (Partial<IFile>) = { parent: null };
 
       const failed = await FileService.updateMany([file.id, folder.id], partialFile);
@@ -701,7 +717,7 @@ describe('File Logic', () => {
       await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
     });
     it('get an existing file', async () => {
-      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
+      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
       const fileRetrieved = await FileService.getById(file.id);
       expect(fileRetrieved).to.exist;
       expect(fileRetrieved.id).to.equal(file.id);
@@ -715,7 +731,7 @@ describe('File Logic', () => {
       await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
     });
     it('get an existing file', async () => {
-      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', null, KEY);
+      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
       const fileRetrieved = await FileService.getByKey(KEY);
       expect(fileRetrieved).to.exist;
       expect(fileRetrieved.id).to.equal(file.id);
@@ -736,7 +752,7 @@ describe('File Logic', () => {
     });
 
     it('should return an empty array if the folder is empty', async () => {
-      const folder = await FileService.create(null, 'myFolder', USER.id, FolderContentType);
+      const folder = await FileService.create(null, 'myFolder', USER.id, FolderContentType, 'drive');
       const files = await FileService.getFilesByFolder(folder.id, USER.id);
       expect(files).to.exist;
       expect(files).to.be.an('array').with.lengthOf(0);
@@ -746,16 +762,16 @@ describe('File Logic', () => {
       const newKey1 = UploadService.generateKey();
       const newKey2 = UploadService.generateKey();
 
-      const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, KEY);
+      const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, 'drive', null, KEY);
 
       const file1 = await FileService.create(
-        bucket, 'file1.txt', USER.id, 'text', father.id, KEY2);
+        bucket, 'file1.txt', USER.id, 'text', 'drive', father.id, KEY2);
       const file2 = await FileService.create(
-        bucket, 'file2.txt', USER.id, 'text', father.id, newKey1);
+        bucket, 'file2.txt', USER.id, 'text', 'drive', father.id, newKey1);
       const folder1 = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, father.id, KEY3);
+        null, 'folder1', USER.id, FolderContentType, 'drive', father.id, KEY3);
       const file11 = await FileService.create(
-        bucket, 'file11.txt', USER.id, 'text', folder1.id, newKey2, size);
+        bucket, 'file11.txt', USER.id, 'text', 'drive', folder1.id, newKey2, size);
 
       const files = await FileService.getFilesByFolder(father.id, USER.id);
       const files1 = await FileService.getFilesByFolder(folder1.id, USER.id);
@@ -786,13 +802,13 @@ describe('File Logic', () => {
         const key3 = UploadService.generateKey();
 
         const file1 = await FileService.create(
-          bucket, 'file1.txt', USER.id, 'text', null, KEY);
+          bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
         const file2 = await FileService.create(
-          bucket, 'file2.txt', USER.id, 'text', null, key2);
+          bucket, 'file2.txt', USER.id, 'text', 'drive', null, key2);
         const folder1 = await FileService.create(
-          null, 'folder1', USER.id, FolderContentType, null);
+          null, 'folder1', USER.id, FolderContentType, 'drive', null);
         const file11 = await FileService.create(
-          bucket, 'file11.txt', USER.id, 'text', folder1.id, key3, size);
+          bucket, 'file11.txt', USER.id, 'text', 'drive', folder1.id, key3, size);
 
         const files = await FileService.getFilesByFolder(null, USER.id);
 
@@ -902,7 +918,7 @@ describe('File Logic', () => {
     });
     it('should return "false" if the user is not an owner of the file', async () => {
       const file = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', null, KEY);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
       const res = await FileService.isOwner(file.id, USER.id.concat('7'));
       expect(res).to.exist;
       expect(res).to.be.false;
@@ -910,14 +926,14 @@ describe('File Logic', () => {
     });
     it('should return "true" if the user is the owner of the file', async () => {
       const file = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', null, KEY);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
       const res = await FileService.isOwner(file.id, USER.id);
       expect(res).to.exist;
       expect(res).to.be.true;
     });
     it('should return true if it is the users root folder', async () => {
       const file = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', null, KEY);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
       const res1 = await FileService.isOwner('', USER.id);
       const res2 = await FileService.isOwner(null, USER.id);
       expect(res1).to.exist;
@@ -933,7 +949,7 @@ describe('File Logic', () => {
       expect(quota.used).to.be.equal(0);
 
       const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', null, KEY, 320 * MB);
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 320 * MB);
       const DBFile = await FileService.getById(file.id);
       quota = await QuotaService.getByOwnerID(file.ownerID);
 
@@ -998,18 +1014,18 @@ async function generateFolderStructure(): Promise<IFile[]> {
   const key4: string = UploadService.generateKey();
 
   // father is a folder in the root
-  const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, null);
+  const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, 'drive', null);
 
   const file1: IFile = await FileService.create(
-    bucket, 'file1.txt', USER.id, 'text', father.id, KEY2, 120);
+    bucket, 'file1.txt', USER.id, 'text', 'drive', father.id, KEY2, 120);
   const file2: IFile = await FileService.create(
-    bucket, 'file2.txt', USER.id, 'text', father.id, key2, 250);
+    bucket, 'file2.txt', USER.id, 'text', 'drive', father.id, key2, 250);
   const folder1: IFile = await FileService.create(
-    null, 'folder1', USER.id, FolderContentType, father.id, KEY3);
+    null, 'folder1', USER.id, FolderContentType, 'drive', father.id, KEY3);
   const folder2: IFile = await FileService.create(
-    null, 'folder2', USER.id, FolderContentType, father.id, key4);
+    null, 'folder2', USER.id, FolderContentType, 'drive', father.id, key4);
   const file11: IFile = await FileService.create(
-    null, 'file11.txt', USER.id, 'text', folder1.id, key3, 20);
+    null, 'file11.txt', USER.id, 'text', 'drive', folder1.id, key3, 20);
 
   return [father, file1, file2, folder1, folder2, file11];
 }
