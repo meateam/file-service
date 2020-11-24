@@ -5,7 +5,7 @@ import { MongoError } from 'mongodb';
  * @param error - the mongo error thrown.
  * @return string with the index names and values.
  */
-export function getMongoErrorindexes(error: MongoError): { indexName: string, values: string } {
+export function getMongoErrorIndexes(error: MongoError): { indexName: string, values: string } {
   // extract the indexes names in the MongoError
   const indicesRegex: RegExp = new RegExp(/index\:\ (?:.*\.)?\$?(?:([_a-z0-9]*)(?:_\d*)|([_a-z0-9]*))\s*dup key/i);
   const indicesMatch: RegExpMatchArray = error.message.match(indicesRegex);

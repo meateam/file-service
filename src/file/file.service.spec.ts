@@ -273,7 +273,7 @@ describe('File Logic', () => {
       await FileService.create(bucket, 'myFolder', USER.id, FolderContentType, 'drive').should.eventually.exist;
     });
 
-    it('should throw error: same owner, folder and filename', async () => {
+    it('should throw error: same owner, folder, appID and filename', async () => {
       await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
       await FileService.create(bucket, 'myFile', USER.id, 'Other', 'drive', null, KEY2, size)
         .should.eventually.be.rejectedWith(UniqueIndexExistsError);
