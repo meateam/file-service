@@ -15,16 +15,18 @@ export class ArgumentInvalidError extends ClientError {
    * @param message An optional custom message.
    */
   constructor(argumentName: string, argumentValue: any, message?: string) {
+    const stringifiedArgumentValue = JSON.stringify(argumentValue);
+    
     const metadata = new grpc.Metadata();
     metadata.add('fieldName', argumentName);
-    metadata.add('filedValue', `${argumentValue}`);
+    metadata.add('filedValue', `${stringifiedArgumentValue}`);
 
     let details = message;
     if (!message) {
       if (!argumentValue) {
         details = `${argumentName} was not provided`;
       } else {
-        details = `invalid ${argumentName}: ${argumentValue}`;
+        details = `invalid ${argumentName}: ${stringifiedArgumentValue}`;
       }
     }
     super(
