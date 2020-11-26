@@ -16,7 +16,7 @@ export class ArgumentInvalidError extends ClientError {
    */
   constructor(argumentName: string, argumentValue: any, message?: string) {
     const stringifiedArgumentValue = JSON.stringify(argumentValue);
-    
+
     const metadata = new grpc.Metadata();
     metadata.add('fieldName', argumentName);
     metadata.add('filedValue', `${stringifiedArgumentValue}`);

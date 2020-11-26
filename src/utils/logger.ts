@@ -83,7 +83,7 @@ export function wrapper(func: Function) :
       callback(null, res);
     } catch (err) {
       const validatedErr : ApplicationError = validateGrpcError(err);
-      log(Severity.ERROR, func.name, err, getCurrTraceId());
+      log(Severity.ERROR, func.name, JSON.stringify(err), getCurrTraceId());
       apm.endTransaction(validatedErr.name);
       callback(validatedErr);
     }

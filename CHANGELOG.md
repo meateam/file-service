@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Refactor
 
-- errors are more informative.
+- errors are more informative [226].
 
 ## [v3.0.0] - 2020-11-16
 
-## Added
+### Added
 
 -FEAT([203](https://github.com/meateam/file-service/issues/203)): upload requires a new field named appID that tells which app uploaded the file.
 
