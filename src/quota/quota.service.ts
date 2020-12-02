@@ -2,6 +2,7 @@ import { QuotaRepository } from './quota.repository';
 import { IQuota } from './quota.interface';
 import { QuotaExceededError } from '../utils/errors/quota.error';
 import { ServerError } from '../utils/errors/application.error';
+import { status } from 'grpc';
 
 export class QuotaService {
   /**
@@ -38,7 +39,7 @@ export class QuotaService {
   public static async updateUsed(ownerID: string, change: number) {
     const quota: IQuota = await this.getByOwnerID(ownerID);
     if (Number(quota.used) + Number(change) < 0) {
-      throw new ServerError('negative used quota');
+      throw new ServerError('user reached negative used quota');
     }
 
     if (quota.used + change > quota.limit) {

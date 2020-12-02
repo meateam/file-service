@@ -1,11 +1,10 @@
 import {
   UniqueIndexExistsError,
   FileExistsWithSameName,
-  IdInvalidError,
+  FileIDInvalidError,
+  OwnerIDInvalidError,
   ArgumentInvalidError,
   NameInvalidError,
-  MailInvalidError,
-  QueryInvalidError,
   FileNotFoundError,
   UploadNotFoundError} from './client.error';
 
@@ -15,16 +14,14 @@ export function getDisplayError(error : Error): string {
       return 'this file already exists in the folder (unique index)';
     case FileExistsWithSameName:
       return 'this name already exists';
-    case IdInvalidError:
-      return 'the id sent is invalid';
+    case FileIDInvalidError:
+      return 'the fileID sent is invalid';
+    case OwnerIDInvalidError:
+      return 'the ownerID sent is invalid';
     case ArgumentInvalidError:
       return 'argument sent is invalid';
     case NameInvalidError:
-      return 'this name is invalid';
-    case MailInvalidError:
-      return 'mail is invalid';
-    case QueryInvalidError:
-      return 'query sent is invalid';
+      return 'name is invalid';
     case FileNotFoundError:
       return 'file was not found';
     case UploadNotFoundError:

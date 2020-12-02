@@ -12,7 +12,7 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 before(async () => {
-  const mongoHost = process.env.MONGO_HOST || database.host;
+  const mongoHost = database.host;
   await mongoose.connect(
     `mongodb://${mongoHost}:27017/file`,
     { useCreateIndex: true, useNewUrlParser: true, useFindAndModify: false }
