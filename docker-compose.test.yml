@@ -13,7 +13,7 @@ services:
         context: .
         dockerfile: test.Dockerfile
     environment:
-      MONGO_HOST: 'mongodb://mongo:27017/devDB'
+      MONGO_HOST: 'mongo'
     depends_on:
       - mongo
 
