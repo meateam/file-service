@@ -6,7 +6,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - mongodb_data_container:/data/db
+    - ./data/db:/data/db
 
   file_service_test:
     build:
@@ -17,7 +17,6 @@ services:
     depends_on:
       - mongo
 
-volumes:
-  mongodb_data_container:
+  
  
 
