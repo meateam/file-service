@@ -1,7 +1,7 @@
 version: '3.3'
 services:
 
-  mongo:
+  mongo_file_service:
     image: mongo:latest
     ports:
       - 27017:27017
@@ -13,9 +13,9 @@ services:
         context: .
         dockerfile: test.Dockerfile
     environment:
-      MONGO_HOST: 'mongo'
+      MONGO_HOST: 'mongo_file_service'
     depends_on:
-      - mongo
+      - mongo_file_service
 
   
  
