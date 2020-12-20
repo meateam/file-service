@@ -121,10 +121,14 @@ describe('File Logic', () => {
 
     it('should throw an error if file with the same name, ownerID and parent exists', async () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
       await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY, KEY2, size);
 =======
       await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY, KEY2), size;
 >>>>>>> origin/develop
+=======
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', KEY, KEY2, size);
+>>>>>>> bb6494f7608a64dc510bf06beb06a7f3c1e29b20
       await UploadService.createUpload(KEY3, bucket, 'file.txt', USER.id, KEY)
         .should.eventually.be.rejectedWith(FileExistsWithSameName);
     });

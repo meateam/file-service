@@ -92,7 +92,7 @@ pipeline {
                   sh "docker build -t  drivehub.azurecr.io/meateam/${env.GIT_REPO_NAME}:develop ."
                   sh "docker push  drivehub.azurecr.io/meateam/${env.GIT_REPO_NAME}:develop"  
                 }
-              } 
+              }  
             }
             post {
               always {
