@@ -1,11 +1,12 @@
 {
-    "extends": "tslint-config-airbnb",
-    "rules": {
-      "no-increment-decrement" : false,
-      "import-name": false,       // 23.6.18
-      "max-line-length": false,   // 18.12.18
-      "function-name": false,     // 4.7.19
-      "variable-name": [true, "ban-keywords", "check-format", "allow-snake-case", "allow-leading-underscore", "allow-pascal-case"],
-      "trailing-comma" : false
-    }
+  "extends": "tslint-config-airbnb",
+  "rules": {
+    "no-increment-decrement" : false,
+    "import-name": false,       // 23.6.18
+    "max-line-length": false,   // 18.12.18
+    "function-name": false,     // 4.7.19
+    "variable-name": [true, "ban-keywords", "check-format", "allow-snake-case", "allow-leading-underscore", "allow-pascal-case"],
+    "trailing-comma" : false,
+    "ter-arrow-parens": false
   }
+}

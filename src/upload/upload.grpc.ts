@@ -51,4 +51,11 @@ export class UploadMethods {
     const id: string = call.request.uploadID;
     return UploadService.deleteUpload(id);
   }
+
+  //  Delete an upload from the DB by its file key.
+  public static async DeleteUploadByKey(call: any, callback: any): Promise<void> {
+    const key: string = call.request.key;
+    const bucket: string = call.request.bucket;
+    return UploadService.deleteUploadByKey(key, bucket);
+  }
 }

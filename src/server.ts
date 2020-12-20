@@ -76,6 +76,7 @@ export class FileServer {
       UpdateUploadID: wrapper(UploadMethods.UpdateUploadID),
       GetUploadByID: wrapper(UploadMethods.GetUploadByID),
       DeleteUploadByID: wrapper(UploadMethods.DeleteUploadByID),
+      DeleteUploadByKey: wrapper(UploadMethods.DeleteUploadByKey),
       GetFileByID: wrapper(FileMethods.GetFileByID),
       GetFileByKey: wrapper(FileMethods.GetFileByKey),
       GetFilesByFolder: wrapper(FileMethods.GetFilesByFolder),
