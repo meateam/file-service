@@ -6,6 +6,7 @@ COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
 RUN npm install --silent
 RUN npm config set unsafe-perm true
 RUN npm config set -g production false
+RUN npm install typescript -g 
 
 COPY . .
 EXPOSE 8080
