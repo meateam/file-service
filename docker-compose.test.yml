@@ -6,7 +6,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-    - ./data/db:/data/db
+      - ./data/db:/data/db
 
   file_service_test:
     build:
@@ -16,7 +16,5 @@ services:
       MONGO_HOST: 'mongo_file_service'
     depends_on:
       - mongo_file_service
-
-  
  
 

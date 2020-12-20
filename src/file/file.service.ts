@@ -35,6 +35,7 @@ export class FileService {
     name: string,
     ownerID: string,
     type: string,
+    appID: string,
     folderID: string = '',
     key: string | null = null,
     size: number = 0,
@@ -52,6 +53,7 @@ export class FileService {
       ownerID,
       size,
       float,
+      appID,
       parent: folderID,
     };
 
