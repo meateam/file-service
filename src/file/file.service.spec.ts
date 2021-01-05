@@ -164,7 +164,7 @@ describe('File Logic', () => {
   describe('#createUpdate', () => {
 
     it('should not throw an error when {ownerID, parent, name} already exist', async () => {
-      await FileService.create(bucket, 'file.txt', USER.id, 'text', "appid", null, KEY3, size);
+      await FileService.create(bucket, 'file.txt', USER.id, 'text', 'appid', null, KEY3, size);
       const newUpdate1: IUpload =
         await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, null)
           .should.eventually.exist;
@@ -172,7 +172,7 @@ describe('File Logic', () => {
         await UploadService.createUpdate(KEY2, bucket, 'file.txt', USER.id, null)
           .should.eventually.exist;
     });
-    
+
     it('should return a new upload', async () => {
       await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY, KEY2, size);
       const newUpdate: IUpload = await UploadService.createUpdate(KEY, bucket, 'file.txt', USER.id, KEY, size).should.eventually.exist;
