@@ -95,7 +95,8 @@ export class FileServer {
     const quotaService = {
       GetOwnerQuota: wrapper(QuotaMethods.GetOwnerQuota),
       IsAllowedToGetQuota: wrapper(QuotaMethods.IsAllowedToGetQuota),
-      UpdateQuota: wrapper(QuotaMethods.UpdateQuota)
+      UpdateQuota: wrapper(QuotaMethods.UpdateQuota),
+      ChangeQuotaLimit: wrapper(QuotaMethods.ChangeQuotaLimit),
     };
 
     this.server.addService(quota_proto.QuotaService.service, quotaService);

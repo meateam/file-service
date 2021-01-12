@@ -1,6 +1,6 @@
 import { QuotaRepository } from './quota.repository';
 import { IQuota } from './quota.interface';
-import { QuotaExceededError } from '../utils/errors/quota.error';
+import { QuotaExceededError, QuotaLimitOutOfRangeError } from '../utils/errors/quota.error';
 import { ServerError } from '../utils/errors/application.error';
 
 export class QuotaService {
@@ -46,6 +46,15 @@ export class QuotaService {
     }
 
     return QuotaRepository.updateById(ownerID, change);
+  }
+  
+  public static async changeQuotaLimit(ownerID: string, requestedLimit: number) {
+    const quota: IQuota = await this.getByOwnerID(ownerID);
+    if (Number(requestedLimit) < Number(quota.used)) {
+      throw new QuotaLimitOutOfRangeError(quota.used, requestedLimit);
+    }
+
+    return QuotaRepository.updateLimitByUserId(ownerID, requestedLimit);
   }
 
   /**

@@ -6,6 +6,7 @@ service QuotaService {
     rpc IsAllowedToGetQuota(IsAllowedToGetQuotaRequest) returns (IsAllowedToGetQuotaResponse) {}
     rpc GetOwnerQuota(GetOwnerQuotaRequest) returns (GetOwnerQuotaResponse) {}
     rpc UpdateQuota(UpdateQuotaRequest) returns (UpdateQuotaResponse) {}
+    rpc ChangeQuotaLimit(ChangeQuotaLimitRequest) returns (ChangeQuotaLimitResponse) {}
 }
 
 message IsAllowedToGetQuotaRequest {
@@ -35,3 +36,13 @@ message IsAllowedToGetQuotaRequest {
   message UpdateQuotaResponse {
     bool success = 1; 
   }
+  
+  message ChangeQuotaLimitRequest {
+    string ownerID = 1;
+    int64 size = 2;
+  }
+
+  message ChangeQuotaLimitResponse {
+    bool success = 1; 
+  }
+  

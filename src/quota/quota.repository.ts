@@ -39,4 +39,8 @@ export class QuotaRepository {
   static updateById(ownerID: string, update: number): Promise<IQuota | null> {
     return quotaModel.findOneAndUpdate({ ownerID }, { $inc : { used : update } }, { new: true, upsert: true }).exec();
   }
+
+  static updateLimitByUserId(ownerID: string, requestedLimit: number): Promise<IQuota | null> {
+    return quotaModel.findOneAndUpdate({ ownerID }, { limit: requestedLimit }, { new: true, upsert: true }).exec();
+  }
 }

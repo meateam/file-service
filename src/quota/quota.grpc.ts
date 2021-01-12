@@ -30,5 +30,14 @@ export class QuotaMethods {
     const success: boolean = (quota ? true : false);
     return { success };
   }
+  
+  public static async ChangeQuotaLimit(call: ServerUnaryCall<{ ownerID: string, size: number }>):
+      Promise<{ success: boolean }> {
 
+    const ownerID: string = call.request.ownerID;
+    const size: number = call.request.size;
+    const quota: IQuota = await QuotaService.changeQuotaLimit(ownerID, size);
+    const success: boolean = (quota ? true : false);
+    return { success };
+  }
 }
