@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { HealthCheckResponse } from 'grpc-ts-health-check';
-import { FileServer, serviceNames } from './server';
+import { FileServer, healthCheckStatusMap } from './server';
 import { mongoConnectionString, bindAddress, connectionRetries, reconnectTimeout, autoIndex } from './config';
 import { log, Severity, getCurrTraceId } from './utils/logger';
 
@@ -83,10 +83,27 @@ async function connect(): Promise<{success: boolean, error: Error}> {
   return { success, error };
 }
 
-function setHealthStatus(server: FileServer, status: number) : void {
-  for (let i = 0 ; i < serviceNames.length ; i++) {
-    server.grpcHealthCheck.setStatus(serviceNames[i], status);
-  }
+function setHealthStatus(server:FileServer, status: number) : void {
+  server.requests.forEach(request => {
+
+    const serviceName: string = request.getService();
+    healthCheckStatusMap[serviceName] = status;
+  })
+
+  // server.requests.forEach(request => {
+  //   console.log(`request: ${request}`);
+
+  //   const serviceName: string = request.getService();
+  //   healthCheckStatusMap[serviceName] = status;
+  
+  //   // Check health status, this will provide the current health status of the service when the request is executed.
+  //   server.healthClient.check(request, (error: Error | null, response: HealthCheckResponse) => {
+  //       if (error) {
+  //           console.log(`${serviceName} Service: Health Check Failed`);
+  //           console.log(error);
+  //       } 
+  //   });
+  // })
 }
 
 function sleep(ms: number) {
