@@ -45,11 +45,12 @@ const quotaProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(quotaPa
 const file_proto: any = fileProtoDescriptor.file;
 const quota_proto: any = quotaProtoDescriptor.quota;
 
-// export const serviceNames: string[] = ['', 'file.fileService'];
 export const healthCheckStatusMap: any = {
   '': HealthCheckResponse.ServingStatus.UNKNOWN,
   [serviceName]: HealthCheckResponse.ServingStatus.UNKNOWN
 };
+const servicesNum = Object.keys(healthCheckStatusMap).length;
+
 
 // The FileServer class, containing all of the FileServer methods.
 export class FileServer {
@@ -64,8 +65,6 @@ export class FileServer {
     this.server = new grpc.Server();
 
     // Create the health client
-    const servicesNum = Object.keys(healthCheckStatusMap).length;
-
     this.healthClient = new HealthClient(address, grpc.credentials.createInsecure());
     this.requests = new Array<HealthCheckRequest>(servicesNum);
     this.healthStreams = new Array<grpc.ClientReadableStream<HealthCheckResponse>>(servicesNum);
