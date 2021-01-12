@@ -11,6 +11,15 @@ if (!module.parent) {
 
 async function initServer() {
   const fileServer: FileServer = new FileServer(bindAddress);
+  
+  fileServer.healthStreams.forEach(healthStream => {
+    healthStream.on('data', (error:Error| null, response: HealthCheckResponse) => {
+        (error)? log(Severity.ERROR, `service: Health Check Failed`, 'service-health', getCurrTraceId(), error):
+        log(Severity.INFO, `service: health status ${response.getStatus()}`, 'service-health');
+    });
+   })
+  
+
   await initMongo(fileServer);
   fileServer.server.start();
 }
@@ -83,27 +92,11 @@ async function connect(): Promise<{success: boolean, error: Error}> {
   return { success, error };
 }
 
-function setHealthStatus(server:FileServer, status: number) : void {
+function setHealthStatus(server:FileServer, status: HealthCheckResponse.ServingStatus) : void {
   server.requests.forEach(request => {
-
     const serviceName: string = request.getService();
     healthCheckStatusMap[serviceName] = status;
   })
-
-  // server.requests.forEach(request => {
-  //   console.log(`request: ${request}`);
-
-  //   const serviceName: string = request.getService();
-  //   healthCheckStatusMap[serviceName] = status;
-  
-  //   // Check health status, this will provide the current health status of the service when the request is executed.
-  //   server.healthClient.check(request, (error: Error | null, response: HealthCheckResponse) => {
-  //       if (error) {
-  //           console.log(`${serviceName} Service: Health Check Failed`);
-  //           console.log(error);
-  //       } 
-  //   });
-  // })
 }
 
 function sleep(ms: number) {

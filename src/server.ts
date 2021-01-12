@@ -45,7 +45,7 @@ const quotaProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(quotaPa
 const file_proto: any = fileProtoDescriptor.file;
 const quota_proto: any = quotaProtoDescriptor.quota;
 
-export const serviceNames: string[] = ['', 'file.fileService'];
+// export const serviceNames: string[] = ['', 'file.fileService'];
 export const healthCheckStatusMap: any = {
   '': HealthCheckResponse.ServingStatus.UNKNOWN,
   [serviceName]: HealthCheckResponse.ServingStatus.UNKNOWN
@@ -57,23 +57,26 @@ export class FileServer {
   public grpcHealthCheck: GrpcHealthCheck;
   public healthClient: HealthClient;
   public requests: HealthCheckRequest[];
+  public healthStreams: grpc.ClientReadableStream<HealthCheckResponse>[];
 
   public constructor(address: string) {
     // Create the server
     this.server = new grpc.Server();
-    this.requests = new Array<HealthCheckRequest>(Object.keys(healthCheckStatusMap).length);
 
     // Create the health client
+    const servicesNum = Object.keys(healthCheckStatusMap).length;
+
     this.healthClient = new HealthClient(address, grpc.credentials.createInsecure());
+    this.requests = new Array<HealthCheckRequest>(servicesNum);
+    this.healthStreams = new Array<grpc.ClientReadableStream<HealthCheckResponse>>(servicesNum);
 
     this.addServices();
 
+    this.server.bind(address, grpc.ServerCredentials.createInsecure());
     log(Severity.INFO, `server listening on address: ${address}`, 'server bind');
   }
 
   private addServices() {
-    let streams = new Array<grpc.ClientReadableStream<HealthCheckResponse>>(Object.keys(healthCheckStatusMap).length);
-
     // RegisterHealthService the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
@@ -85,14 +88,8 @@ export class FileServer {
         this.requests.push(request);
 
         const healthStream = this.healthClient.watch(request);
-        streams.push(healthStream);
+        this.healthStreams.push(healthStream);
      }
-
-     streams.forEach(healthStream => {
-      healthStream.on('data', (response: HealthCheckResponse) => {
-        log(Severity.INFO, `Health Status: ${response.getStatus()}`, 'service status');
-      });
-     })
     
     const fileService = {
       GenerateKey: wrapper(UploadMethods.GenerateKey),
