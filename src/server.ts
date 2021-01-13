@@ -56,20 +56,27 @@ const servicesNum = Object.keys(healthCheckStatusMap).length;
 export class FileServer {
   public server: grpc.Server;
   public grpcHealthCheck: GrpcHealthCheck;
-  public healthClient: HealthClient;
   public requests: HealthCheckRequest[];
-  public healthStreams: grpc.ClientReadableStream<HealthCheckResponse>[];
 
   public constructor(address: string) {
     // Create the server
     this.server = new grpc.Server();
 
     // Create the health client
-    this.healthClient = new HealthClient(address, grpc.credentials.createInsecure());
+    const healthClient = new HealthClient(address, grpc.credentials.createInsecure());
     this.requests = new Array<HealthCheckRequest>(servicesNum);
-    this.healthStreams = new Array<grpc.ClientReadableStream<HealthCheckResponse>>(servicesNum);
 
     this.addServices();
+
+    setInterval(function () {
+      this.requests.forEach((request: HealthCheckRequest) => {  
+          // Check health status, this will provide the current health status of the service when the request is executed.
+          healthClient.check(request, (error: Error | null, response: HealthCheckResponse) => {
+            (error)? log(Severity.ERROR, `service: Health Check Failed`, 'service-health', getCurrTraceId(), error):
+            log(Severity.INFO, `service: health status ${response.getStatus()}`, 'service-health');
+          }); 
+      });
+    },1000);
 
     this.server.bind(address, grpc.ServerCredentials.createInsecure());
     log(Severity.INFO, `server listening on address: ${address}`, 'server bind');
@@ -85,9 +92,6 @@ export class FileServer {
         const request = new HealthCheckRequest();
         request.setService(service);
         this.requests.push(request);
-
-        const healthStream = this.healthClient.watch(request);
-        this.healthStreams.push(healthStream);
      }
     
     const fileService = {

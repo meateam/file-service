@@ -11,15 +11,6 @@ if (!module.parent) {
 
 async function initServer() {
   const fileServer: FileServer = new FileServer(bindAddress);
-  
-  fileServer.healthStreams.forEach(healthStream => {
-    healthStream.on('data', (error:Error| null, response: HealthCheckResponse) => {
-        (error)? log(Severity.ERROR, `service: Health Check Failed`, 'service-health', getCurrTraceId(), error):
-        log(Severity.INFO, `service: health status ${response.getStatus()}`, 'service-health');
-    });
-   })
-  
-
   await initMongo(fileServer);
   fileServer.server.start();
 }
