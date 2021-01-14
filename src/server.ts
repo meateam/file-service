@@ -51,32 +51,22 @@ export const healthCheckStatusMap: any = {
 };
 const servicesNum = Object.keys(healthCheckStatusMap).length;
 
-
 // The FileServer class, containing all of the FileServer methods.
 export class FileServer {
   public server: grpc.Server;
   public grpcHealthCheck: GrpcHealthCheck;
   public requests: HealthCheckRequest[];
+  public healthClient: HealthClient;
 
   public constructor(address: string) {
     // Create the server
     this.server = new grpc.Server();
-
-    // Create the health client
-    const healthClient = new HealthClient(address, grpc.credentials.createInsecure());
-    this.requests = new Array<HealthCheckRequest>(servicesNum);
+    this.requests = Array<HealthCheckRequest>(servicesNum);
 
     this.addServices();
 
-    setInterval(function () {
-      this.requests.forEach((request: HealthCheckRequest) => {  
-          // Check health status, this will provide the current health status of the service when the request is executed.
-          healthClient.check(request, (error: Error | null, response: HealthCheckResponse) => {
-            (error)? log(Severity.ERROR, `service: Health Check Failed`, 'service-health', getCurrTraceId(), error):
-            log(Severity.INFO, `service: health status ${response.getStatus()}`, 'service-health');
-          }); 
-      });
-    },1000);
+    // Create the health client
+    this.healthClient = new HealthClient(address, grpc.credentials.createInsecure());
 
     this.server.bind(address, grpc.ServerCredentials.createInsecure());
     log(Severity.INFO, `server listening on address: ${address}`, 'server bind');
@@ -88,12 +78,12 @@ export class FileServer {
     this.server.addService(HealthService, this.grpcHealthCheck);
 
     // Set services
-     for (const service in healthCheckStatusMap) {
-        const request = new HealthCheckRequest();
-        request.setService(service);
-        this.requests.push(request);
-     }
-    
+    for (const service in healthCheckStatusMap) {
+      const request = new HealthCheckRequest();
+      request.setService(service);
+      this.requests.push(request);
+    }
+
     const fileService = {
       GenerateKey: wrapper(UploadMethods.GenerateKey),
       CreateUpload: wrapper(UploadMethods.CreateUpload),
