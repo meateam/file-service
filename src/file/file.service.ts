@@ -327,6 +327,7 @@ export class FileService {
   /**
    * Gets the size of a file (folder/file) recursively.
    * @param fileID -the given folder/file
+   * @param ownerID - the owner of the file. If null, returns without owner.
    * @returns the size of the folder/file (number).
   */
   public static async getFileSize(fileID: string | null, ownerID?: string): Promise<number> {
@@ -340,7 +341,7 @@ export class FileService {
 
     const children: { file: IFile, parent: IFile }[] = await this.getDescendantsByID(fileID);
     const fileSizeSum = (children.length > 0) ?
-    children.filter(item => item.file.ownerID === ownerID || !ownerID).map(item => item.file.size).reduce((prev, next) => prev + next) : 0;
+    children.filter(item => ownerID? item.file.ownerID === ownerID: true).map(item => item.file.size).reduce((prev, current) => prev + current) : 0;
     return fileSizeSum;
   }
 

@@ -5,7 +5,7 @@ import chaiSubset from 'chai-subset';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
-import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, UploadNotFoundError } from '../utils/errors/client.error';
+import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, UploadNotFoundError, FileParentAppIDNotEqual } from '../utils/errors/client.error';
 import { IUpload } from '../upload/upload.interface';
 import { uploadModel } from '../upload/upload.model';
 import { fileModel } from '../file/file.model';
@@ -1032,7 +1032,7 @@ describe('#getFileSize', () => {
     const structure: IFile[] = await generateFolderStructure();
     const keyAdd: string = UploadService.generateKey();
     const fileAdd: IFile = await FileService.create(
-      null, 'file12.txt', '123', 'text', structure[3].id, keyAdd, 20);
+      null, 'file12.txt', '123', 'text', 'drive', structure[3].id, keyAdd, 20);
 
     // First level assertion
     const folder1Size: number = await FileService.getFileSize(structure[0].id, USER.id);
