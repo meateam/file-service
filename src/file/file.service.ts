@@ -135,7 +135,7 @@ export class FileService {
     if (partialFile.ownerID) {
       const file: IFile = await FilesRepository.getById(fileId);
       if (partialFile.ownerID !== file.ownerID) {
-        await this.updateQuota(fileId, file.size, partialFile.ownerID);
+        await this.updateQuota(fileId, file.size*2, partialFile.ownerID);
         await this.updateQuota(fileId, 0);
       }
     } else if (partialFile.size) {
