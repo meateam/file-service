@@ -8,18 +8,23 @@ service FileService {
   rpc CreateUpdate(CreateUploadRequest) returns (CreateUploadResponse) {}
   rpc UpdateUploadID(UpdateUploadIDRequest) returns (UpdateUploadIDResponse) {}
   rpc GetUploadByID(GetUploadByIDRequest) returns (GetUploadByIDResponse) {}
-  rpc DeleteUploadByKey(DeleteUploadByKeyRequest) returns (DeleteUploadByKeyResponse) {}
-  rpc DeleteUploadByID(DeleteUploadByIDRequest) returns (DeleteUploadByIDResponse) {}
+  rpc DeleteUploadByKey(DeleteUploadByKeyRequest)
+      returns (DeleteUploadByKeyResponse) {}
+  rpc DeleteUploadByID(DeleteUploadByIDRequest)
+      returns (DeleteUploadByIDResponse) {}
   rpc GetFileByID(GetByFileByIDRequest) returns (File) {}
   rpc GetFileByKey(GetFileByKeyRequest) returns (File) {}
-  rpc GetFilesByFolder(GetFilesByFolderRequest) returns (GetFilesByFolderResponse) {}
-  rpc GetDescendantsByFolder(GetDescendantsByFolderRequest) returns (GetDescendantsByFolderResponse) {}
+  rpc GetFilesByFolder(GetFilesByFolderRequest)
+      returns (GetFilesByFolderResponse) {}
+  rpc GetDescendantsByFolder(GetDescendantsByFolderRequest)
+      returns (GetDescendantsByFolderResponse) {}
   rpc CreateFile(CreateFileRequest) returns (File) {}
   rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
   rpc IsAllowed(IsAllowedRequest) returns (IsAllowedResponse) {}
   rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse) {}
   rpc GetAncestors(GetAncestorsRequest) returns (GetAncestorsResponse) {}
-  rpc GetDescendantsByID(GetDescendantsByIDRequest) returns (GetDescendantsByIDResponse) {}
+  rpc GetDescendantsByID(GetDescendantsByIDRequest)
+      returns (GetDescendantsByIDResponse) {}
   rpc DeleteFileByID(DeleteFileByIDRequest) returns (DeleteFileByIDResponse) {}
 }
 
@@ -38,12 +43,9 @@ message CreateUploadResponse {
   string bucket = 2;
 }
 
-message GenerateKeyRequest {
-}
+message GenerateKeyRequest {}
 
-message KeyResponse {
-  string key = 1;
-}
+message KeyResponse { string key = 1; }
 
 message UpdateUploadIDRequest {
   string key = 1;
@@ -51,14 +53,9 @@ message UpdateUploadIDRequest {
   string bucket = 3;
 }
 
-message UpdateUploadIDResponse {
+message UpdateUploadIDResponse {}
 
-}
-
-
-message GetUploadByIDRequest {
-  string uploadID = 1;
-}
+message GetUploadByIDRequest { string uploadID = 1; }
 
 message GetUploadByIDResponse {
   string key = 1;
@@ -74,35 +71,23 @@ message DeleteUploadByKeyRequest {
   string bucket = 2;
 }
 
-message DeleteUploadByKeyResponse {
+message DeleteUploadByKeyResponse {}
 
-}
+message DeleteUploadByIDRequest { string uploadID = 1; }
 
-message DeleteUploadByIDRequest {
-  string uploadID = 1;
-}
+message DeleteUploadByIDResponse {}
 
-message DeleteUploadByIDResponse {
+message GetByFileByIDRequest { string id = 1; }
 
-}
-
-message GetByFileByIDRequest {
-  string id = 1;
-}
-
-message GetFileByKeyRequest {
-  string key = 1;
-}
+message GetFileByKeyRequest { string key = 1; }
 
 message GetFilesByFolderRequest {
-    string folderID = 1;
-    string ownerID = 2;
-    File queryFile = 3;
+  string folderID = 1;
+  string ownerID = 2;
+  File queryFile = 3;
 }
 
-message GetFilesByFolderResponse {
-  repeated File files = 1;
-}
+message GetFilesByFolderResponse { repeated File files = 1; }
 
 message GetDescendantsByFolderRequest {
   string folderID = 1;
@@ -110,9 +95,7 @@ message GetDescendantsByFolderRequest {
   File queryFile = 3;
 }
 
-message GetDescendantsByFolderResponse {
-  repeated File files = 1;
-}
+message GetDescendantsByFolderResponse { repeated File files = 1; }
 
 message CreateFileRequest {
   string key = 1;
@@ -125,14 +108,12 @@ message CreateFileRequest {
   string appID = 8;
 }
 
-message DeleteFileRequest {
-  string id = 1;
-}
+message DeleteFileRequest { string id = 1; }
 
 message DeletedFileObject {
-    string id = 1;
-    string key = 2;
-    string bucket = 3;
+  string id = 1;
+  string key = 2;
+  string bucket = 3;
 }
 
 message DeleteFileResponse {
@@ -145,9 +126,7 @@ message IsAllowedRequest {
   string userID = 2;
 }
 
-message IsAllowedResponse {
-  bool allowed = 1;
-}
+message IsAllowedResponse { bool allowed = 1; }
 
 message User {
   string id = 1;
@@ -170,15 +149,16 @@ message File {
   string ownerID = 6;
   int64 size = 7;
   oneof fileOrId {
-      string parent = 8;
-      File parentObject = 9;
+    string parent = 8;
+    File parentObject = 9;
   }
   string bucket = 10;
   int64 createdAt = 11;
   int64 updatedAt = 12;
-  repeated File children = 13; 
+  repeated File children = 13;
   bool float = 14;
   string appID = 15;
+  bool isShortcut = 16;
 }
 
 message UpdateFilesRequest {
@@ -186,26 +166,18 @@ message UpdateFilesRequest {
   File partialFile = 2;
 }
 
-message UpdateFilesResponse {
-  repeated FailedFile failedFiles = 1;
-}
+message UpdateFilesResponse { repeated FailedFile failedFiles = 1; }
 
 message FailedFile {
   string id = 1;
   string error = 2;
 }
 
-message GetAncestorsRequest {
-  string id = 1;
-}
+message GetAncestorsRequest { string id = 1; }
 
-message GetAncestorsResponse {
-  repeated string ancestors = 1;
-}
+message GetAncestorsResponse { repeated string ancestors = 1; }
 
-message GetDescendantsByIDRequest {
-  string id = 1;
-}
+message GetDescendantsByIDRequest { string id = 1; }
 
 message GetDescendantsByIDResponse {
   message Descendant {
@@ -216,10 +188,6 @@ message GetDescendantsByIDResponse {
   repeated Descendant descendants = 1;
 }
 
-message DeleteFileByIDRequest {
-  string id = 1;
-}
+message DeleteFileByIDRequest { string id = 1; }
 
-message DeleteFileByIDResponse {
-  File file = 1;
-}
+message DeleteFileByIDResponse { File file = 1; }
