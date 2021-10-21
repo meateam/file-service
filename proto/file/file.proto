@@ -7,6 +7,7 @@ service FileService {
   rpc CreateUpload(CreateUploadRequest) returns (CreateUploadResponse) {}
   rpc CreateUpdate(CreateUploadRequest) returns (CreateUploadResponse) {}
   rpc UpdateUploadID(UpdateUploadIDRequest) returns (UpdateUploadIDResponse) {}
+  rpc UpdateUploadSize(UpdateUploadSizeRequest) returns (UpdateUploadSizeResponse) {}
   rpc GetUploadByID(GetUploadByIDRequest) returns (GetUploadByIDResponse) {}
   rpc DeleteUploadByKey(DeleteUploadByKeyRequest) returns (DeleteUploadByKeyResponse) {}
   rpc DeleteUploadByID(DeleteUploadByIDRequest) returns (DeleteUploadByIDResponse) {}
@@ -21,6 +22,7 @@ service FileService {
   rpc GetAncestors(GetAncestorsRequest) returns (GetAncestorsResponse) {}
   rpc GetDescendantsByID(GetDescendantsByIDRequest) returns (GetDescendantsByIDResponse) {}
   rpc DeleteFileByID(DeleteFileByIDRequest) returns (DeleteFileByIDResponse) {}
+  rpc GetFileSizeByID(GetFileSizeByIDRequest) returns (GetFileSizeByIDResponse) {}
 }
 
 // Used for both upload and update
@@ -55,6 +57,15 @@ message UpdateUploadIDResponse {
 
 }
 
+message UpdateUploadSizeRequest {
+  string key = 1;
+  string sizePassed = 2;
+  string bucket = 3;
+}
+
+message UpdateUploadSizeResponse {
+
+}
 
 message GetUploadByIDRequest {
   string uploadID = 1;
@@ -222,4 +233,13 @@ message DeleteFileByIDRequest {
 
 message DeleteFileByIDResponse {
   File file = 1;
+}
+
+message GetFileSizeByIDRequest {
+  string id = 1;
+  string ownerID = 2;
+}
+
+message GetFileSizeByIDResponse {
+  int64 fileSize = 1;
 }

@@ -92,7 +92,7 @@ export class FileMethods {
   }
 
   /**
-   * Retrieves all files residing in a given folder.
+   * Retrieves direct files residing in a given folder.
    * @param call
    */
   public static async GetFilesByFolder(call: any): Promise<{ files: ResFile[] }> {
@@ -105,7 +105,7 @@ export class FileMethods {
   }
 
   /**
-   * Retrieves all files residing in a given folder.
+   * Retrieves all files residing in a given folder with hirearchy.
    * @param call
    */
   public static async GetDescendantsByFolder(call: any): Promise<{ files: ResFile[] }> {
@@ -117,6 +117,9 @@ export class FileMethods {
     return { files };
   }
 
+  /**
+   * Get a files by id recursively (get all descedants, without hirearchy).
+   */
   public static async GetDescendantsByID(call: any): Promise<{ descendants: { file: ResFile, parent: ResFile }[] }> {
     const folderID: string = call.request.id;
 
@@ -149,5 +152,19 @@ export class FileMethods {
     const ancestors = await FileService.getAncestors(fileID);
 
     return { ancestors };
+  }
+
+  /**
+   * Get a folder/file size recursively
+   * @param call
+   */
+  public static async GetFileSizeByID(call: any): Promise<{ fileSize: number }> {
+    const fileID: string = call.request.id;
+    if (!fileID) throw new IdInvalidError();
+
+    const ownerID: string = call.request.ownerID;
+
+    const fileSize: number = await FileService.getFileSize(fileID, ownerID);
+    return { fileSize };
   }
 }

@@ -132,7 +132,13 @@ export class FileService {
       await this.checkAdoption(fileId, parentID);
     }
 
-    if (partialFile.size) {
+    if (partialFile.ownerID) {
+      const file: IFile = await FilesRepository.getById(fileId);
+      if (partialFile.ownerID !== file.ownerID) {
+        await this.updateQuota(fileId, file.size*2, partialFile.ownerID);
+        await this.updateQuota(fileId, 0);
+      }
+    } else if (partialFile.size) {
       await this.updateQuota(fileId, partialFile.size);
     }
 
@@ -144,10 +150,10 @@ export class FileService {
    * @param fileId - the id of the file.
    * @param size - the size of the new file.
    */
-  public static async updateQuota(fileId: string, size: number) {
+  public static async updateQuota(fileId: string, size: number, ownerId?: string) {
     const file: IFile = await FilesRepository.getById(fileId);
     if (file) {
-      await QuotaService.updateUsed(file.ownerID, size - file.size);
+      await QuotaService.updateUsed(ownerId ? ownerId : file.ownerID, size - file.size);
     }
   }
 
@@ -319,6 +325,27 @@ export class FileService {
   }
 
   /**
+   * Gets the size of a file (folder/file) recursively.
+   * @param fileID -the given folder/file
+   * @param ownerID - the owner of the file. If null, returns without owner.
+   * @returns the size of the folder/file (number).
+  */
+  public static async getFileSize(fileID: string | null, ownerID?: string): Promise<number> {
+    const file: IFile = await FilesRepository.getById(fileID);
+    if  (!file) throw new FileNotFoundError();
+
+    if (file.type !== FolderContentType) {
+      if (ownerID && ownerID !== file.ownerID) throw new FileNotFoundError();
+      return file.size;
+    }
+
+    const children: { file: IFile, parent: IFile }[] = await this.getDescendantsByID(fileID);
+    const fileSizeSum = (children.length > 0) ?
+    children.filter(item => ownerID? item.file.ownerID === ownerID: true).map(item => item.file.size).reduce((prev, current) => prev + current) : 0;
+    return fileSizeSum;
+  }
+
+  /**
    * Returns true if the folder is an ancestor of the file
    * @param fileID - the file id
    * @param folderID - the folder id
@@ -405,5 +432,4 @@ export class FileService {
   private static isFolder(file: IFile): boolean {
     return (file.type === FolderContentType);
   }
-
 }
