@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- ISSUE([230](https://github.com/meateam/file-service/pull/230)): fix health-check pkg
+
 ## [v3.0.1] - 2021-02-14
 
 ### Changed
+
 - ISSUE([99](https://github.com/meateam/drive-project/issues/99)): update pkg, delete unused pkg and update deps, update proto script
 
 ## [v3.0.0] - 2020-11-16
