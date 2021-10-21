@@ -1,7 +1,7 @@
 import * as grpc from 'grpc';
 import * as protoLoader from '@grpc/proto-loader';
 import apm from 'elastic-apm-node';
-import { GrpcHealthCheck, HealthCheckResponse, HealthService } from 'grpc-ts-health-check';
+import { GrpcHealthCheck, HealthCheckResponse, HealthService, HealthClient, HealthCheckRequest } from 'grpc-ts-health-check';
 import { log, Severity, wrapper } from './utils/logger';
 import { apmURL, verifyServerCert, serviceName, secretToken } from './config';
 import { FileMethods } from './file/file.grpc';
@@ -45,29 +45,44 @@ const quotaProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(quotaPa
 const file_proto: any = fileProtoDescriptor.file;
 const quota_proto: any = quotaProtoDescriptor.quota;
 
-export const serviceNames: string[] = ['', 'file.fileService'];
-export const healthCheckStatusMap = {
+export const healthCheckStatusMap: any = {
   '': HealthCheckResponse.ServingStatus.UNKNOWN,
-  serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
+  [serviceName]: HealthCheckResponse.ServingStatus.UNKNOWN
 };
+const servicesNum = Object.keys(healthCheckStatusMap).length;
 
 // The FileServer class, containing all of the FileServer methods.
 export class FileServer {
-
   public server: grpc.Server;
   public grpcHealthCheck: GrpcHealthCheck;
+  public requests: HealthCheckRequest[];
+  public healthClient: HealthClient;
 
   public constructor(address: string) {
+    // Create the server
     this.server = new grpc.Server();
+    this.requests = Array<HealthCheckRequest>(servicesNum);
+
     this.addServices();
+
+    // Create the health client
+    this.healthClient = new HealthClient(address, grpc.credentials.createInsecure());
+
     this.server.bind(address, grpc.ServerCredentials.createInsecure());
     log(Severity.INFO, `server listening on address: ${address}`, 'server bind');
   }
 
   private addServices() {
-    // Register the health service
+    // RegisterHealthService the health service
     this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
     this.server.addService(HealthService, this.grpcHealthCheck);
+
+    // Set services
+    for (const service in healthCheckStatusMap) {
+      const request = new HealthCheckRequest();
+      request.setService(service);
+      this.requests.push(request);
+    }
 
     const fileService = {
       GenerateKey: wrapper(UploadMethods.GenerateKey),
