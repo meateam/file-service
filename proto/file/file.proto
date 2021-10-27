@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = ".";
+
 package file;
 
 service FileService {
@@ -19,6 +21,7 @@ service FileService {
   rpc GetDescendantsByFolder(GetDescendantsByFolderRequest)
       returns (GetDescendantsByFolderResponse) {}
   rpc CreateFile(CreateFileRequest) returns (File) {}
+  rpc CreateShortcut(CreateShortcutRequest) returns (File) {}
   rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
   rpc IsAllowed(IsAllowedRequest) returns (IsAllowedResponse) {}
   rpc UpdateFiles(UpdateFilesRequest) returns (UpdateFilesResponse) {}
@@ -106,6 +109,14 @@ message CreateFileRequest {
   string bucket = 6;
   string parent = 7;
   string appID = 8;
+  string fileID = 9;
+}
+
+message CreateShortcutRequest {
+  string id = 1;
+  string parent = 2;
+  string name = 3;
+  string fileID = 4;
 }
 
 message DeleteFileRequest { string id = 1; }
@@ -158,7 +169,6 @@ message File {
   repeated File children = 13;
   bool float = 14;
   string appID = 15;
-  bool isShortcut = 16;
 }
 
 message UpdateFilesRequest {
