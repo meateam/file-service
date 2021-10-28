@@ -5,6 +5,7 @@ import { FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel } from './file.model';
+import { shortcutModel } from './shortcut.model';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -55,6 +56,7 @@ export class FileService {
       float,
       appID,
       parent: folderID,
+      fileID: ''
     };
 
     // Create the file id by reversing key, and add ket and bucket.
@@ -67,6 +69,38 @@ export class FileService {
     const createdFile = await FilesRepository.create(file);
     if (createdFile) {
       await QuotaService.updateUsed(ownerID, size);
+    }
+    return createdFile;
+  }
+
+
+  /**
+   * Creates a shortcut file and adds it to the DB.
+   * @param partialFile - a partial file containing some of the fields.
+   * @param name - the name of the file with the extensions.
+   * @param size - the size of the file.
+   * @param fileId - the id of the original file.
+   * @param parent - the id of the folder in which the file will reside (in the GUI).
+   */
+
+  public static async createShortcut(
+    name: string,
+    fileID: string,
+    size: number = 0, parent: string): Promise<IFile> {
+
+    // basicFile is without key and bucket - in case it is a folder.
+    let basicFile = {
+      name,
+      fileID,
+      size,
+      parent,
+    };
+
+    const file: IFile = new shortcutModel(basicFile);
+
+    const createdFile = await FilesRepository.createShortcut(file);
+    if (createdFile) {
+      await QuotaService.updateUsed(fileID, size);
     }
     return createdFile;
   }

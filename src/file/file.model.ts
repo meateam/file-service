@@ -159,3 +159,5 @@ fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
 });
 
 export const fileModel = model<IFile & Document>('File', fileSchema);
+// export const shortcutModel = model<IFile & Document>('ShortcutFile', shortcutSchema);
+

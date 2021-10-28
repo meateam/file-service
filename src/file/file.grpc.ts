@@ -35,6 +35,22 @@ export class FileMethods {
   }
 
   /**
+  * Creates a new shortcut file in the DB.
+  * @param call
+  */
+  public static async CreateShortcut(call: any): Promise<ResFile> {
+    const params = call.request;
+    const createdFile = await FileService.createShortcut(
+      params.name,
+      params.parent,
+      params.fileID,
+      params.size,
+    );
+    return new ResFile(createdFile);
+
+  }
+
+  /**
    * Deletes a file, according to the file deletion policy.
    * @param call
    */

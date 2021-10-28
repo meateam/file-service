@@ -1,6 +1,7 @@
 import { ObjectID } from 'mongodb';
 import { IFile } from './file.interface';
 import { fileModel } from './file.model';
+import { shortcutModel } from './shortcut.model';
 import { FileNotFoundError } from '../utils/errors/client.error';
 
 const pagination = {
@@ -26,6 +27,16 @@ export default class FileRepository {
   static create(file: IFile): Promise<IFile> {
     file.parent = file.parent ? new ObjectID(file.parent) : null;
     return fileModel.create(file);
+  }
+
+  /**
+  * Adds a given shortcut file to the DB.
+  * @param file - is the shortcut file to be added to the DB
+  */
+  static async createShortcut(file: any): Promise<IFile> {
+    const fileParent = await shortcutModel.findById(file.fileID).populate('parent').exec();
+
+    return shortcutModel.create(file);
   }
 
   /**
@@ -119,6 +130,10 @@ export default class FileRepository {
     return findPromise.exec().then((result) => {
       return (result ? result.map((mongoObject => mongoObject.toObject())) : result);
     });
+  }
+
+  static populateShortcut(fileID: string) {
+    return fileModel.findById(fileID).populate('shortcut').exec();
   }
 
   /**

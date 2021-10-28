@@ -34,6 +34,19 @@ export class PrimitiveFile {
     this.appID = file.appID;
   }
 }
+export class ShortcutFile {
+  id: string;
+  name: string;
+  fileID: string;
+  parent: string;
+  
+  constructor(file: Partial<ShortcutFile>) {
+    this.id = file.id;
+    this.name = file.name;
+    this.fileID = file.fileID;
+    this.parent = file.parent;
+  }
+}
 export class IFile extends PrimitiveFile {
   children?: IFile[] = undefined;
   createdAt?: Date;

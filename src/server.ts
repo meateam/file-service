@@ -82,6 +82,7 @@ export class FileServer {
       GetFilesByFolder: wrapper(FileMethods.GetFilesByFolder),
       GetDescendantsByFolder: wrapper(FileMethods.GetDescendantsByFolder),
       CreateFile: wrapper(FileMethods.CreateFile),
+      CreateShortcut: wrapper(FileMethods.CreateShortcut),
       DeleteFile: wrapper(FileMethods.DeleteFile),
       IsAllowed: wrapper(FileMethods.IsAllowed),
       UpdateFiles: wrapper(FileMethods.UpdateFiles),
