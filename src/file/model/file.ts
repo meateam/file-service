@@ -1,13 +1,16 @@
-import { Schema, model, Document } from 'mongoose';
-import { ServerError } from '../utils/errors/application.error';
-import { IFile } from './file.interface';
-import { UniqueIndexExistsError, FileExistsWithSameName, FileParentAppIDNotEqual } from '../utils/errors/client.error';
+import * as mongoose from 'mongoose';
+import BaseFileModel from "./baseFile"
+import { fileModelName, collectionName } from "./config"
+import { Schema, Document } from 'mongoose';
+import { ServerError } from '../../utils/errors/application.error';
+import { IFile } from '../file.interface';
+import { UniqueIndexExistsError, FileExistsWithSameName, FileParentAppIDNotEqual } from '../../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
 const ObjectId = Schema.Types.ObjectId;
 
-export const fileSchema: Schema = new Schema(
+const fileSchema: Schema = new Schema(
   {
     key: {
       type: String,
@@ -56,9 +59,10 @@ export const fileSchema: Schema = new Schema(
     toObject: {
       virtuals: true,
     },
+    collection: collectionName,
     toJSON: {
       virtuals: true,
-    }
+    },
   }
 );
 
@@ -112,7 +116,7 @@ fileSchema.pre('updateOne', async function (next: NextFunction) {
     query.ownerID = ownerID;
   }
 
-  const existingFile = await fileModel.findOne(query);
+  const existingFile: any = await fileModel.findOne(query);
 
   if (existingFile && existingFile.id !== this.getQuery()._id.toString() && !existingFile.float) {
     next(new FileExistsWithSameName());
@@ -158,6 +162,6 @@ fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   next(error);
 });
 
-export const fileModel = model<IFile & Document>('File', fileSchema);
-// export const shortcutModel = model<IFile & Document>('ShortcutFile', shortcutSchema);
+const fileModel: mongoose.Model<Document & IFile> = BaseFileModel.discriminator(fileModelName, fileSchema);
 
+export default fileModel;

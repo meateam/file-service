@@ -13,9 +13,14 @@
                 "node_modules/*",
                 "src/types/*"
             ]
-        }
+        },
+        "lib": [
+            "ES2020",
+            "dom"
+        ],
     },
     "include": [
-        "src/**/*", "unrelevent/files.rpc.ts"
+        "src/**/*",
+        "unrelevent/files.rpc.ts"
     ]
 }

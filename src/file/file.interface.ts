@@ -34,19 +34,30 @@ export class PrimitiveFile {
     this.appID = file.appID;
   }
 }
-export class ShortcutFile {
-  id: string;
+export class IShortcut extends PrimitiveFile {
+  id?: string;
   name: string;
-  fileID: string;
-  parent: string;
-  
-  constructor(file: Partial<ShortcutFile>) {
+  fileID: ObjectID | string;
+  parent: ObjectID | string;
+
+  constructor(file: Partial<IShortcut>) {
+    super(file);
     this.id = file.id;
     this.name = file.name;
     this.fileID = file.fileID;
     this.parent = file.parent;
   }
 }
+
+export class IPopulatedShortcut extends IShortcut {
+  fileID: any;
+
+  constructor(file: Partial<IPopulatedShortcut>) {
+    super(file);
+    this.fileID = file.fileID;
+  }
+}
+
 export class IFile extends PrimitiveFile {
   children?: IFile[] = undefined;
   createdAt?: Date;

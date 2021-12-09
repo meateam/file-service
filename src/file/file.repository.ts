@@ -1,8 +1,10 @@
 import { ObjectID } from 'mongodb';
-import { IFile } from './file.interface';
-import { fileModel } from './file.model';
-import { shortcutModel } from './shortcut.model';
+import { IFile, IPopulatedShortcut, IShortcut, PrimitiveFile } from './file.interface';
+import { baseFileModel, fileModel, shortcutModel } from './model';
+import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { FileNotFoundError } from '../utils/errors/client.error';
+import { shortcutModelName, fileModelName, getFailedMessage, baseModelName } from './model/config';
+import { response } from 'express';
 
 const pagination = {
   startIndex: 0,
@@ -24,7 +26,7 @@ export default class FileRepository {
    * Adds a given file to the DB.
    * @param file - is the file to be added to the DB
    */
-  static create(file: IFile): Promise<IFile> {
+  static create(file: any): Promise<IFile> {
     file.parent = file.parent ? new ObjectID(file.parent) : null;
     return fileModel.create(file);
   }
@@ -34,9 +36,20 @@ export default class FileRepository {
   * @param file - is the shortcut file to be added to the DB
   */
   static async createShortcut(file: any): Promise<IFile> {
-    const fileParent = await shortcutModel.findById(file.fileID).populate('parent').exec();
+    const populatedShortcut = await this.baseFileToIFile(await shortcutModel.create(file));
+    const shortcutAsFile: IFile = { ...(populatedShortcut.fileID as any), ...populatedShortcut };
 
-    return shortcutModel.create(file);
+    return shortcutAsFile;
+  }
+
+  // yarin's magic sorter, kinda...
+  static yarin(input: any) {
+    console.log("------------------------------");
+    console.log(JSON.stringify(input, null, 2));
+  }
+
+  static getMyModel(id: string) {
+    return baseFileModel.find({ id }).exec();
   }
 
   /**
@@ -45,12 +58,16 @@ export default class FileRepository {
    * @param partialFile - the partial file containing the attributes to be changed.
    */
   static async updateById(id: string, partialFile: Partial<IFile>): Promise<boolean> {
-    const file = await fileModel.findById(id);
+    const file = await this.baseFileToIFile(await baseFileModel.findById(id));
     if (!file) throw new FileNotFoundError();
+    this.yarin(file);
+    this.yarin(partialFile);
+    const res = await baseFileModel.findByIdAndUpdate(id, { $set: partialFile }, { runValidators: true }).exec();
+    // TODO: findByIdAndUpdate
+    this.yarin(res);
+    console.log("------------------------------");
 
-    const res = await fileModel.updateOne({ _id: file._id, ownerID: file.ownerID }, { $set: partialFile }, { runValidators: true }).exec();
-    // const res = await file.updateOne(partialFile, { runValidators: true }).exec();
-    return res.n === 1 && res.nModified === 1 && res.ok === 1;
+    return res.isModified();
   }
 
   /**
@@ -62,30 +79,77 @@ export default class FileRepository {
   }
 
   /**
+   * Getting a IPopulatedShortcut type file and converts its type to IFile.
+   * @param file - the file that will be converted.
+   */
+  static populatedShortcutToFile(file: IPopulatedShortcut): IFile {
+    const shortcutAsFile: IFile = { ...file.fileID, ...file };
+    delete shortcutAsFile.fileID;
+    return shortcutAsFile;
+  }
+
+  /**
+   * Getting a baseFile type file and converts its type to IFile.
+   * @param file - the file that will be converted.
+   */
+  static async baseFileToIFile(file: any): Promise<IFile> {
+    const factoryFile: PrimitiveFile = this.fileFactory(file, file.fileModel);
+    let responseFile: IFile = factoryFile as IFile;
+    if (factoryFile instanceof IShortcut) {
+      const populatedShortcut: IPopulatedShortcut = await (await file.populate('fileID').execPopulate()).toObject();
+      responseFile = this.populatedShortcutToFile(populatedShortcut);
+    }
+    return responseFile
+  }
+
+  /**
    * Get the file by its id.
    * @param id - the id of the file.
    */
-  static getById(id: string): Promise<IFile | null> {
-    return fileModel.findById({ _id: new ObjectID(id) }).exec();
+  static async getById(id: string): Promise<IFile> {
+    const file = await baseFileModel.findById({ _id: new ObjectID(id) }).exec();
+
+    return this.baseFileToIFile(file);
+  }
+
+  static fileFactory(file: any, type: string): PrimitiveFile {
+    switch (type) {
+      case fileModelName:
+        return new IFile(file);
+      case shortcutModelName:
+        return new IShortcut(file);
+      default:
+        throw new Error('File type not supported');
+    }
   }
 
   /**
    * Get the file by its key.
    * @param key - the key of the file.
    */
-  static getByKey(key: string): Promise<IFile | null> {
-    return fileModel.findOne({ key }).exec();
+  static async getByKey(key: string): Promise<IFile> {
+    const file = await baseFileModel.findOne({ key }).exec();
+
+    return this.baseFileToIFile(file);
   }
 
   /**
-   * Get several filed by their ids.
+   * Get several files by their ids.
    * @param ids - the array of the ids.
    */
-  static getByIds(ids: string[]): Promise<IFile[]> {
+  static async getByIds(ids: string[]): Promise<IFile[]> {
     const objIds: ObjectID[] = ids.map(id => new ObjectID(id));
-    return fileModel.find({
+    const files = await baseFileModel.find({
       _id: { $in: objIds },
     }).exec();
+
+    const settledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
+    const fulfilledFiles: IFile[] = (settledFiles.filter(file => file.status === 'fulfilled') as PromiseFulfilledResult<IFile>[]).map(file => file.value);
+    const rejectedFiles = settledFiles.filter(file => file.status === 'rejected');
+    const traceID: string = getCurrTraceId();
+    log(Severity.WARN, getFailedMessage, 'get files warn', traceID, rejectedFiles);
+
+    return fulfilledFiles;
   }
 
   /**
@@ -96,19 +160,27 @@ export default class FileRepository {
    * @param sortOrder - sorting order.
    * @param sortBy - sort by option.
    */
-  static getMany(
+  static async getMany(
     fileFilter: Partial<IFile>,
     startIndex: number = pagination.startIndex,
     endIndex: number = pagination.endIndex,
     sortOrder: string = sort.sortOrder,
     sortBy: string = sort.sortBy,
-  ): Promise<IFile[]> {
-    return fileModel
+  ): Promise<any[] | IFile> {
+    const files = await baseFileModel
       .find(fileFilter)
       .sort(sortOrder + sortBy)
       .skip(+startIndex)
       .limit((+endIndex) - (+startIndex))
       .exec();
+
+    const setteledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
+    const fullfilledFiles = setteledFiles.filter(file => file.status === 'fulfilled');
+    const rejectedFiles = setteledFiles.filter(file => file.status === 'rejected');
+    const traceID: string = getCurrTraceId();
+    log(Severity.WARN, getFailedMessage, 'get files warn', traceID, rejectedFiles);
+
+    return fullfilledFiles;
   }
 
   /**
@@ -117,23 +189,27 @@ export default class FileRepository {
    * @param populate - an option to populate the retrieved file's fields.
    * @param select - select certain fields of the files.
    */
-  static find(condition?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
+  static async find(condition?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
 
-    let findPromise = fileModel.find(condition);
+    let findPromise = baseFileModel.find(condition);
     if (populate) {
       findPromise = findPromise.populate(populate);
     }
     if (select) {
       findPromise = findPromise.select(select);
     }
-
-    return findPromise.exec().then((result) => {
-      return (result ? result.map((mongoObject => mongoObject.toObject())) : result);
+    const fulfilledFiles: IFile[] = [];
+    const rejectedFiles: IFile[] = [];
+    const files = await baseFileModel.find(condition).exec();
+    const setteledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
+    setteledFiles.forEach((file) => {
+      if (file.status === 'fulfilled' && file.value) fulfilledFiles.push(file.value);
+      else rejectedFiles.push((file as PromiseRejectedResult).reason);
     });
-  }
+    const traceID: string = getCurrTraceId();
+    log(Severity.WARN, getFailedMessage, 'get files warn', traceID, rejectedFiles);
 
-  static populateShortcut(fileID: string) {
-    return fileModel.findById(fileID).populate('shortcut').exec();
+    return fulfilledFiles;
   }
 
   /**
@@ -142,8 +218,10 @@ export default class FileRepository {
    * @param filename - the name of the file (should be unique in the folder).
    * @param ownerID - the id of the owner/user who made the request.
    */
-  static getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
+  static async getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
     const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
-    return fileModel.findOne({ ownerID, parent, name: filename }).exec();
+    const file = await baseFileModel.findOne({ ownerID, parent, name: filename }).exec();
+
+    return this.baseFileToIFile(file)
   }
 }

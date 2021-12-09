@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = ".";
+option go_package = "generated";
 
 package file;
 
@@ -169,6 +169,7 @@ message File {
   repeated File children = 13;
   bool float = 14;
   string appID = 15;
+  bool isShortcut = 16;
 }
 
 message UpdateFilesRequest {

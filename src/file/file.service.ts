@@ -1,11 +1,10 @@
 import { ObjectID } from 'mongodb';
-import { IFile, ResFile, deleteRes } from './file.interface';
+import { IFile, ResFile, deleteRes, IShortcut } from './file.interface';
 import FilesRepository from './file.repository';
 import { FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
-import { fileModel } from './file.model';
-import { shortcutModel } from './shortcut.model';
+import { fileModel, shortcutModel } from './model';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -89,20 +88,17 @@ export class FileService {
     size: number = 0, parent: string): Promise<IFile> {
 
     // basicFile is without key and bucket - in case it is a folder.
-    let basicFile = {
+    let shortcutFile = {
       name,
       fileID,
       size,
       parent,
     };
 
-    const file: IFile = new shortcutModel(basicFile);
-
-    const createdFile = await FilesRepository.createShortcut(file);
-    if (createdFile) {
-      await QuotaService.updateUsed(fileID, size);
-    }
-    return createdFile;
+    const file: IShortcut = new shortcutModel(shortcutFile);
+    const createdShortcut: IFile = await FilesRepository.createShortcut(file);
+    
+    return createdShortcut;
   }
 
   /**
@@ -210,13 +206,22 @@ export class FileService {
   static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ id: string, error: Error }[]> {
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
     const failedFiles: { id: string, error: Error }[] = [];
-    for (let i = 0; i < idList.length; i++) {
+    // for (let i = 0; i < idList.length; i++) {
+    //   // TODO: promise.allsettled
+    //   try {
+    //     await this.updateById(idList[i], extractedPF);
+    //   } catch (e) {
+    //     // TODO: push rejected files to failedFiles from promise.allsettled
+    //     failedFiles.push({ id: idList[i], error: e });
+    //   }
+    // }
+    await Promise.all(idList.map(async (id) => {
       try {
-        await this.updateById(idList[i], extractedPF);
-      } catch (e) {
-        failedFiles.push({ id: idList[i], error: e });
+        await this.updateById(id, extractedPF);
+      } catch (error) {
+        failedFiles.push({ id, error });
       }
-    }
+    }));
 
     return failedFiles;
   }

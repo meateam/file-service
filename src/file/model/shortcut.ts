@@ -1,13 +1,16 @@
-import { Schema, model, Document } from 'mongoose';
-import { ServerError } from '../utils/errors/application.error';
-import { IFile } from './file.interface';
-import { UniqueIndexExistsError, FileExistsWithSameName, FileParentAppIDNotEqual } from '../utils/errors/client.error';
+import * as mongoose from 'mongoose';
+import BaseFileModel from "./baseFile"
+import { shortcutModelName, collectionName } from "./config"
+import { Schema, Document } from 'mongoose';
+import { ServerError } from '../../utils/errors/application.error';
+import { IShortcut } from '../file.interface';
+import { UniqueIndexExistsError, FileExistsWithSameName, FileParentAppIDNotEqual } from '../../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
 const ObjectId = Schema.Types.ObjectId;
 
-export const shortcutSchema: Schema = new Schema(
+const shortcutSchema: Schema = new Schema(
     {
         name: {
             type: String,
@@ -16,10 +19,12 @@ export const shortcutSchema: Schema = new Schema(
         parent: {
             type: ObjectId,
             required: true,
+            ref: 'File',
         },
         fileID: {
             type: String,
             required: true,
+            ref: 'File',
         },
 
     },
@@ -28,14 +33,15 @@ export const shortcutSchema: Schema = new Schema(
         toObject: {
             virtuals: true,
         },
+        collection: collectionName,
         toJSON: {
             virtuals: true,
-        }
+        },
     }
 );
 
+// TODO: check indexes
 shortcutSchema.index({ name: 1, parent: 1, fileID: 1 }, { unique: false });
-shortcutSchema.index({ key: 1, bucket: 1 }, { unique: true, sparse: true });
 
 shortcutSchema.virtual('id').get(function () {
     return this._id.toHexString();
@@ -128,4 +134,6 @@ shortcutSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
     next(error);
 });
 
-export const shortcutModel = model<IFile & Document>('ShortcutFile', shortcutSchema);
+const shortcutModel: mongoose.Model<Document & IShortcut> = BaseFileModel.discriminator(shortcutModelName, shortcutSchema);
+
+export default shortcutModel;

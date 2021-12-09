@@ -1,5 +1,5 @@
 import { FileService } from './file.service';
-import { ResFile, IFile, deleteRes } from './file.interface';
+import { ResFile, IFile, deleteRes, IShortcut, PrimitiveFile } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { getDisplayError } from './../utils/errors/error.helper';
@@ -40,14 +40,13 @@ export class FileMethods {
   */
   public static async CreateShortcut(call: any): Promise<ResFile> {
     const params = call.request;
-    const createdFile = await FileService.createShortcut(
+    const createdFile: IFile = await FileService.createShortcut(
       params.name,
-      params.parent,
       params.fileID,
       params.size,
+      params.parent,
     );
     return new ResFile(createdFile);
-
   }
 
   /**

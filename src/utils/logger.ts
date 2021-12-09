@@ -41,12 +41,12 @@ export const log = (level: Severity, message: string, name: string, traceID?: st
   // Console logs for debugging only.
   if (debugMode) {
     if (traceID) {
-      console.log(`level: ${level}, message: ${message}, name: ${name}, traceID: ${traceID}, meta:`);
+      // console.log(`level: ${level}, message: ${message}, name: ${name}, traceID: ${traceID}, meta:`);
     } else {
-      console.log(`level: ${level}, message: ${message}, name: ${name}, meta:`);
+      // console.log(`level: ${level}, message: ${message}, name: ${name}, meta:`);
     }
     if (meta) {
-      console.log(meta);
+      // console.log(meta);
     }
   }
   logger.log(level, message, { ...meta, traceID, method: name });
