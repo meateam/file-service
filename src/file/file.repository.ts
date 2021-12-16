@@ -3,8 +3,7 @@ import { IFile, IPopulatedShortcut, IShortcut, PrimitiveFile } from './file.inte
 import { baseFileModel, fileModel, shortcutModel } from './model';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { FileNotFoundError } from '../utils/errors/client.error';
-import { shortcutModelName, fileModelName, getFailedMessage, baseModelName } from './model/config';
-import { response } from 'express';
+import { shortcutModelName, fileModelName, getFailedMessage } from './model/config';
 
 const pagination = {
   startIndex: 0,
@@ -23,7 +22,7 @@ const sort = {
  */
 export default class FileRepository {
   /**
-   * Adds a given file to the DB.
+   * Add a given file to the DB.
    * @param file - is the file to be added to the DB
    */
   static create(file: any): Promise<IFile> {
@@ -32,7 +31,7 @@ export default class FileRepository {
   }
 
   /**
-  * Adds a given shortcut file to the DB.
+  * Add a given shortcut file to the DB.
   * @param file - is the shortcut file to be added to the DB
   */
   static async createShortcut(file: any): Promise<IFile> {
@@ -42,36 +41,39 @@ export default class FileRepository {
     return shortcutAsFile;
   }
 
-  // yarin's magic sorter, kinda...
-  static yarin(input: any) {
-    console.log("------------------------------");
-    console.log(JSON.stringify(input, null, 2));
-  }
-
-  static getMyModel(id: string) {
-    return baseFileModel.find({ id }).exec();
+  /**
+   * Get a baseModel file and returns its model
+   * @param file - the file to get the model from
+   * @returns file's model
+   */
+  static getFileModel(baseFile: any): any {
+    const factoryFile = this.fileFactory(baseFile, baseFile.fileModel);
+    if (factoryFile instanceof IShortcut) {
+      return shortcutModel;
+    }
+    if (factoryFile instanceof IFile) {
+      return fileModel;
+    }
+    return null;
   }
 
   /**
-   * Updates the file metatata by its id.
+   * Update a file metatata by its id.
    * @param id - the file id.
    * @param partialFile - the partial file containing the attributes to be changed.
    */
   static async updateById(id: string, partialFile: Partial<IFile>): Promise<boolean> {
-    const file = await this.baseFileToIFile(await baseFileModel.findById(id));
+    const baseFile = await baseFileModel.findById(id);
+    const file = await this.baseFileToIFile(baseFile);
     if (!file) throw new FileNotFoundError();
-    this.yarin(file);
-    this.yarin(partialFile);
-    const res = await baseFileModel.findByIdAndUpdate(id, { $set: partialFile }, { runValidators: true }).exec();
-    // TODO: findByIdAndUpdate
-    this.yarin(res);
-    console.log("------------------------------");
+    const model = this.getFileModel(baseFile);
+    const res = await model.findByIdAndUpdate(id, { $set: partialFile }, { runValidators: true }).exec();
 
     return res.isModified();
   }
 
   /**
-   * Deletes a file from the DB.
+   * Delete a file from the DB.
    * @param id - the id of the file to be deleted.
    */
   static deleteById(id: string): Promise<IFile | null> {
@@ -79,7 +81,7 @@ export default class FileRepository {
   }
 
   /**
-   * Getting a IPopulatedShortcut type file and converts its type to IFile.
+   * Get an IPopulatedShortcut type file and converts it to IFile types.
    * @param file - the file that will be converted.
    */
   static populatedShortcutToFile(file: IPopulatedShortcut): IFile {
@@ -89,7 +91,7 @@ export default class FileRepository {
   }
 
   /**
-   * Getting a baseFile type file and converts its type to IFile.
+   * Get a baseFile type file and converts its type to IFile.
    * @param file - the file that will be converted.
    */
   static async baseFileToIFile(file: any): Promise<IFile> {
@@ -103,7 +105,7 @@ export default class FileRepository {
   }
 
   /**
-   * Get the file by its id.
+   * Get a file by its id.
    * @param id - the id of the file.
    */
   static async getById(id: string): Promise<IFile> {
@@ -112,6 +114,12 @@ export default class FileRepository {
     return this.baseFileToIFile(file);
   }
 
+  /**
+   * Get a file and its fileModel parameter and casts it to the correct class.
+   * @param file - the file that its type being casted
+   * @param type - the type that's using to cast the file
+   * @returns file that's being casted corrcetly
+   */
   static fileFactory(file: any, type: string): PrimitiveFile {
     switch (type) {
       case fileModelName:
@@ -124,7 +132,7 @@ export default class FileRepository {
   }
 
   /**
-   * Get the file by its key.
+   * Get a file by its key.
    * @param key - the key of the file.
    */
   static async getByKey(key: string): Promise<IFile> {
@@ -135,14 +143,13 @@ export default class FileRepository {
 
   /**
    * Get several files by their ids.
-   * @param ids - the array of the ids.
+   * @param ids - array of the files ids.
    */
   static async getByIds(ids: string[]): Promise<IFile[]> {
     const objIds: ObjectID[] = ids.map(id => new ObjectID(id));
     const files = await baseFileModel.find({
       _id: { $in: objIds },
     }).exec();
-
     const settledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
     const fulfilledFiles: IFile[] = (settledFiles.filter(file => file.status === 'fulfilled') as PromiseFulfilledResult<IFile>[]).map(file => file.value);
     const rejectedFiles = settledFiles.filter(file => file.status === 'rejected');

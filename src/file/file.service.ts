@@ -5,6 +5,7 @@ import { FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel, shortcutModel } from './model';
+import { shortcutModelName, fileModelName  } from './model/config';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -97,7 +98,7 @@ export class FileService {
 
     const file: IShortcut = new shortcutModel(shortcutFile);
     const createdShortcut: IFile = await FilesRepository.createShortcut(file);
-    
+
     return createdShortcut;
   }
 
@@ -149,6 +150,10 @@ export class FileService {
       }
     }
     return { succeeded: deletedFiles, allSucceeded: pathSuccess };
+  }
+
+  static async isShortcut(file: any): Promise<boolean> {
+    return file.type === shortcutModelName;
   }
 
   /**
@@ -444,5 +449,4 @@ export class FileService {
   private static isFolder(file: IFile): boolean {
     return (file.type === FolderContentType);
   }
-
 }
