@@ -5,7 +5,7 @@ import { FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel, shortcutModel } from './model';
-import { shortcutModelName, fileModelName  } from './model/config';
+import { shortcutModelName } from './model/config';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -56,7 +56,7 @@ export class FileService {
       float,
       appID,
       parent: folderID,
-      fileID: ''
+      isShortcut: false
     };
 
     // Create the file id by reversing key, and add ket and bucket.
@@ -81,12 +81,13 @@ export class FileService {
    * @param size - the size of the file.
    * @param fileId - the id of the original file.
    * @param parent - the id of the folder in which the file will reside (in the GUI).
+   * @param isShortcut - the isShortcut of the file owner.
    */
 
   public static async createShortcut(
     name: string,
     fileID: string,
-    size: number = 0, parent: string): Promise<IFile> {
+    size: number = 0, parent: string, isShortcut: boolean): Promise<IFile> {
 
     // basicFile is without key and bucket - in case it is a folder.
     let shortcutFile = {
@@ -94,6 +95,7 @@ export class FileService {
       fileID,
       size,
       parent,
+      isShortcut
     };
 
     const file: IShortcut = new shortcutModel(shortcutFile);
@@ -152,8 +154,13 @@ export class FileService {
     return { succeeded: deletedFiles, allSucceeded: pathSuccess };
   }
 
+  /**
+   * returns a true if the file is a shortcut, false if not.
+   * @param file - the file being checked.
+   */
   static async isShortcut(file: any): Promise<boolean> {
-    return file.type === shortcutModelName;
+    if (file.fileModel === shortcutModelName) return true
+    return false;
   }
 
   /**
@@ -211,15 +218,7 @@ export class FileService {
   static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ id: string, error: Error }[]> {
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
     const failedFiles: { id: string, error: Error }[] = [];
-    // for (let i = 0; i < idList.length; i++) {
-    //   // TODO: promise.allsettled
-    //   try {
-    //     await this.updateById(idList[i], extractedPF);
-    //   } catch (e) {
-    //     // TODO: push rejected files to failedFiles from promise.allsettled
-    //     failedFiles.push({ id: idList[i], error: e });
-    //   }
-    // }
+
     await Promise.all(idList.map(async (id) => {
       try {
         await this.updateById(id, extractedPF);

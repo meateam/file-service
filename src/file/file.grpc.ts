@@ -45,6 +45,7 @@ export class FileMethods {
       params.fileID,
       params.size,
       params.parent,
+      params.isShortcut,
     );
     return new ResFile(createdFile);
   }

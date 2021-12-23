@@ -26,7 +26,6 @@ const shortcutSchema: Schema = new Schema(
             required: true,
             ref: 'File',
         },
-
     },
     {
         timestamps: true,
@@ -40,7 +39,6 @@ const shortcutSchema: Schema = new Schema(
     }
 );
 
-// TODO: check indexes
 shortcutSchema.index({ name: 1, parent: 1, fileID: 1 }, { unique: false });
 
 shortcutSchema.virtual('id').get(function () {
@@ -77,7 +75,7 @@ function handleE11000(error: MongoError, _: any, next: NextFunction) {
     }
 }
 
-shortcutSchema.pre('updateOne', async function (next: NextFunction) {
+shortcutSchema.pre('findOneAndUpdate', async function (next: NextFunction) {
     const fileID = this.getQuery().fileID;
     const update = this.getUpdate();
 
@@ -124,7 +122,6 @@ shortcutSchema.pre('save', async function (next: NextFunction) {
 shortcutSchema.post('save', handleE11000);
 shortcutSchema.post('update', handleE11000);
 shortcutSchema.post('findOneAndUpdate', handleE11000);
-shortcutSchema.post('updateOne', handleE11000);
 shortcutSchema.post('insertMany', handleE11000);
 
 shortcutSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {

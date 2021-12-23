@@ -25,7 +25,7 @@ export default class FileRepository {
    * Add a given file to the DB.
    * @param file - is the file to be added to the DB
    */
-  static create(file: any): Promise<IFile> {
+  static create(file: IFile): Promise<IFile> {
     file.parent = file.parent ? new ObjectID(file.parent) : null;
     return fileModel.create(file);
   }
@@ -35,8 +35,8 @@ export default class FileRepository {
   * @param file - is the shortcut file to be added to the DB
   */
   static async createShortcut(file: any): Promise<IFile> {
-    const populatedShortcut = await this.baseFileToIFile(await shortcutModel.create(file));
-    const shortcutAsFile: IFile = { ...(populatedShortcut.fileID as any), ...populatedShortcut };
+    const populatedShortcut = await shortcutModel.create(file);
+    const shortcutAsFile: IFile = this.populatedShortcutToFile(populatedShortcut);
 
     return shortcutAsFile;
   }
@@ -96,6 +96,7 @@ export default class FileRepository {
    */
   static async baseFileToIFile(file: any): Promise<IFile> {
     const factoryFile: PrimitiveFile = this.fileFactory(file, file.fileModel);
+    // factoryFile's type is IFile because its the default file type that's not a shortcut. 
     let responseFile: IFile = factoryFile as IFile;
     if (factoryFile instanceof IShortcut) {
       const populatedShortcut: IPopulatedShortcut = await (await file.populate('fileID').execPopulate()).toObject();
@@ -111,7 +112,7 @@ export default class FileRepository {
   static async getById(id: string): Promise<IFile> {
     const file = await baseFileModel.findById({ _id: new ObjectID(id) }).exec();
 
-    return this.baseFileToIFile(file);
+    return await this.baseFileToIFile(file);
   }
 
   /**
@@ -138,7 +139,7 @@ export default class FileRepository {
   static async getByKey(key: string): Promise<IFile> {
     const file = await baseFileModel.findOne({ key }).exec();
 
-    return this.baseFileToIFile(file);
+    return await this.baseFileToIFile(file);
   }
 
   /**
@@ -150,9 +151,13 @@ export default class FileRepository {
     const files = await baseFileModel.find({
       _id: { $in: objIds },
     }).exec();
+    const fulfilledFiles: IFile[] = [];
+    const rejectedFiles: IFile[] = [];
     const settledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
-    const fulfilledFiles: IFile[] = (settledFiles.filter(file => file.status === 'fulfilled') as PromiseFulfilledResult<IFile>[]).map(file => file.value);
-    const rejectedFiles = settledFiles.filter(file => file.status === 'rejected');
+    settledFiles.forEach((file) => {
+      if (file.status === 'fulfilled' && file.value) fulfilledFiles.push((file as PromiseFulfilledResult<IFile>).value);
+      else rejectedFiles.push((file as PromiseRejectedResult).reason);
+    });
     const traceID: string = getCurrTraceId();
     log(Severity.WARN, getFailedMessage, 'get files warn', traceID, rejectedFiles);
 
@@ -173,7 +178,7 @@ export default class FileRepository {
     endIndex: number = pagination.endIndex,
     sortOrder: string = sort.sortOrder,
     sortBy: string = sort.sortBy,
-  ): Promise<any[] | IFile> {
+  ): Promise<any[] | IFile[]> {
     const files = await baseFileModel
       .find(fileFilter)
       .sort(sortOrder + sortBy)
@@ -181,13 +186,17 @@ export default class FileRepository {
       .limit((+endIndex) - (+startIndex))
       .exec();
 
-    const setteledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
-    const fullfilledFiles = setteledFiles.filter(file => file.status === 'fulfilled');
-    const rejectedFiles = setteledFiles.filter(file => file.status === 'rejected');
+    const fulfilledFiles: IFile[] = [];
+    const rejectedFiles: IFile[] = [];
+    const settledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
+    settledFiles.forEach((file) => {
+      if (file.status === 'fulfilled' && file.value) fulfilledFiles.push(file.value);
+      else rejectedFiles.push((file as PromiseRejectedResult).reason);
+    });
     const traceID: string = getCurrTraceId();
     log(Severity.WARN, getFailedMessage, 'get files warn', traceID, rejectedFiles);
 
-    return fullfilledFiles;
+    return fulfilledFiles;
   }
 
   /**
@@ -198,7 +207,7 @@ export default class FileRepository {
    */
   static async find(condition?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
 
-    let findPromise = baseFileModel.find(condition);
+    let findPromise = fileModel.find(condition);
     if (populate) {
       findPromise = findPromise.populate(populate);
     }
@@ -207,7 +216,7 @@ export default class FileRepository {
     }
     const fulfilledFiles: IFile[] = [];
     const rejectedFiles: IFile[] = [];
-    const files = await baseFileModel.find(condition).exec();
+    const files = await findPromise.find(condition).exec();
     const setteledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
     setteledFiles.forEach((file) => {
       if (file.status === 'fulfilled' && file.value) fulfilledFiles.push(file.value);
@@ -229,6 +238,6 @@ export default class FileRepository {
     const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
     const file = await baseFileModel.findOne({ ownerID, parent, name: filename }).exec();
 
-    return this.baseFileToIFile(file)
+    return await this.baseFileToIFile(file);
   }
 }
