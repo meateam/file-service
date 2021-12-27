@@ -3,7 +3,8 @@ import { IFile, IPopulatedShortcut, IShortcut, PrimitiveFile } from './file.inte
 import { baseFileModel, fileModel, shortcutModel } from './model';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { FileNotFoundError } from '../utils/errors/client.error';
-import { shortcutModelName, fileModelName, getFailedMessage } from './model/config';
+import { getFailedMessage } from './model/config';
+import { FileService } from "./file.service";
 
 const pagination = {
   startIndex: 0,
@@ -42,22 +43,6 @@ export default class FileRepository {
   }
 
   /**
-   * Get a baseModel file and returns its model
-   * @param file - the file to get the model from
-   * @returns file's model
-   */
-  static getFileModel(baseFile: any): any {
-    const factoryFile = this.fileFactory(baseFile, baseFile.fileModel);
-    if (factoryFile instanceof IShortcut) {
-      return shortcutModel;
-    }
-    if (factoryFile instanceof IFile) {
-      return fileModel;
-    }
-    return null;
-  }
-
-  /**
    * Update a file metatata by its id.
    * @param id - the file id.
    * @param partialFile - the partial file containing the attributes to be changed.
@@ -66,7 +51,7 @@ export default class FileRepository {
     const baseFile = await baseFileModel.findById(id);
     const file = await this.baseFileToIFile(baseFile);
     if (!file) throw new FileNotFoundError();
-    const model = this.getFileModel(baseFile);
+    const model = FileService.getFileModel(baseFile);
     const res = await model.findByIdAndUpdate(id, { $set: partialFile }, { runValidators: true }).exec();
 
     return res.isModified();
@@ -87,6 +72,7 @@ export default class FileRepository {
   static populatedShortcutToFile(file: IPopulatedShortcut): IFile {
     const shortcutAsFile: IFile = { ...file.fileID, ...file };
     delete shortcutAsFile.fileID;
+    
     return shortcutAsFile;
   }
 
@@ -95,7 +81,7 @@ export default class FileRepository {
    * @param file - the file that will be converted.
    */
   static async baseFileToIFile(file: any): Promise<IFile> {
-    const factoryFile: PrimitiveFile = this.fileFactory(file, file.fileModel);
+    const factoryFile: PrimitiveFile = FileService.fileFactory(file, file.fileModel);
     // factoryFile's type is IFile because its the default file type that's not a shortcut. 
     let responseFile: IFile = factoryFile as IFile;
     if (factoryFile instanceof IShortcut) {
@@ -113,23 +99,6 @@ export default class FileRepository {
     const file = await baseFileModel.findById({ _id: new ObjectID(id) }).exec();
 
     return await this.baseFileToIFile(file);
-  }
-
-  /**
-   * Get a file and its fileModel parameter and casts it to the correct class.
-   * @param file - the file that its type being casted
-   * @param type - the type that's using to cast the file
-   * @returns file that's being casted corrcetly
-   */
-  static fileFactory(file: any, type: string): PrimitiveFile {
-    switch (type) {
-      case fileModelName:
-        return new IFile(file);
-      case shortcutModelName:
-        return new IShortcut(file);
-      default:
-        throw new Error('File type not supported');
-    }
   }
 
   /**
