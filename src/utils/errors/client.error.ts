@@ -19,6 +19,12 @@ export class NameInvalidError extends ClientError {
   }
 }
 
+export class isShortcutInvalidError extends ClientError {
+  constructor(message?: string) {
+    super(message || 'invalid isShortcut', grpc.status.INVALID_ARGUMENT);
+  }
+}
+
 export class MailInvalidError extends ClientError {
   constructor(message?: string) {
     super(message || 'invalid mail', grpc.status.INVALID_ARGUMENT);

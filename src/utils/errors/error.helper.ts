@@ -4,6 +4,7 @@ import {
   IdInvalidError,
   ArgumentInvalidError,
   NameInvalidError,
+  isShortcutInvalidError,
   MailInvalidError,
   QueryInvalidError,
   FileNotFoundError,
@@ -21,6 +22,8 @@ export function getDisplayError(error : Error): string {
       return 'argument sent is invalid';
     case NameInvalidError:
       return 'this name is invalid';
+    case isShortcutInvalidError:
+      return 'this isShortcut is invalid';
     case MailInvalidError:
       return 'mail is invalid';
     case QueryInvalidError:
