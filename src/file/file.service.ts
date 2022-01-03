@@ -196,6 +196,17 @@ export class FileService {
     if (!file) throw new FileNotFoundError();
     return file;
   }
+  /** 
+  * get some files by their ids
+   * @param ids
+   */
+   public static async getByIDs(ids: string[]): Promise<IFile[]> {
+    const files:IFile[] = await FilesRepository.getByIds(ids);    
+    if (!files) throw new FileNotFoundError();
+    return files;
+  }
+
+  
 
   /**
    * Get a file by its key.
@@ -206,6 +217,7 @@ export class FileService {
     if (!file) throw new FileNotFoundError();
     return file;
   }
+  
 
   /**
    * Gets all the files in a folder by the folder id.

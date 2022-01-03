@@ -80,7 +80,17 @@ export class FileMethods {
     const file: IFile = await FileService.getById(id);
     return new ResFile(file);
   }
-
+/**
+   * Retrieves  files by many ids.
+   * @param call
+   * @param idList
+   */
+ public static async GetFilesByIDs(call: any): Promise<{ files: ResFile[] }> {
+  const ids: string[] = call.request.ids;
+  const files = await FileService.getByIDs(ids);
+  const resFiles = files.map((file) => new ResFile(file));
+  return { files: resFiles };
+}
   /**
    * Retrieves a file by its key.
    * @param call

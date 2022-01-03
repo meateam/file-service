@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package quota;
+option go_package = "github.com/meateam/file-service/proto/quota;quota";
 
 service QuotaService {
     rpc IsAllowedToGetQuota(IsAllowedToGetQuotaRequest) returns (IsAllowedToGetQuotaResponse) {}
