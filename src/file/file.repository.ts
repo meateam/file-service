@@ -2,9 +2,7 @@ import { ObjectID } from 'mongodb';
 import { IFile, IPopulatedShortcut, IShortcut, PrimitiveFile } from './file.interface';
 import { baseFileModel, fileModel, shortcutModel } from './model';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
-import { FileNotFoundError } from '../utils/errors/client.error';
-import { getFailedMessage } from './model/config';
-import { FileService } from "./file.service";
+import { fileModelName, getFailedMessage, shortcutModelName } from './model/config';
 
 const pagination = {
   startIndex: 0,
@@ -33,6 +31,7 @@ export default class FileRepository {
 
   /**
   * Add a given shortcut file to the DB.
+  * Returns a populated shortcut as an IFile.
   * @param file - is the shortcut file to be added to the DB
   */
   static async createShortcut(file: any): Promise<IFile> {
@@ -47,11 +46,7 @@ export default class FileRepository {
    * @param id - the file id.
    * @param partialFile - the partial file containing the attributes to be changed.
    */
-  static async updateById(id: string, partialFile: Partial<IFile>): Promise<boolean> {
-    const baseFile = await baseFileModel.findById(id);
-    const file = await this.baseFileToIFile(baseFile);
-    if (!file) throw new FileNotFoundError();
-    const model = FileService.getFileModel(baseFile);
+  static async updateById(id: string, partialFile: Partial<IFile>, model: any): Promise<boolean> {
     const res = await model.findByIdAndUpdate(id, { $set: partialFile }, { runValidators: true }).exec();
 
     return res.isModified();
@@ -61,19 +56,38 @@ export default class FileRepository {
    * Delete a file from the DB.
    * @param id - the id of the file to be deleted.
    */
-  static deleteById(id: string): Promise<IFile | null> {
-    return fileModel.findByIdAndRemove({ _id: new ObjectID(id) }).exec();
+  static async deleteById(id: string, model: any): Promise<IFile | null> {
+
+    return model.findByIdAndRemove({ _id: new ObjectID(id) }).exec();
   }
 
   /**
    * Get an IPopulatedShortcut type file and converts it to IFile types.
+   * Returns a populated shortcut file as an IFile.
    * @param file - the file that will be converted.
    */
   static populatedShortcutToFile(file: IPopulatedShortcut): IFile {
     const shortcutAsFile: IFile = { ...file.fileID, ...file };
     delete shortcutAsFile.fileID;
-    
+
     return shortcutAsFile;
+  }
+
+  /**
+* Get a file and its fileModel parameter and casts it to the correct class.
+* @param file - the file that its type being casted
+* @param type - the type that's using to cast the file
+* @returns file that's being casted corrcetly
+*/
+  static fileFactory(file: any, type: string): PrimitiveFile {
+    switch (type) {
+      case fileModelName:
+        return new IFile(file);
+      case shortcutModelName:
+        return new IShortcut(file);
+      default:
+        throw new Error('File type not supported');
+    }
   }
 
   /**
@@ -81,14 +95,14 @@ export default class FileRepository {
    * @param file - the file that will be converted.
    */
   static async baseFileToIFile(file: any): Promise<IFile> {
-    const factoryFile: PrimitiveFile = FileService.fileFactory(file, file.fileModel);
-    // factoryFile's type is IFile because its the default file type that's not a shortcut. 
+    const factoryFile: PrimitiveFile = this.fileFactory(file, file.fileModel);
+    // factoryFile's type is IFile because its the default file type that's not a shortcut.
     let responseFile: IFile = factoryFile as IFile;
     if (factoryFile instanceof IShortcut) {
       const populatedShortcut: IPopulatedShortcut = await (await file.populate('fileID').execPopulate()).toObject();
       responseFile = this.populatedShortcutToFile(populatedShortcut);
     }
-    return responseFile
+    return responseFile;
   }
 
   /**

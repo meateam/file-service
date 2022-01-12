@@ -19,12 +19,12 @@ const shortcutSchema: Schema = new Schema(
         parent: {
             type: ObjectId,
             required: true,
-            ref: 'File',
+            ref: collectionName,
         },
         fileID: {
             type: String,
             required: true,
-            ref: 'File',
+            ref: collectionName,
         },
     },
     {

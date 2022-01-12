@@ -1,11 +1,11 @@
 import { ObjectID } from 'mongodb';
-import { IFile, ResFile, deleteRes, IShortcut, PrimitiveFile } from './file.interface';
+import { IFile, ResFile, deleteRes, IShortcut } from './file.interface';
 import FilesRepository from './file.repository';
 import { FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
-import { fileModel, shortcutModel } from './model';
-import { fileModelName, shortcutModelName } from './model/config';
+import { baseFileModel, fileModel, shortcutModel } from './model';
+import { shortcutModelName } from './model/config';
 
 export const FolderContentType = 'application/vnd.drive.folder';
 
@@ -69,12 +69,11 @@ export class FileService {
     if (createdFile) {
       await QuotaService.updateUsed(ownerID, size);
     }
-    if(this.isShortcut(createdFile)) createdFile.isShortcut = true;
+    if (this.isShortcut(createdFile)) createdFile.isShortcut = true;
     else createdFile.isShortcut = false;
 
     return createdFile;
   }
-
 
   /**
    * Creates a shortcut file and adds it to the DB.
@@ -91,7 +90,7 @@ export class FileService {
     size: number = 0, parent: string): Promise<IFile> {
 
     // basicFile is without key and bucket - in case it is a folder.
-    let shortcutFile = {
+    const shortcutFile = {
       name,
       fileID,
       size,
@@ -101,7 +100,7 @@ export class FileService {
     const file: IShortcut = new shortcutModel(shortcutFile);
     const createdShortcut: IFile = await FilesRepository.createShortcut(file);
 
-    if (this.isShortcut(createdShortcut)) createdShortcut.isShortcut = true
+    if (this.isShortcut(createdShortcut)) createdShortcut.isShortcut = true;
     else createdShortcut.isShortcut = false;
 
     return createdShortcut;
@@ -121,12 +120,14 @@ export class FileService {
   }
 
   public static async deleteByID(fileID: string): Promise<IFile> {
-    const file = await FilesRepository.deleteById(fileID);
+    const baseFile = await baseFileModel.findById(fileID);
+    const model = this.getFileModel(baseFile);
+    const file = await FilesRepository.deleteById(fileID, model);
     await QuotaService.updateUsed(file.ownerID, -file.size);
-    if (this.isShortcut(file)) file.isShortcut = true
+    if (this.isShortcut(file)) file.isShortcut = true;
     else file.isShortcut = false;
 
-    return file;
+    return await FilesRepository.deleteById(fileID, model);
   }
 
   /**
@@ -135,7 +136,7 @@ export class FileService {
    * @returns file's model
    */
   public static getFileModel(baseFile: any): any {
-    const factoryFile = this.fileFactory(baseFile, baseFile.fileModel);
+    const factoryFile = FilesRepository.fileFactory(baseFile, baseFile.fileModel);
     if (factoryFile instanceof IShortcut) {
       return shortcutModel;
     }
@@ -143,23 +144,6 @@ export class FileService {
       return fileModel;
     }
     return null;
-  }
-
-  /**
- * Get a file and its fileModel parameter and casts it to the correct class.
- * @param file - the file that its type being casted
- * @param type - the type that's using to cast the file
- * @returns file that's being casted corrcetly
- */
-  static fileFactory(file: any, type: string): PrimitiveFile {
-    switch (type) {
-      case fileModelName:
-        return new IFile(file);
-      case shortcutModelName:
-        return new IShortcut(file);
-      default:
-        throw new Error('File type not supported');
-    }
   }
 
   /**
@@ -181,7 +165,9 @@ export class FileService {
       }));
     }
     if (pathSuccess) {
-      const currFile: IFile = await FilesRepository.deleteById(fileId);
+      const baseFile = await baseFileModel.findById(fileId);
+      const model = this.getFileModel(baseFile);
+      const currFile: IFile = await FilesRepository.deleteById(fileId, model);
       // If a file was not deleted, mark the path so it would not be deleted.
       if (!currFile) {
         pathSuccess = false;
@@ -216,7 +202,12 @@ export class FileService {
       await this.updateQuota(fileId, partialFile.size);
     }
 
-    return await FilesRepository.updateById(fileId, partialFile);
+    const baseFile = await baseFileModel.findById(fileId);
+    const file = await FilesRepository.baseFileToIFile(baseFile);
+    if (!file) throw new FileNotFoundError();
+    const model = this.getFileModel(baseFile);
+
+    return await FilesRepository.updateById(fileId, partialFile, model);
   }
 
   /**
@@ -246,7 +237,6 @@ export class FileService {
     if (file.type === FolderContentType && await this.isFolderAnAncestor(parentID, fileID)) {
       throw new ClientError('cyclic nesting error');
     }
-
     return;
   }
 
@@ -257,7 +247,6 @@ export class FileService {
   static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ id: string, error: Error }[]> {
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
     const failedFiles: { id: string, error: Error }[] = [];
-
     await Promise.all(idList.map(async (id) => {
       try {
         await this.updateById(id, extractedPF);
@@ -276,7 +265,7 @@ export class FileService {
   public static async getById(fileId: string): Promise<IFile> {
     const file = await FilesRepository.getById(fileId);
     if (!file) throw new FileNotFoundError();
-    if (this.isShortcut(file)) file.isShortcut = true
+    if (this.isShortcut(file)) file.isShortcut = true;
     else file.isShortcut = false;
 
     return file;
@@ -289,7 +278,7 @@ export class FileService {
   public static async getByKey(key: string): Promise<IFile> {
     const file = await FilesRepository.getByKey(key);
     if (!file) throw new FileNotFoundError();
-    if (this.isShortcut(file)) file.isShortcut = true
+    if (this.isShortcut(file)) file.isShortcut = true;
     else file.isShortcut = false;
 
     return file;
@@ -346,7 +335,7 @@ export class FileService {
       return true;
     }
     const file: IFile = await this.getById(fileID);
-    if (this.isShortcut(file)) file.isShortcut = true
+    if (this.isShortcut(file)) file.isShortcut = true;
     else file.isShortcut = false;
 
     return file.ownerID === userID;
@@ -429,7 +418,7 @@ export class FileService {
    */
   private static async isFileInFolder(name: string, folderId: string, ownerID: string): Promise<boolean> {
     const file: IFile = await FilesRepository.getFileInFolderByName(folderId, name, ownerID);
-    if (this.isShortcut(file)) file.isShortcut = true
+    if (this.isShortcut(file)) file.isShortcut = true;
     else file.isShortcut = false;
 
     return (file != null);

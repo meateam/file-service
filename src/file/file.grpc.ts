@@ -1,5 +1,5 @@
 import { FileService } from './file.service';
-import { ResFile, IFile, deleteRes, IShortcut, PrimitiveFile } from './file.interface';
+import { ResFile, IFile, deleteRes } from './file.interface';
 import { ServerUnaryCall } from 'grpc';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { getDisplayError } from './../utils/errors/error.helper';
