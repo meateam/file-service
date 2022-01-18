@@ -3,6 +3,7 @@ import { IFile, IPopulatedShortcut, IShortcut, PrimitiveFile } from './file.inte
 import { baseFileModel, fileModel, shortcutModel } from './model';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { fileModelName, getFailedMessage, shortcutModelName } from './model/config';
+import { parseConfigFileTextToJson } from 'typescript';
 
 const pagination = {
   startIndex: 0,
@@ -35,8 +36,16 @@ export default class FileRepository {
   * @param file - is the shortcut file to be added to the DB
   */
   static async createShortcut(file: any): Promise<IFile> {
-    const populatedShortcut = await shortcutModel.create(file);
-    const shortcutAsFile: IFile = this.populatedShortcutToFile(populatedShortcut);
+    const populatedShortcut = (await shortcutModel.create(file));
+    console.log('------------------------------------------------------------------------------------------------------------');
+    console.log(populatedShortcut);
+    console.log('------------------------------------------------------------------------------------------------------------');
+    
+    const shortcutAsFile: IFile = await this.baseFileToIFile(populatedShortcut);
+
+    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+    console.log(shortcutAsFile);
+    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
     return shortcutAsFile;
   }
@@ -67,8 +76,13 @@ export default class FileRepository {
    * @param file - the file that will be converted.
    */
   static populatedShortcutToFile(file: IPopulatedShortcut): IFile {
+    // const shortcut = new IShortcut(file);
+    // console.log(file.fileID);
+    // console.log({...file.fileID});
     const shortcutAsFile: IFile = { ...file.fileID, ...file };
     delete shortcutAsFile.fileID;
+
+    // console.log(file.fileID);
 
     return shortcutAsFile;
   }

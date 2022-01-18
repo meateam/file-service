@@ -83,6 +83,7 @@ shortcutSchema.pre('findOneAndUpdate', async function (next: NextFunction) {
     const updatedName = update.$set && update.$set.name;
     const query: any = { name: updatedName, parent: updatedParent };
 
+    // checks if there was a change in the parent parameter
     if (!updatedParent) {
         query.fileID = fileID;
     }

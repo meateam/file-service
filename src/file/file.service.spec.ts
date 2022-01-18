@@ -269,6 +269,7 @@ describe('File Logic', () => {
   });
 
   describe('#createFile', () => {
+    // create file section
     it('should throw an error when key is not sent with file', async () => {
       await FileService.create(bucket, 'myFolder', USER.id, 'Text', 'drive', '', '', size)
         .should.eventually.be.rejectedWith(ServerError, 'No key sent');
@@ -308,6 +309,7 @@ describe('File Logic', () => {
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
         bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
+      console.log(file)
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.key).to.equal(KEY);
@@ -425,7 +427,7 @@ describe('File Logic', () => {
 
       const file: IFile = await FileService.create(
         bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 2 * GB).should.eventually.be.rejectedWith(QuotaExceededError);
-
+      console.log(file);
       const quotaAfterCreateTry = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterCreateTry.used).to.be.equal(newUpload.size);
     });
@@ -490,235 +492,15 @@ describe('File Logic', () => {
   });
 
   describe('#createShortcut', () => {
-    // create shortcut file section
-
-    it('should throw an error when key is not sent with file', async () => {
-      await FileService.create(bucket, 'myFolder', USER.id, 'Text', 'drive', '', '', size)
-        .should.eventually.be.rejectedWith(ServerError, 'No key sent');
-    });
-
-    it('should not throw an error if key is not sent with a folder', async () => {
-      await FileService.create(bucket, 'myFolder', USER.id, FolderContentType, 'drive').should.eventually.exist;
-    });
-
-    it('should throw error: same owner, folder, appID and filename', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'drive', null, KEY2, size)
-        .should.eventually.be.rejectedWith(FileExistsWithSameName);
-    });
-
-    it('should not throw error: same folder and filename, different owner', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', '654321', 'Other', 'drive', null, KEY2, size).should.eventually.exist;
-    });
-
-    it('should not throw error: same folder and filename, different appID', async () => {
-      await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'dropbox', null, KEY2, size).should.eventually.exist;
-    });
-
-    it('should throw error: parent app id is not the same', async () => {
-      const parent = await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'dropbox', parent.id, KEY2, size)
-        .should.eventually.be.rejectedWith(FileParentAppIDNotEqual);
-    });
-
-    it('should create file when parent app id is the same', async () => {
-      const parent = await FileService.create(bucket, 'myFile', USER.id, 'Text', 'drive', null, KEY, size).should.eventually.exist;
-      await FileService.create(bucket, 'myFile', USER.id, 'Other', 'drive', parent.id, KEY2, size).should.eventually.exist;
-    });
-
-    it('should create a file', async () => {
-      const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
-      expect(file).to.exist;
-      expect(file).to.have.property('createdAt');
-      expect(file.key).to.equal(KEY);
-      expect(file.displayName).to.equal('file');
-      expect(file.fullExtension).to.equal('txt');
-      expect(file.name).to.equal('file.txt');
-    });
-
-    it('should create a file with space in the name in root', async () => {
-      const file: IFile = await FileService.create(
-        bucket, 'file name with space.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
-      expect(file).to.exist;
-      expect(file).to.have.property('createdAt');
-      expect(file.key).to.equal(KEY);
-      expect(file.displayName).to.equal('file name with space');
-      expect(file.fullExtension).to.equal('txt');
-      expect(file.name).to.equal('file name with space.txt');
-    });
-
-    it('should create a folder with space in the name in root', async () => {
-      const folder: IFile = await FileService.create(
-        bucket, 'my folder name', USER.id, FolderContentType, 'drive');
-      expect(folder).to.exist;
-      expect(folder).to.have.property('createdAt');
-      expect(folder.displayName).to.equal('my folder name');
-      expect(folder.fullExtension).to.equal('');
-      expect(folder.name).to.equal('my folder name');
-    });
-
-    // Test folders creation
-    it('should create two sibling folders in the root', async () => {
-      const folder1: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, 'drive');
-      const folder2: IFile = await FileService.create(
-        null, 'folder2', USER.id, FolderContentType, 'drive');
-    });
-
-    it('should create two sibling folders with the same parent', async () => {
-      const parent: IFile = await FileService.create(
-        null, 'parent', USER.id, FolderContentType, 'drive');
-      const folder1: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, 'drive', parent.id);
-      const folder2: IFile = await FileService.create(
-        null, 'folder2', USER.id, FolderContentType, 'drive', parent.id);
-    });
-
-    it('should create a folder within a folder with the same name', async () => {
-      const folder1: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, 'drive');
-      const folder2: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, 'drive', folder1.id);
-    });
-
-    it('should throw an error when two sibling are folders with the same {parent, name, owner}', async () => {
-      const parent: IFile = await FileService.create(
-        null, 'parent', USER.id, FolderContentType, 'drive');
-      const folder1: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, 'drive', parent.id);
-      const folder2: IFile = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, 'drive', parent.id).should.eventually.be.rejectedWith(FileExistsWithSameName);
-    });
-
-    // Quota testing
-    it('should increase owner quota used files size', async () => {
-      const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 256);
-
-      const updatedQuota = await QuotaService.getByOwnerID(USER.id);
-      expect(updatedQuota.used).to.equal(file.size);
-    });
-
-    it('should create upload with deleted big upload', async () => {
-      const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
-
-      const newUpload: IUpload = await UploadService.createUpload(
-        testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 9 * GB)
-        .should.eventually.exist;
-
-      expect(newUpload).to.exist;
-      expect(newUpload.bucket).to.be.equal(testUpload.bucket);
-      expect(newUpload.name).to.be.equal(testUpload.name);
-      expect(newUpload.key).to.be.equal(testUpload.key);
-      expect(newUpload.size).to.be.equal(9 * GB);
-
-      const quotaAfterCreatedUpload = await QuotaService.getByOwnerID(USER.id);
-      expect(quotaAfterCreatedUpload.used).to.be.equal(newUpload.size);
-
-      await UploadService.deleteUpload(newUpload.uploadID).should.eventually.not.be.rejected;
-
-      const quotaAfterDelete = await QuotaService.getByOwnerID(USER.id);
-      expect(quotaAfterDelete.used).to.be.equal(0);
-
-      const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 2 * GB);
-
-      const newQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
-      expect(newQuota.used).to.be.equal(file.size);
-    });
-
-    it('should throw quota exceeded', async () => {
-      const oldQuota: IQuota = await QuotaService.getByOwnerID(USER.id);
-
-      const newUpload: IUpload = await UploadService.createUpload(
-        testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 9 * GB)
-        .should.eventually.exist;
-
-      expect(newUpload).to.exist;
-      expect(newUpload.bucket).to.be.equal(testUpload.bucket);
-      expect(newUpload.name).to.be.equal(testUpload.name);
-      expect(newUpload.key).to.be.equal(testUpload.key);
-      expect(newUpload.size).to.be.equal(9 * GB);
-
-      const quotaAfterCreatedUpload = await QuotaService.getByOwnerID(USER.id);
-      expect(quotaAfterCreatedUpload.used).to.be.equal(newUpload.size);
-
-      const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 2 * GB).should.eventually.be.rejectedWith(QuotaExceededError);
-
-      const quotaAfterCreateTry = await QuotaService.getByOwnerID(USER.id);
-      expect(quotaAfterCreateTry.used).to.be.equal(newUpload.size);
-    });
-
-    it('should throw exceeded owner quota files size used', async () => {
-      await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, ExceedQuotaSize)
-        .should.eventually.be.rejectedWith(QuotaExceededError);
-    });
-
-    it('should throw negative used quota', async () => {
-      await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, -256)
-        .should.eventually.be.rejectedWith(ServerError, 'negative used quota');
-    });
-
-    it('should create a file in root, parent is empty string', async () => {
-      const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', '', KEY, size);
-      expect(file).to.exist;
-      expect(file).to.have.property('createdAt');
-      expect(file.key).to.equal(KEY);
-      expect(file.displayName).to.equal('file');
-      expect(file.fullExtension).to.equal('txt');
-      expect(file.name).to.equal('file.txt');
-    });
-
-    it('should create a file without extension', async () => {
-      const file: IFile = await FileService.create(
-        bucket, 'file', USER.id, 'text', 'drive', null, KEY, size);
-      expect(file).to.exist;
-      expect(file).to.have.property('createdAt');
-      expect(file.key).to.equal(KEY);
-      expect(file.displayName).to.equal('file');
-      expect(file.fullExtension).to.equal('');
-      expect(file.name).to.equal('file');
-    });
-
-    it('should create a file in a given folder', async () => {
-      const folder: IFile = await FileService.create(null, 'myFolder', USER.id, FolderContentType, 'drive');
-      const file: IFile = await FileService.create(bucket, 'tmp', USER.id, 'Text', 'drive', folder.id, KEY, size);
-      expect(file.parent.toString()).to.equal(folder.id);
-    });
-
-    it('should create a file at the root folder', async () => {
-      const file1 = await FileService.create(bucket, 'tmp', USER.id, 'text', 'drive', null, KEY);
-      const newKey = UploadService.generateKey();
-      const file2: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', null, newKey);
-      const filesInRoot: IFile[] = await FileService.getFilesByFolder(null, USER.id);
-      expect(filesInRoot.length).to.equal(2);
-      expect(file1.parent).to.be.null;
-      expect(file2.parent).to.equal(file1.parent);
-    });
-
-    it('should throw an error when KEY already exists', async () => {
-      await FileService.create(bucket, 'tmp1', USER.id, 'text', 'drive', null, KEY);
-      await FileService.create(bucket, 'tmp2', USER.id, 'text', 'drive', null, KEY)
-        .should.eventually.be.rejectedWith(UniqueIndexExistsError);
-    });
-
     // create shortcut section
 
     it('should create a shortcut', async () => {
       const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
       expect(file).to.exist;
+      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', '61e3e2f7d835990896c8b576', 0, "61e3e2f7d835990896c8b54c");
+      // console.log(shortcut);
 
-      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', file.id, size, 'yarin');
       expect(shortcut).to.exist;
-
       expect(shortcut).to.have.property('createdAt');
       expect(shortcut).to.have.property('id');
       expect(shortcut.appID).to.equal(file.appID);
@@ -736,6 +518,7 @@ describe('File Logic', () => {
       const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
       expect(file).to.exist;
       await FileService.createShortcut('shortcut-file.txt', file.id, size, 'yarin')
+      await FileService.createShortcut('shortcut-file.txt', file.id, size, 'yarin')
         .should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
 
@@ -748,7 +531,7 @@ describe('File Logic', () => {
       const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
       expect(file).to.exist;
 
-      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', file.id, size, 'yarin');
+      const shortcut: IFile = await FileService.createShortcut('shortcut file name with space.txt', file.id, size, 'yarin');
       expect(shortcut).to.exist;
 
       expect(shortcut).to.have.property('createdAt');
@@ -757,9 +540,9 @@ describe('File Logic', () => {
       expect(shortcut.key).to.equal(file.key);
       expect(shortcut.bucket).to.equal(file.bucket);
       expect(shortcut.size).to.equal(0);
-      expect(shortcut.displayName.toString()).to.equal('shortcut-file name with space');
+      expect(shortcut.displayName.toString()).to.equal('shortcut file name with space');
       expect(shortcut.fullExtension).to.equal(file.fullExtension);
-      expect(shortcut.name.toString()).to.equal('shortcut-file name with space.txt');
+      expect(shortcut.name.toString()).to.equal('shortcut file name with space.txt');
       expect(shortcut.fileModel.toString()).to.equal('Shortcut');
       expect(shortcut.fileID.toString()).to.equal(file.id);
     });
@@ -768,8 +551,9 @@ describe('File Logic', () => {
       const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
       expect(file).to.exist;
 
-      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', file.id, size, 'yarin');
+      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', '61e3e2f7d835990896c8b576', 0, "61e3e2f7d835990896c8b54c");
       expect(shortcut).to.exist;
+      // console.log(shortcut);
 
       const isShortcut = shortcut.isShortcut;
       isShortcut.should.eventually.be.rejectedWith(ArgumentInvalidError);
@@ -777,443 +561,443 @@ describe('File Logic', () => {
 
   });
 
-  describe('#updateById', () => {
-    it('should update a file', async () => {
-      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
-      expect(file).to.exist;
-      expect(file).to.have.property('id');
-
-      const update = {
-        name: 'changedFileName',
-        type: 'jpg'
-      };
-
-      const isUpdated = await FileService.updateById(file.id, update);
-      expect(isUpdated).to.be.true;
-
-      const changedFile: IFile = await FileService.getById(file.id);
-      expect(changedFile.id).to.equal(file.id);
-      expect(changedFile.name).to.equal(update.name);
-      expect(changedFile.type).to.equal(update.type);
-      expect(changedFile.size).to.equal(size);
-
-      // Check mongo updated the time accordingly
-      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
-      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
-      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
-      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
-    });
-
-    it('should update a file with size 0', async () => {
-      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 0);
-      expect(file).to.exist;
-      expect(file).to.have.property('id');
-
-      const update = {
-        name: 'changedFileName',
-        type: 'text'
-      };
-
-      const isUpdated = await FileService.updateById(file.id, update);
-      expect(isUpdated).to.be.true;
-
-      const changedFile: IFile = await FileService.getById(file.id);
-      expect(changedFile.id).to.equal(file.id);
-      expect(changedFile.name).to.equal(update.name);
-      expect(changedFile.type).to.equal(update.type);
-      expect(changedFile.size).to.equal(0);
-
-      // Check mongo updated the time accordingly
-      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
-      expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
-      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
-      expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
-    });
-
-    it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
-      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
-      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', 'drive', null, KEY2);
-      await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(FileExistsWithSameName);
-    });
-
-    it('should throw an error when changing a file to unique properties of another (key)', async () => {
-      const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
-      const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', 'drive', null, KEY2);
-      await FileService.updateById(file1.id, { key: KEY2 }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
-    });
-
-    it('should not update a file id', async () => {
-      const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
-      expect(file).to.exist;
-      expect(file).to.have.property('id');
-
-      const update = {
-        id: '123',
-        name: 'updated.txt'
-      };
-
-      const updatedFile = await FileService.updateById(file.id, update);
-      expect(updatedFile).to.be.true;
-
-      const newFile = await FileService.getById(file.id);
-      expect(newFile).to.have.property('name', update.name);
-      expect(newFile).to.have.property('id', file.id);
-      expect(newFile).to.have.property('size', file.size);
-    });
-
-    it('should throw an error when file does not exist', async () => {
-      const update = {
-        name: 'updated.txt'
-      };
-
-      await FileService.updateById(REVERSE_KEY, update).should.eventually.be.rejectedWith(FileNotFoundError);
-    });
-  });
-
-  describe('#updateMany', () => {
-    it('should update all files', async () => {
-      const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', 'drive', null, UploadService.generateKey());
-      const file2: IFile = await FileService.create(
-        'asddd', 'file.txt', 'asdadsasdsadsa', 'text', 'drive', null, UploadService.generateKey());
-      expect(file1).to.exist;
-      expect(file1).to.have.property('id');
-      expect(file2).to.exist;
-      expect(file2).to.have.property('id');
-
-      const partialFile: (Partial<IFile>) = { name: 'update1.txt', size: 123123 };
-      const idList: string[] = [file1.id, file2.id];
-
-      const failed = await FileService.updateMany(idList, partialFile);
-      expect(failed).to.have.length(0);
-
-      const updatedFile1 = await FileService.getById(file1.id);
-      expect(updatedFile1).to.have.property('id', file1.id);
-      expect(updatedFile1).to.have.property('name', partialFile.name);
-
-      const updatedFile2 = await FileService.getById(file2.id);
-      expect(updatedFile2).to.have.property('id', file2.id);
-      expect(updatedFile2).to.have.property('size', partialFile.size);
-    });
-    it('should update all files with parent null', async () => {
-      const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', 'drive', KEY, UploadService.generateKey());
-      const file2: IFile = await FileService.create(
-        'asddd', 'file.txt', 'asdadsasdsadsa', 'text', 'drive', KEY, UploadService.generateKey());
-      expect(file1).to.exist;
-      expect(file1).to.have.property('id');
-      expect(file2).to.exist;
-      expect(file2).to.have.property('id');
-
-      const partialFile: (Partial<IFile>) = { parent: 'null' };
-      const idList: string[] = [file1.id, file2.id];
-
-      const failed = await FileService.updateMany(idList, partialFile);
-      expect(failed).to.have.length(0);
-
-      const updatedFile1 = await FileService.getById(file1.id);
-      expect(updatedFile1).to.have.property('id', file1.id);
-      expect(updatedFile1.parent).to.not.exist;
-
-      const updatedFile2 = await FileService.getById(file2.id);
-      expect(updatedFile2).to.have.property('id', file2.id);
-      expect(updatedFile2.parent).to.not.exist;
-    });
-
-    it('should not update folders parent to itself', async () => {
-      const folder = await FileService.create('bucketName', 'folderName', USER.id, FolderContentType, 'drive', KEY, KEY2);
-      expect(folder).to.exist;
-      expect(folder).to.have.property('id');
-
-      const partialFile: (Partial<IFile>) = { parent: folder.id };
-
-      const failed = await FileService.updateMany([folder.id], partialFile);
-      expect(failed).to.have.lengthOf(1);
-      expect(failed[0].error.message).to.equal('cyclic nesting error');
-    });
-
-    it('should not update folder`s parent to be its ancestors', async () => {
-      const structure: IFile[] = await generateFolderStructure();
-
-      const partialFile: (Partial<IFile>) = { parent: structure[3].id };
-
-      const failed = await FileService.updateMany([structure[0].id], partialFile);
-      expect(failed).to.have.lengthOf(1);
-      expect(failed[0].error.message).to.equal('cyclic nesting error');
-    });
-
-    it('should not update file`s parent to be a non-folder', async () => {
-      const structure: IFile[] = await generateFolderStructure();
-
-      const partialFile: (Partial<IFile>) = { parent: structure[1].id };
-
-      const failed = await FileService.updateMany([structure[2].id], partialFile);
-      expect(failed).to.have.lengthOf(1);
-      expect(failed[0].error).to.be.instanceOf(ArgumentInvalidError);
-    });
-
-    it('should update file`s parent', async () => {
-      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
-      const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, 'drive', null);
-      const partialFile: (Partial<IFile>) = { parent: folder.id };
-
-      const failed = await FileService.updateMany([file.id], partialFile);
-      expect(failed).to.have.lengthOf(0);
-    });
-
-    it('should update a folder parent', async () => {
-      const folder1 = await FileService.create(bucket, 'folder1', USER.id, FolderContentType, 'drive', null);
-      const folder2 = await FileService.create(bucket, 'folder2', USER.id, FolderContentType, 'drive', null);
-      const partialFile: (Partial<IFile>) = { parent: folder2.id };
-
-      const failed = await FileService.updateMany([folder1.id], partialFile);
-      expect(failed).to.have.lengthOf(0);
-    });
-
-    it('should update a file or folder parent to null(root)', async () => {
-      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
-      const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, 'drive', null);
-      const partialFile: (Partial<IFile>) = { parent: null };
-
-      const failed = await FileService.updateMany([file.id, folder.id], partialFile);
-      expect(failed).to.have.lengthOf(0);
-
-      const updatedFile = await FileService.getById(file.id);
-      const updatedFolder = await FileService.getById(folder.id);
-      expect(updatedFile.parent).to.be.null;
-      expect(updatedFolder.parent).to.be.null;
-    });
-  });
-
-  describe('#getByID', () => {
-    it('should get an error when file does not exist', async () => {
-      await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
-    });
-    it('get an existing file', async () => {
-      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
-      const fileRetrieved = await FileService.getById(file.id);
-      expect(fileRetrieved).to.exist;
-      expect(fileRetrieved.id).to.equal(file.id);
-      expect(fileRetrieved.parent).to.equal(file.parent);
-      expect(fileRetrieved.displayName).to.equal('file');
-    });
-  });
-
-  describe('#getByKey', () => {
-    it('should get an error when file does not exist', async () => {
-      await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
-    });
-    it('get an existing file', async () => {
-      const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
-      const fileRetrieved = await FileService.getByKey(KEY);
-      expect(fileRetrieved).to.exist;
-      expect(fileRetrieved.id).to.equal(file.id);
-      expect(fileRetrieved.key).to.equal(file.key);
-      expect(fileRetrieved.displayName).to.equal('file');
-    });
-  });
-
-  describe('#getFilesByFolder', () => {
-    it('should throw an error when not sending ownerID with null folder', async () => {
-      await FileService.getFilesByFolder(null, null).should.eventually.be.rejectedWith(ClientError);
-    });
-
-    it('should return an empty array if the folder does not exists', async () => {
-      const files = await FileService.getFilesByFolder(REVERSE_KEY, 'fake_id');
-      expect(files).to.exist;
-      expect(files).to.be.an('array').with.lengthOf(0);
-    });
-
-    it('should return an empty array if the folder is empty', async () => {
-      const folder = await FileService.create(null, 'myFolder', USER.id, FolderContentType, 'drive');
-      const files = await FileService.getFilesByFolder(folder.id, USER.id);
-      expect(files).to.exist;
-      expect(files).to.be.an('array').with.lengthOf(0);
-    });
-
-    it('should return all the files and folders directly under the given folder', async () => {
-      const newKey1 = UploadService.generateKey();
-      const newKey2 = UploadService.generateKey();
-
-      const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, 'drive', KEY);
-
-      const file1 = await FileService.create(
-        bucket, 'file1.txt', USER.id, 'text', 'drive', father.id, KEY2);
-      const file2 = await FileService.create(
-        bucket, 'file2.txt', USER.id, 'text', 'drive', father.id, newKey1);
-      const folder1 = await FileService.create(
-        null, 'folder1', USER.id, FolderContentType, 'drive', father.id, KEY3);
-      const file11 = await FileService.create(
-        bucket, 'file11.txt', USER.id, 'text', 'drive', folder1.id, newKey2, size);
-
-      const files = await FileService.getFilesByFolder(father.id, USER.id);
-      const files1 = await FileService.getFilesByFolder(folder1.id, USER.id);
-
-      expect(files).to.exist;
-      expect(files1).to.exist;
-
-      files.should.be.an('array').with.lengthOf(3);
-      files1.should.be.an('array').with.lengthOf(1);
-    });
-
-    describe('Root Folder', () => {
-      it('should throw an error if the fileID and the user are null', async () => {
-        await FileService.getFilesByFolder(null, null)
-          .should.eventually.rejectedWith(ClientError, 'no owner id sent');
-      });
-
-      it('should return an empty array if the user has no root folder', async () => {
-        const files = await FileService.getFilesByFolder(null, USER.id);
-        expect(files).to.exist;
-        files.should.be.an('array').with.lengthOf(0);
-      });
-
-      it('should return the items of the given user root folder', async () => {
-        const filesInRoot: IFile[] = await FileService.getFilesByFolder(null, USER.id);
-        expect(filesInRoot.length).to.equal(0);
-        const key2 = UploadService.generateKey();
-        const key3 = UploadService.generateKey();
-
-        const file1 = await FileService.create(
-          bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
-        const file2 = await FileService.create(
-          bucket, 'file2.txt', USER.id, 'text', 'drive', null, key2);
-        const folder1 = await FileService.create(
-          null, 'folder1', USER.id, FolderContentType, 'drive', null);
-        const file11 = await FileService.create(
-          bucket, 'file11.txt', USER.id, 'text', 'drive', folder1.id, key3, size);
-
-        const files = await FileService.getFilesByFolder(null, USER.id);
-
-        expect(files).to.exist;
-        files.should.be.an('array').with.lengthOf(3);
-      });
-
-      it('should get only the folders in the root folder', async () => {
-        const structure: IFile[] = await generateFolderStructure();
-        const folders = await FileService.getFilesByFolder(structure[0].id, null, { type: FolderContentType });
-        expect(folders).to.have.lengthOf(2);
-        expect(folders).to.containSubset([{ id: structure[3].id }]);
-        expect(folders).to.containSubset([{ id: structure[4].id }]);
-      });
-
-      it('should get all of the files in the root folder using empty json', async () => {
-        const structure: IFile[] = await generateFolderStructure();
-        const rootChildren = await FileService.getFilesByFolder(structure[0].id, null, {});
-        expect(rootChildren).to.have.lengthOf(4);
-        for (let i = 0; i < structure.length; i++) {
-          if (String(structure[i].parent) === String(structure[0].id)) {
-            expect(rootChildren).to.containSubset([{ id: structure[i].id }]);
-          }
-        }
-      });
-
-    });
-  });
-
-  describe('#getDescendantsByFolder', () => {
-    it('should return a recursive json object', async () => {
-      const structure: IFile[] = await generateFolderStructure();
-      const populated: ResFile[] = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID);
-
-      // First level assertion
-      expect(populated).to.have.lengthOf(4);
-
-      // Second level assertion
-      for (let i = 0; i < structure.length; i++) {
-        if (String(structure[i].parent) === String(structure[0].id)) {
-          expect(populated).to.containSubset([{ id: structure[i].id }]);
-        }
-      }
-
-      // Third level assertion
-      for (let j = 0; j < populated.length; j++) {
-        for (let i = 0; i < structure.length; i++) {
-          if (String(structure[i].parent) === String((<ResFile>populated[j]).id)) {
-            expect((<ResFile>populated[j]).children).to.containSubset([{ id: structure[i].id }]);
-          }
-        }
-      }
-    });
-
-    it('should return a recursive json object, only with folders', async () => {
-      const structure: IFile[] = await generateFolderStructure();
-      const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, { type: FolderContentType });
-      // First level assertion
-      expect(populated).to.have.lengthOf(2);
-
-      // Second level assertion
-      for (let i = 0; i < structure.length; i++) {
-        if (String(structure[i].parent) === String(structure[0].id) && structure[i].type === FolderContentType) {
-          expect(populated).to.containSubset([{ id: structure[i].id }]);
-        }
-        if (!(String(structure[i].parent) === String(structure[0].id) && structure[i].type === FolderContentType)) {
-          expect(populated).to.not.containSubset([{ id: structure[i].id }]);
-        }
-      }
-
-      // Third level assertion - no third level folders
-      for (let j = 0; j < populated.length; j++) {
-        expect((<ResFile>populated[j]).children).to.have.lengthOf(0);
-      }
-    });
-
-    it('should return a recursive json object from the root', async () => {
-      const structure: IFile[] = await generateFolderStructure();
-      const populated = await FileService.getDescendantsByFolder(null, structure[0].ownerID);
-
-      // First level assertion
-      expect(populated).to.have.lengthOf(1);
-      expect(populated[0].id).to.be.equal(structure[0].id);
-
-      // Second level assertion
-      for (let i = 0; i < structure.length; i++) {
-        if (structure[i].parent === null) {
-          expect(populated).to.containSubset([{ id: structure[i].id }]);
-        }
-      }
-
-      // Third level assertion
-      for (let j = 0; j < populated.length; j++) {
-        for (let i = 0; i < structure.length; i++) {
-          if (String(structure[i].parent) === String((<ResFile>populated[j]).id)) {
-            expect(populated[j].children).to.containSubset([{ id: structure[i].id }]);
-          }
-        }
-      }
-    });
-
-  });
-
-  describe('#isOwner', () => {
-    it('should throw an error if the file does not exist', async () => {
-      await FileService.isOwner(REVERSE_KEY, USER.id).should.eventually.rejectedWith(FileNotFoundError);
-    });
-    it('should return "false" if the user is not an owner of the file', async () => {
-      const file = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
-      const res = await FileService.isOwner(file.id, USER.id.concat('7'));
-      expect(res).to.exist;
-      expect(res).to.be.false;
-
-    });
-    it('should return "true" if the user is the owner of the file', async () => {
-      const file = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
-      const res = await FileService.isOwner(file.id, USER.id);
-      expect(res).to.exist;
-      expect(res).to.be.true;
-    });
-    it('should return true if it is the users root folder', async () => {
-      const file = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
-      const res1 = await FileService.isOwner('', USER.id);
-      const res2 = await FileService.isOwner(null, USER.id);
-      expect(res1).to.exist;
-      expect(res1).to.be.true;
-      expect(res2).to.exist;
-      expect(res2).to.be.true;
-    });
-  });
+  //   describe('#updateById', () => {
+  //     it('should update a file', async () => {
+  //       const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
+  //       expect(file).to.exist;
+  //       expect(file).to.have.property('id');
+
+  //       const update = {
+  //         name: 'changedFileName',
+  //         type: 'jpg'
+  //       };
+
+  //       const isUpdated = await FileService.updateById(file.id, update);
+  //       expect(isUpdated).to.be.true;
+
+  //       const changedFile: IFile = await FileService.getById(file.id);
+  //       expect(changedFile.id).to.equal(file.id);
+  //       expect(changedFile.name).to.equal(update.name);
+  //       expect(changedFile.type).to.equal(update.type);
+  //       expect(changedFile.size).to.equal(size);
+
+  //       // Check mongo updated the time accordingly
+  //       expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+  //       expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+  //       expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
+  //       expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
+  //     });
+
+  //     it('should update a file with size 0', async () => {
+  //       const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 0);
+  //       expect(file).to.exist;
+  //       expect(file).to.have.property('id');
+
+  //       const update = {
+  //         name: 'changedFileName',
+  //         type: 'text'
+  //       };
+
+  //       const isUpdated = await FileService.updateById(file.id, update);
+  //       expect(isUpdated).to.be.true;
+
+  //       const changedFile: IFile = await FileService.getById(file.id);
+  //       expect(changedFile.id).to.equal(file.id);
+  //       expect(changedFile.name).to.equal(update.name);
+  //       expect(changedFile.type).to.equal(update.type);
+  //       expect(changedFile.size).to.equal(0);
+
+  //       // Check mongo updated the time accordingly
+  //       expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+  //       expect(changedFile.createdAt.getTime()).to.equal(file.createdAt.getTime());
+  //       expect(changedFile.updatedAt.getTime()).to.be.greaterThan(file.updatedAt.getTime());
+  //       expect(changedFile.updatedAt.getTime()).to.be.greaterThan(changedFile.createdAt.getTime());
+  //     });
+
+  //     it('should throw an error when changing a file to unique properties of another (trinity)', async () => {
+  //       const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', 'drive', null, KEY2);
+  //       await FileService.updateById(file1.id, { name: 'file2.txt' }).should.eventually.be.rejectedWith(FileExistsWithSameName);
+  //     });
+
+  //     it('should throw an error when changing a file to unique properties of another (key)', async () => {
+  //       const file1: IFile = await FileService.create(bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const file2: IFile = await FileService.create(bucket, 'file2.txt', USER.id, 'text', 'drive', null, KEY2);
+  //       await FileService.updateById(file1.id, { key: KEY2 }).should.eventually.be.rejectedWith(UniqueIndexExistsError);
+  //     });
+
+  //     it('should not update a file id', async () => {
+  //       const file: IFile = await FileService.create(
+  //         bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
+  //       expect(file).to.exist;
+  //       expect(file).to.have.property('id');
+
+  //       const update = {
+  //         id: '123',
+  //         name: 'updated.txt'
+  //       };
+
+  //       const updatedFile = await FileService.updateById(file.id, update);
+  //       expect(updatedFile).to.be.true;
+
+  //       const newFile = await FileService.getById(file.id);
+  //       expect(newFile).to.have.property('name', update.name);
+  //       expect(newFile).to.have.property('id', file.id);
+  //       expect(newFile).to.have.property('size', file.size);
+  //     });
+
+  //     it('should throw an error when file does not exist', async () => {
+  //       const update = {
+  //         name: 'updated.txt'
+  //       };
+
+  //       await FileService.updateById(REVERSE_KEY, update).should.eventually.be.rejectedWith(FileNotFoundError);
+  //     });
+  //   });
+
+  //   describe('#updateMany', () => {
+  //     it('should update all files', async () => {
+  //       const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', 'drive', null, UploadService.generateKey());
+  //       const file2: IFile = await FileService.create(
+  //         'asddd', 'file.txt', 'asdadsasdsadsa', 'text', 'drive', null, UploadService.generateKey());
+  //       expect(file1).to.exist;
+  //       expect(file1).to.have.property('id');
+  //       expect(file2).to.exist;
+  //       expect(file2).to.have.property('id');
+
+  //       const partialFile: (Partial<IFile>) = { name: 'update1.txt', size: 123123 };
+  //       const idList: string[] = [file1.id, file2.id];
+
+  //       const failed = await FileService.updateMany(idList, partialFile);
+  //       expect(failed).to.have.length(0);
+
+  //       const updatedFile1 = await FileService.getById(file1.id);
+  //       expect(updatedFile1).to.have.property('id', file1.id);
+  //       expect(updatedFile1).to.have.property('name', partialFile.name);
+
+  //       const updatedFile2 = await FileService.getById(file2.id);
+  //       expect(updatedFile2).to.have.property('id', file2.id);
+  //       expect(updatedFile2).to.have.property('size', partialFile.size);
+  //     });
+  //     it('should update all files with parent null', async () => {
+  //       const file1 = await FileService.create('asdd', 'tmp', 'asdsadsadsadsa', 'text', 'drive', KEY, UploadService.generateKey());
+  //       const file2: IFile = await FileService.create(
+  //         'asddd', 'file.txt', 'asdadsasdsadsa', 'text', 'drive', KEY, UploadService.generateKey());
+  //       expect(file1).to.exist;
+  //       expect(file1).to.have.property('id');
+  //       expect(file2).to.exist;
+  //       expect(file2).to.have.property('id');
+
+  //       const partialFile: (Partial<IFile>) = { parent: 'null' };
+  //       const idList: string[] = [file1.id, file2.id];
+
+  //       const failed = await FileService.updateMany(idList, partialFile);
+  //       expect(failed).to.have.length(0);
+
+  //       const updatedFile1 = await FileService.getById(file1.id);
+  //       expect(updatedFile1).to.have.property('id', file1.id);
+  //       expect(updatedFile1.parent).to.not.exist;
+
+  //       const updatedFile2 = await FileService.getById(file2.id);
+  //       expect(updatedFile2).to.have.property('id', file2.id);
+  //       expect(updatedFile2.parent).to.not.exist;
+  //     });
+
+  //     it('should not update folders parent to itself', async () => {
+  //       const folder = await FileService.create('bucketName', 'folderName', USER.id, FolderContentType, 'drive', KEY, KEY2);
+  //       expect(folder).to.exist;
+  //       expect(folder).to.have.property('id');
+
+  //       const partialFile: (Partial<IFile>) = { parent: folder.id };
+
+  //       const failed = await FileService.updateMany([folder.id], partialFile);
+  //       expect(failed).to.have.lengthOf(1);
+  //       expect(failed[0].error.message).to.equal('cyclic nesting error');
+  //     });
+
+  //     it('should not update folder`s parent to be its ancestors', async () => {
+  //       const structure: IFile[] = await generateFolderStructure();
+
+  //       const partialFile: (Partial<IFile>) = { parent: structure[3].id };
+
+  //       const failed = await FileService.updateMany([structure[0].id], partialFile);
+  //       expect(failed).to.have.lengthOf(1);
+  //       expect(failed[0].error.message).to.equal('cyclic nesting error');
+  //     });
+
+  //     it('should not update file`s parent to be a non-folder', async () => {
+  //       const structure: IFile[] = await generateFolderStructure();
+
+  //       const partialFile: (Partial<IFile>) = { parent: structure[1].id };
+
+  //       const failed = await FileService.updateMany([structure[2].id], partialFile);
+  //       expect(failed).to.have.lengthOf(1);
+  //       expect(failed[0].error).to.be.instanceOf(ArgumentInvalidError);
+  //     });
+
+  //     it('should update file`s parent', async () => {
+  //       const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, 'drive', null);
+  //       const partialFile: (Partial<IFile>) = { parent: folder.id };
+
+  //       const failed = await FileService.updateMany([file.id], partialFile);
+  //       expect(failed).to.have.lengthOf(0);
+  //     });
+
+  //     it('should update a folder parent', async () => {
+  //       const folder1 = await FileService.create(bucket, 'folder1', USER.id, FolderContentType, 'drive', null);
+  //       const folder2 = await FileService.create(bucket, 'folder2', USER.id, FolderContentType, 'drive', null);
+  //       const partialFile: (Partial<IFile>) = { parent: folder2.id };
+
+  //       const failed = await FileService.updateMany([folder1.id], partialFile);
+  //       expect(failed).to.have.lengthOf(0);
+  //     });
+
+  //     it('should update a file or folder parent to null(root)', async () => {
+  //       const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const folder = await FileService.create(bucket, 'folder', USER.id, FolderContentType, 'drive', null);
+  //       const partialFile: (Partial<IFile>) = { parent: null };
+
+  //       const failed = await FileService.updateMany([file.id, folder.id], partialFile);
+  //       expect(failed).to.have.lengthOf(0);
+
+  //       const updatedFile = await FileService.getById(file.id);
+  //       const updatedFolder = await FileService.getById(folder.id);
+  //       expect(updatedFile.parent).to.be.null;
+  //       expect(updatedFolder.parent).to.be.null;
+  //     });
+  //   });
+
+  //   describe('#getByID', () => {
+  //     it('should get an error when file does not exist', async () => {
+  //       await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
+  //     });
+  //     it('get an existing file', async () => {
+  //       const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const fileRetrieved = await FileService.getById(file.id);
+  //       expect(fileRetrieved).to.exist;
+  //       expect(fileRetrieved.id).to.equal(file.id);
+  //       expect(fileRetrieved.parent).to.equal(file.parent);
+  //       expect(fileRetrieved.displayName).to.equal('file');
+  //     });
+  //   });
+
+  //   describe('#getByKey', () => {
+  //     it('should get an error when file does not exist', async () => {
+  //       await FileService.getByKey(KEY).should.eventually.be.rejectedWith(FileNotFoundError);
+  //     });
+  //     it('get an existing file', async () => {
+  //       const file = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const fileRetrieved = await FileService.getByKey(KEY);
+  //       expect(fileRetrieved).to.exist;
+  //       expect(fileRetrieved.id).to.equal(file.id);
+  //       expect(fileRetrieved.key).to.equal(file.key);
+  //       expect(fileRetrieved.displayName).to.equal('file');
+  //     });
+  //   });
+
+  //   describe('#getFilesByFolder', () => {
+  //     it('should throw an error when not sending ownerID with null folder', async () => {
+  //       await FileService.getFilesByFolder(null, null).should.eventually.be.rejectedWith(ClientError);
+  //     });
+
+  //     it('should return an empty array if the folder does not exists', async () => {
+  //       const files = await FileService.getFilesByFolder(REVERSE_KEY, 'fake_id');
+  //       expect(files).to.exist;
+  //       expect(files).to.be.an('array').with.lengthOf(0);
+  //     });
+
+  //     it('should return an empty array if the folder is empty', async () => {
+  //       const folder = await FileService.create(null, 'myFolder', USER.id, FolderContentType, 'drive');
+  //       const files = await FileService.getFilesByFolder(folder.id, USER.id);
+  //       expect(files).to.exist;
+  //       expect(files).to.be.an('array').with.lengthOf(0);
+  //     });
+
+  //     it('should return all the files and folders directly under the given folder', async () => {
+  //       const newKey1 = UploadService.generateKey();
+  //       const newKey2 = UploadService.generateKey();
+
+  //       const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, 'drive', KEY);
+
+  //       const file1 = await FileService.create(
+  //         bucket, 'file1.txt', USER.id, 'text', 'drive', father.id, KEY2);
+  //       const file2 = await FileService.create(
+  //         bucket, 'file2.txt', USER.id, 'text', 'drive', father.id, newKey1);
+  //       const folder1 = await FileService.create(
+  //         null, 'folder1', USER.id, FolderContentType, 'drive', father.id, KEY3);
+  //       const file11 = await FileService.create(
+  //         bucket, 'file11.txt', USER.id, 'text', 'drive', folder1.id, newKey2, size);
+
+  //       const files = await FileService.getFilesByFolder(father.id, USER.id);
+  //       const files1 = await FileService.getFilesByFolder(folder1.id, USER.id);
+
+  //       expect(files).to.exist;
+  //       expect(files1).to.exist;
+
+  //       files.should.be.an('array').with.lengthOf(3);
+  //       files1.should.be.an('array').with.lengthOf(1);
+  //     });
+
+  //     describe('Root Folder', () => {
+  //       it('should throw an error if the fileID and the user are null', async () => {
+  //         await FileService.getFilesByFolder(null, null)
+  //           .should.eventually.rejectedWith(ClientError, 'no owner id sent');
+  //       });
+
+  //       it('should return an empty array if the user has no root folder', async () => {
+  //         const files = await FileService.getFilesByFolder(null, USER.id);
+  //         expect(files).to.exist;
+  //         files.should.be.an('array').with.lengthOf(0);
+  //       });
+
+  //       it('should return the items of the given user root folder', async () => {
+  //         const filesInRoot: IFile[] = await FileService.getFilesByFolder(null, USER.id);
+  //         expect(filesInRoot.length).to.equal(0);
+  //         const key2 = UploadService.generateKey();
+  //         const key3 = UploadService.generateKey();
+
+  //         const file1 = await FileService.create(
+  //           bucket, 'file1.txt', USER.id, 'text', 'drive', null, KEY);
+  //         const file2 = await FileService.create(
+  //           bucket, 'file2.txt', USER.id, 'text', 'drive', null, key2);
+  //         const folder1 = await FileService.create(
+  //           null, 'folder1', USER.id, FolderContentType, 'drive', null);
+  //         const file11 = await FileService.create(
+  //           bucket, 'file11.txt', USER.id, 'text', 'drive', folder1.id, key3, size);
+
+  //         const files = await FileService.getFilesByFolder(null, USER.id);
+
+  //         expect(files).to.exist;
+  //         files.should.be.an('array').with.lengthOf(3);
+  //       });
+
+  //       it('should get only the folders in the root folder', async () => {
+  //         const structure: IFile[] = await generateFolderStructure();
+  //         const folders = await FileService.getFilesByFolder(structure[0].id, null, { type: FolderContentType });
+  //         expect(folders).to.have.lengthOf(2);
+  //         expect(folders).to.containSubset([{ id: structure[3].id }]);
+  //         expect(folders).to.containSubset([{ id: structure[4].id }]);
+  //       });
+
+  //       it('should get all of the files in the root folder using empty json', async () => {
+  //         const structure: IFile[] = await generateFolderStructure();
+  //         const rootChildren = await FileService.getFilesByFolder(structure[0].id, null, {});
+  //         expect(rootChildren).to.have.lengthOf(4);
+  //         for (let i = 0; i < structure.length; i++) {
+  //           if (String(structure[i].parent) === String(structure[0].id)) {
+  //             expect(rootChildren).to.containSubset([{ id: structure[i].id }]);
+  //           }
+  //         }
+  //       });
+
+  //     });
+  //   });
+
+  //   describe('#getDescendantsByFolder', () => {
+  //     it('should return a recursive json object', async () => {
+  //       const structure: IFile[] = await generateFolderStructure();
+  //       const populated: ResFile[] = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID);
+
+  //       // First level assertion
+  //       expect(populated).to.have.lengthOf(4);
+
+  //       // Second level assertion
+  //       for (let i = 0; i < structure.length; i++) {
+  //         if (String(structure[i].parent) === String(structure[0].id)) {
+  //           expect(populated).to.containSubset([{ id: structure[i].id }]);
+  //         }
+  //       }
+
+  //       // Third level assertion
+  //       for (let j = 0; j < populated.length; j++) {
+  //         for (let i = 0; i < structure.length; i++) {
+  //           if (String(structure[i].parent) === String((<ResFile>populated[j]).id)) {
+  //             expect((<ResFile>populated[j]).children).to.containSubset([{ id: structure[i].id }]);
+  //           }
+  //         }
+  //       }
+  //     });
+
+  //     it('should return a recursive json object, only with folders', async () => {
+  //       const structure: IFile[] = await generateFolderStructure();
+  //       const populated = await FileService.getDescendantsByFolder(structure[0].id, structure[0].ownerID, { type: FolderContentType });
+  //       // First level assertion
+  //       expect(populated).to.have.lengthOf(2);
+
+  //       // Second level assertion
+  //       for (let i = 0; i < structure.length; i++) {
+  //         if (String(structure[i].parent) === String(structure[0].id) && structure[i].type === FolderContentType) {
+  //           expect(populated).to.containSubset([{ id: structure[i].id }]);
+  //         }
+  //         if (!(String(structure[i].parent) === String(structure[0].id) && structure[i].type === FolderContentType)) {
+  //           expect(populated).to.not.containSubset([{ id: structure[i].id }]);
+  //         }
+  //       }
+
+  //       // Third level assertion - no third level folders
+  //       for (let j = 0; j < populated.length; j++) {
+  //         expect((<ResFile>populated[j]).children).to.have.lengthOf(0);
+  //       }
+  //     });
+
+  //     it('should return a recursive json object from the root', async () => {
+  //       const structure: IFile[] = await generateFolderStructure();
+  //       const populated = await FileService.getDescendantsByFolder(null, structure[0].ownerID);
+
+  //       // First level assertion
+  //       expect(populated).to.have.lengthOf(1);
+  //       expect(populated[0].id).to.be.equal(structure[0].id);
+
+  //       // Second level assertion
+  //       for (let i = 0; i < structure.length; i++) {
+  //         if (structure[i].parent === null) {
+  //           expect(populated).to.containSubset([{ id: structure[i].id }]);
+  //         }
+  //       }
+
+  //       // Third level assertion
+  //       for (let j = 0; j < populated.length; j++) {
+  //         for (let i = 0; i < structure.length; i++) {
+  //           if (String(structure[i].parent) === String((<ResFile>populated[j]).id)) {
+  //             expect(populated[j].children).to.containSubset([{ id: structure[i].id }]);
+  //           }
+  //         }
+  //       }
+  //     });
+
+  //   });
+
+  //   describe('#isOwner', () => {
+  //     it('should throw an error if the file does not exist', async () => {
+  //       await FileService.isOwner(REVERSE_KEY, USER.id).should.eventually.rejectedWith(FileNotFoundError);
+  //     });
+  //     it('should return "false" if the user is not an owner of the file', async () => {
+  //       const file = await FileService.create(
+  //         bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const res = await FileService.isOwner(file.id, USER.id.concat('7'));
+  //       expect(res).to.exist;
+  //       expect(res).to.be.false;
+
+  //     });
+  //     it('should return "true" if the user is the owner of the file', async () => {
+  //       const file = await FileService.create(
+  //         bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const res = await FileService.isOwner(file.id, USER.id);
+  //       expect(res).to.exist;
+  //       expect(res).to.be.true;
+  //     });
+  //     it('should return true if it is the users root folder', async () => {
+  //       const file = await FileService.create(
+  //         bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY);
+  //       const res1 = await FileService.isOwner('', USER.id);
+  //       const res2 = await FileService.isOwner(null, USER.id);
+  //       expect(res1).to.exist;
+  //       expect(res1).to.be.true;
+  //       expect(res2).to.exist;
+  //       expect(res2).to.be.true;
+  //     });
+  //   });
 
   describe('#delete', () => {
     it('should delete a file', async () => {

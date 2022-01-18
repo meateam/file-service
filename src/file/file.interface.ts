@@ -39,7 +39,7 @@ export class IShortcut extends PrimitiveFile {
   name: string;
   fileID: ObjectID | string;
   parent: ObjectID | string;
-  isShortcut: boolean;
+  isShortcut?: boolean;
 
   constructor(file: Partial<IShortcut>) {
     super(file);
