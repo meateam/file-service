@@ -103,9 +103,6 @@ export class FileService {
     if (this.isShortcut(createdShortcut)) createdShortcut.isShortcut = true;
     else createdShortcut.isShortcut = false;
 
-    // console.log('------------------------------------------------------------------------------------------------------');
-    // console.log(createdShortcut);
-    // console.log('------------------------------------------------------------------------------------------------------');
     return createdShortcut;
   }
 
@@ -467,7 +464,6 @@ export class FileService {
         query[prop] = queryFile[prop];
       }
     }
-
     return query;
   }
 

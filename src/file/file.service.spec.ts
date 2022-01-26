@@ -2,7 +2,7 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import mongoose from 'mongoose';
 import chaiSubset from 'chai-subset';
-import { IFile, ResFile, deleteRes } from './file.interface';
+import { IFile, ResFile, deleteRes, IShortcut, PrimitiveFile } from './file.interface';
 import { FileService, FolderContentType } from './file.service';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { FileExistsWithSameName, UniqueIndexExistsError, FileNotFoundError, ArgumentInvalidError, FileParentAppIDNotEqual } from '../utils/errors/client.error';
@@ -31,6 +31,7 @@ const USER = {
   mail: 'aviron@gmail.com'
 };
 const size = 420;
+const shortcutSize = 0;
 const bucket = 'bucket';
 
 const testUpload = {
@@ -182,7 +183,7 @@ describe('File Logic', () => {
       expect(newUpdate.key).to.be.equal(KEY);
     });
 
-    it('should throw FileNotFoundError error', async () => {
+    it(' Error error', async () => {
       await UploadService.createUpdate(testUpload.key, testUpload.bucket, testUpload.name, USER.id, null, 256)
         .should.eventually.be.rejectedWith(FileNotFoundError);
     });
@@ -309,7 +310,6 @@ describe('File Logic', () => {
     it('should create a file', async () => {
       const file: IFile = await FileService.create(
         bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
-      console.log(file)
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.key).to.equal(KEY);
@@ -370,6 +370,7 @@ describe('File Logic', () => {
         null, 'folder1', USER.id, FolderContentType, 'drive', parent.id);
       const folder2: IFile = await FileService.create(
         null, 'folder1', USER.id, FolderContentType, 'drive', parent.id).should.eventually.be.rejectedWith(FileExistsWithSameName);
+
     });
 
     // Quota testing
@@ -427,7 +428,6 @@ describe('File Logic', () => {
 
       const file: IFile = await FileService.create(
         bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, 2 * GB).should.eventually.be.rejectedWith(QuotaExceededError);
-      console.log(file);
       const quotaAfterCreateTry = await QuotaService.getByOwnerID(USER.id);
       expect(quotaAfterCreateTry.used).to.be.equal(newUpload.size);
     });
@@ -475,8 +475,7 @@ describe('File Logic', () => {
     it('should create a file at the root folder', async () => {
       const file1 = await FileService.create(bucket, 'tmp', USER.id, 'text', 'drive', null, KEY);
       const newKey = UploadService.generateKey();
-      const file2: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', null, newKey);
+      const file2: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', null, newKey);
       const filesInRoot: IFile[] = await FileService.getFilesByFolder(null, USER.id);
       expect(filesInRoot.length).to.equal(2);
       expect(file1.parent).to.be.null;
@@ -493,45 +492,35 @@ describe('File Logic', () => {
 
   describe('#createShortcut', () => {
     // create shortcut section
-
+    // FileService.createShortcut(string=name, file.id=fileID, shortcutSize=size, KEY2=parent)
     it('should create a shortcut', async () => {
-      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, shortcutSize);
       expect(file).to.exist;
-      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', '61e3e2f7d835990896c8b576', 0, "61e3e2f7d835990896c8b54c");
-      // console.log(shortcut);
+      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', file.id, shortcutSize, KEY2);
 
       expect(shortcut).to.exist;
       expect(shortcut).to.have.property('createdAt');
-      expect(shortcut).to.have.property('id');
-      expect(shortcut.appID).to.equal(file.appID);
       expect(shortcut.key).to.equal(file.key);
       expect(shortcut.bucket).to.equal(file.bucket);
-      expect(shortcut.size).to.equal(0);
-      expect(shortcut.displayName.toString()).to.equal('shortcut-file');
+      expect(shortcut.key).to.equal(file.key);
+      expect(shortcut.name).to.equal('shortcut-file.txt');
+      expect(shortcut.displayName).to.equal('shortcut-file');
       expect(shortcut.fullExtension).to.equal(file.fullExtension);
-      expect(shortcut.name.toString()).to.equal('shortcut-file.txt');
-      expect(shortcut.fileModel.toString()).to.equal('Shortcut');
-      expect(shortcut.fileID.toString()).to.equal(file.id);
+      expect(shortcut.fileModel).to.equal('Shortcut');
     });
 
-    it('should throw an error when shortcut already exists', async () => {
-      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
-      expect(file).to.exist;
-      await FileService.createShortcut('shortcut-file.txt', file.id, size, 'yarin')
-      await FileService.createShortcut('shortcut-file.txt', file.id, size, 'yarin')
+    it('should throw an error when two siblings are shortcuts with the same {parent, name, owner}', async () => {
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, shortcutSize);
+      const shortcut1: IFile = await FileService.createShortcut('shortcut1.txt', file.id, shortcutSize, KEY2);
+      const shortcut2: IFile = await FileService.createShortcut('shortcut1.txt', file.id, shortcutSize, KEY2)
         .should.eventually.be.rejectedWith(FileExistsWithSameName);
     });
 
-    it('should throw an error when file doesnt exists', async () => {
-      await FileService.createShortcut('shortcut-file.txt', '123456', size, 'yarin')
-        .should.eventually.be.rejectedWith(FileNotFoundError);
-    });
-
     it('should create a file with space in the name', async () => {
-      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, shortcutSize);
       expect(file).to.exist;
 
-      const shortcut: IFile = await FileService.createShortcut('shortcut file name with space.txt', file.id, size, 'yarin');
+      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', file.id, shortcutSize, KEY2);
       expect(shortcut).to.exist;
 
       expect(shortcut).to.have.property('createdAt');
@@ -548,17 +537,16 @@ describe('File Logic', () => {
     });
 
     it('should throw error when isShortcut param is null or "" ', async () => {
-      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, shortcutSize);
       expect(file).to.exist;
 
-      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', '61e3e2f7d835990896c8b576', 0, "61e3e2f7d835990896c8b54c");
+      const shortcut: IFile = await FileService.createShortcut('shortcut-file.txt', '61e3e2f7d835990896c8b576', shortcutSize, "61e3e2f7d835990896c8b54c");
       expect(shortcut).to.exist;
       // console.log(shortcut);
 
       const isShortcut = shortcut.isShortcut;
       isShortcut.should.eventually.be.rejectedWith(ArgumentInvalidError);
     });
-
   });
 
   //   describe('#updateById', () => {

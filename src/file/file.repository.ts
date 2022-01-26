@@ -3,7 +3,6 @@ import { IFile, IPopulatedShortcut, IShortcut, PrimitiveFile } from './file.inte
 import { baseFileModel, fileModel, shortcutModel } from './model';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { fileModelName, getFailedMessage, shortcutModelName } from './model/config';
-import { parseConfigFileTextToJson } from 'typescript';
 
 const pagination = {
   startIndex: 0,
@@ -37,15 +36,7 @@ export default class FileRepository {
   */
   static async createShortcut(file: any): Promise<IFile> {
     const populatedShortcut = (await shortcutModel.create(file));
-    console.log('------------------------------------------------------------------------------------------------------------');
-    console.log(populatedShortcut);
-    console.log('------------------------------------------------------------------------------------------------------------');
-    
     const shortcutAsFile: IFile = await this.baseFileToIFile(populatedShortcut);
-
-    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-    console.log(shortcutAsFile);
-    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 
     return shortcutAsFile;
   }
@@ -76,13 +67,8 @@ export default class FileRepository {
    * @param file - the file that will be converted.
    */
   static populatedShortcutToFile(file: IPopulatedShortcut): IFile {
-    // const shortcut = new IShortcut(file);
-    // console.log(file.fileID);
-    // console.log({...file.fileID});
     const shortcutAsFile: IFile = { ...file.fileID, ...file };
     delete shortcutAsFile.fileID;
-
-    // console.log(file.fileID);
 
     return shortcutAsFile;
   }
@@ -214,7 +200,7 @@ export default class FileRepository {
     const fulfilledFiles: IFile[] = [];
     const rejectedFiles: IFile[] = [];
     const files = await findPromise.find(condition).exec();
-    const setteledFiles = await Promise.allSettled(files.map(this.baseFileToIFile));
+    const setteledFiles = await Promise.allSettled(files.map(file => this.baseFileToIFile(file)));
     setteledFiles.forEach((file) => {
       if (file.status === 'fulfilled' && file.value) fulfilledFiles.push(file.value);
       else rejectedFiles.push((file as PromiseRejectedResult).reason);
@@ -233,8 +219,7 @@ export default class FileRepository {
    */
   static async getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
     const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
-    const file = await baseFileModel.findOne({ ownerID, parent, name: filename }).exec();
 
-    return await this.baseFileToIFile(file);
+    return await fileModel.findOne({ ownerID, parent, name: filename }).exec();
   }
 }
