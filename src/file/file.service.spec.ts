@@ -306,8 +306,7 @@ describe('File Logic', () => {
     });
 
     it('should create a file', async () => {
-      const file: IFile = await FileService.create(
-        bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
+      const file: IFile = await FileService.create(bucket, 'file.txt', USER.id, 'text', 'drive', KEY2, KEY, size);
       expect(file).to.exist;
       expect(file).to.have.property('createdAt');
       expect(file.key).to.equal(KEY);
@@ -709,6 +708,30 @@ describe('File Logic', () => {
       expect(fileRetrieved.displayName).to.equal('file');
     });
   });
+  describe('#getByIDs',()=>{
+    it('should get an error when file does not exist', async () => {
+    //get a random number from 1 to 3
+    const randomNumber = Math.floor(Math.random() * 3) + 1;
+    var files : IFile[] = [];
+    for(let i=0; i<randomNumber;i++){
+    const file =  await FileService.create(bucket, 'file'+i+'.txt', USER.id, 'text', 'drive', null, KEY);
+    console.log(file);
+    
+      files.push(file);
+    }
+      const fileRetrieved : IFile[] = await FileService.getByIDs(files.map(file=>file.id));
+      expect(fileRetrieved).to.exist;
+      expect(fileRetrieved).to.have.lengthOf(randomNumber);
+      // expect(fileRetrieved.findIndex).to.equal(files.id);
+      // expect(fileRetrieved.parent).to.equal(file.parent);
+      // expect(fileRetrieved.displayName).to.equal('file');
+      for (let i = 0; i < files.length; i++){
+        it('should get an existing file')
+      expect(fileRetrieved.find(file=>file.id==files[i].id)).to.exist;
+      }
+  })
+});
+ 
 
   describe('#getByKey', () => {
     it('should get an error when file does not exist', async () => {
@@ -723,7 +746,7 @@ describe('File Logic', () => {
       expect(fileRetrieved.displayName).to.equal('file');
     });
   });
-
+ 
   describe('#getFilesByFolder', () => {
     it('should throw an error when not sending ownerID with null folder', async () => {
       await FileService.getFilesByFolder(null, null).should.eventually.be.rejectedWith(ClientError);
