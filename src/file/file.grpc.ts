@@ -29,7 +29,7 @@ export class FileMethods {
       params.appID,
       params.parent,
       params.key,
-      parseInt(params.size, 10),
+      parseInt(params.size, 10)
     );
     return new ResFile(createdFile);
   }
@@ -58,13 +58,23 @@ export class FileMethods {
    * UpdateFiles updates a list of files and responses with a list of the files' id
    * which succeeded the operation.
    */
-  public static async UpdateFiles(call: ServerUnaryCall<{ partialFile: Partial<IFile>, idList: string[] }>)
-    : Promise<{ failedFiles: FailedFile[] }> {
-    const failed: { id: string, error: Error }[] = await FileService.updateMany(call.request.idList, call.request.partialFile);
+  public static async UpdateFiles(
+    call: ServerUnaryCall<{ partialFile: Partial<IFile>; idList: string[] }>
+  ): Promise<{ failedFiles: FailedFile[] }> {
+    const failed: { id: string; error: Error }[] = await FileService.updateMany(
+      call.request.idList,
+      call.request.partialFile
+    );
     const traceID: string = getCurrTraceId();
     const failedFiles: FailedFile[] = [];
     for (let i = 0; i < failed.length; i++) {
-      log(Severity.ERROR, failed[i].error.toString(), 'update files error', traceID, failed[i]);
+      log(
+        Severity.ERROR,
+        failed[i].error.toString(),
+        'update files error',
+        traceID,
+        failed[i]
+      );
       const displayError: string = getDisplayError(failed[i].error);
       failedFiles.push({ id: failed[i].id, error: displayError });
     }
@@ -80,17 +90,25 @@ export class FileMethods {
     const file: IFile = await FileService.getById(id);
     return new ResFile(file);
   }
-/**
+  /**
    * Retrieves  files by many ids.
    * @param call
    * @param idList
    */
- public static async GetFilesByIDs(call: any): Promise<{ files: ResFile[] }> {
-  const ids: string[] = call.request.ids;
-  const files = await FileService.getByIDs(ids);
-  const resFiles = files.map((file) => new ResFile(file));
-  return { files: resFiles };
-}
+  public static async GetFilesByIDs(call: any): Promise<{ files: ResFile[] }> {
+    const ids: string[] = call.request.ids;
+    const files = await FileService.getByIDs(ids);
+    // find if all ids in files are successfully retrieved
+    const failedIds: string[] = ids.filter(
+      (id) => !files.find((file) => file.id === id)
+    );
+    if (failedIds.length) {
+      throw new Error(`Failed to retrieve files with ids: ${failedIds}`);
+    }
+
+    const resFiles = files.map((file) => new ResFile(file));
+    return { files: resFiles };
+  }
   /**
    * Retrieves a file by its key.
    * @param call
@@ -105,12 +123,20 @@ export class FileMethods {
    * Retrieves all files residing in a given folder.
    * @param call
    */
-  public static async GetFilesByFolder(call: any): Promise<{ files: ResFile[] }> {
+  public static async GetFilesByFolder(
+    call: any
+  ): Promise<{ files: ResFile[] }> {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
     const queryFile: ResFile = call.request.queryFile || {};
-    const files: IFile[] = await FileService.getFilesByFolder(folderID, ownerID, new IFile(queryFile));
-    const resFiles: ResFile[] = files.length ? files.map(file => new ResFile(file)) : [];
+    const files: IFile[] = await FileService.getFilesByFolder(
+      folderID,
+      ownerID,
+      new IFile(queryFile)
+    );
+    const resFiles: ResFile[] = files.length
+      ? files.map((file) => new ResFile(file))
+      : [];
     return { files: resFiles };
   }
 
@@ -118,27 +144,37 @@ export class FileMethods {
    * Retrieves all files residing in a given folder.
    * @param call
    */
-  public static async GetDescendantsByFolder(call: any): Promise<{ files: ResFile[] }> {
+  public static async GetDescendantsByFolder(
+    call: any
+  ): Promise<{ files: ResFile[] }> {
     const folderID: string = call.request.folderID;
     const ownerID: string = call.request.ownerID;
     const queryFile: ResFile = call.request.queryFile || {};
     const queryIFile = new IFile(queryFile);
-    const files: ResFile[] = await FileService.getDescendantsByFolder(folderID, ownerID, queryIFile);
+    const files: ResFile[] = await FileService.getDescendantsByFolder(
+      folderID,
+      ownerID,
+      queryIFile
+    );
     return { files };
   }
 
-  public static async GetDescendantsByID(call: any): Promise<{ descendants: { file: ResFile, parent: ResFile }[] }> {
+  public static async GetDescendantsByID(
+    call: any
+  ): Promise<{ descendants: { file: ResFile; parent: ResFile }[] }> {
     const folderID: string = call.request.id;
 
     if (!folderID) throw new IdInvalidError();
 
-    const descendants: { file: IFile, parent: IFile }[] = await FileService.getDescendantsByID(folderID);
-    const ResFileDescendants: { file: ResFile, parent: ResFile }[] = descendants.map((e) => {
-      return {
-        file: new ResFile(e.file),
-        parent: new ResFile(e.parent),
-      };
-    });
+    const descendants: { file: IFile; parent: IFile }[] =
+      await FileService.getDescendantsByID(folderID);
+    const ResFileDescendants: { file: ResFile; parent: ResFile }[] =
+      descendants.map((e) => {
+        return {
+          file: new ResFile(e.file),
+          parent: new ResFile(e.parent),
+        };
+      });
 
     return { descendants: ResFileDescendants };
   }
@@ -148,11 +184,16 @@ export class FileMethods {
    * @param call
    */
   public static async IsAllowed(call: any): Promise<{ allowed: boolean }> {
-    const res: boolean = await FileService.isOwner(call.request.fileID, call.request.userID);
+    const res: boolean = await FileService.isOwner(
+      call.request.fileID,
+      call.request.userID
+    );
     return { allowed: res };
   }
 
-  public static async GetAncestors(call: any): Promise<{ ancestors: string[] }> {
+  public static async GetAncestors(
+    call: any
+  ): Promise<{ ancestors: string[] }> {
     const fileID: string = call.request.id;
     if (!fileID) throw new IdInvalidError();
 

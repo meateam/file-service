@@ -14,7 +14,7 @@
     "serve": "node dist/index.js",
     "watch-node": "nodemon dist/index.js",
     "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run watch-node\"",
-    "test": "npm run run_tests",
+    "test":"npm run tslint && npm run run_tests",
     "run_tests": "mocha --opts ./mocha.opts src/**/*.spec.ts",
     "run_tests_coverage": "nyc mocha --opts ./mocha.opts src/**/*.spec.ts",
     "watch-test": "npm run test -- --watchAll",
