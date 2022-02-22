@@ -98,14 +98,6 @@ export class FileMethods {
   public static async GetFilesByIDs(call: any): Promise<{ files: ResFile[] }> {
     const ids: string[] = call.request.ids;
     const files = await FileService.getByIDs(ids);
-    // find if all ids in files are successfully retrieved
-    const failedIds: string[] = ids.filter(
-      (id) => !files.find((file) => file.id === id)
-    );
-    if (failedIds.length) {
-      throw new Error(`Failed to retrieve files with ids: ${failedIds}`);
-    }
-
     const resFiles = files.map((file) => new ResFile(file));
     return { files: resFiles };
   }
