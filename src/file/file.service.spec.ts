@@ -1377,28 +1377,31 @@ describe('File Logic', () => {
     });
   });
   describe('#getByIDs', () => {
-    it('should create two files ', async () => {
+    it('should get two files by ids', async () => {
       const numberOfFiles = 2;
-      const filesPromises: Promise<IFile>[] = Array(numberOfFiles).map((_, i) =>
-        FileService.create(bucket,
-          `file${i}.txt`,
-          USER.id,
-          'text',
-          'drive',
-          null,
-          KEY
-        )
-      );
-      it('should get files by ids');
+      const filesPromises: Promise<IFile>[] = [];
+      for (let i = 0; i < numberOfFiles; i++) {
+        filesPromises.push(
+          FileService.create(
+            bucket,
+            `file${i}.txt`,
+            USER.id,
+            'text',
+            'drive',
+            null,
+            mongoose.Types.ObjectId().toHexString()
+          )
+        );
+      }
       const files = await Promise.all(filesPromises);
       const fileRetrieved: IFile[] = await FileService.getByIDs(
         files.map((file) => file.id)
       );
+
       expect(fileRetrieved).to.exist;
       expect(fileRetrieved).to.have.lengthOf(numberOfFiles);
 
       for (let i = 0; i < files.length; i++) {
-        it('should get an existing file');
         expect(fileRetrieved.find((file) => file.id === files[i].id)).to.exist;
       }
     });
