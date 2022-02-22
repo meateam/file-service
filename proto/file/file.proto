@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package file;
+option go_package = "github.com/meateam/file-service/proto/file;file";
 
 service FileService {
   rpc GenerateKey(GenerateKeyRequest) returns (KeyResponse) {}
@@ -11,6 +12,7 @@ service FileService {
   rpc DeleteUploadByKey(DeleteUploadByKeyRequest) returns (DeleteUploadByKeyResponse) {}
   rpc DeleteUploadByID(DeleteUploadByIDRequest) returns (DeleteUploadByIDResponse) {}
   rpc GetFileByID(GetByFileByIDRequest) returns (File) {}
+  rpc GetFilesByIDs(GetByFilesByIDsRequest) returns (GetFilesByIDsResponse) {}
   rpc GetFileByKey(GetFileByKeyRequest) returns (File) {}
   rpc GetFilesByFolder(GetFilesByFolderRequest) returns (GetFilesByFolderResponse) {}
   rpc GetDescendantsByFolder(GetDescendantsByFolderRequest) returns (GetDescendantsByFolderResponse) {}
@@ -90,6 +92,10 @@ message GetByFileByIDRequest {
   string id = 1;
 }
 
+message GetByFilesByIDsRequest {
+  repeated string ids = 1;
+}
+
 message GetFileByKeyRequest {
   string key = 1;
 }
@@ -98,6 +104,10 @@ message GetFilesByFolderRequest {
     string folderID = 1;
     string ownerID = 2;
     File queryFile = 3;
+}
+
+message GetFilesByIDsResponse {
+  repeated File files = 1;
 }
 
 message GetFilesByFolderResponse {

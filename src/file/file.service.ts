@@ -1,7 +1,10 @@
 import { ObjectID } from 'mongodb';
 import { IFile, ResFile, deleteRes } from './file.interface';
 import FilesRepository from './file.repository';
-import { FileNotFoundError, ArgumentInvalidError } from '../utils/errors/client.error';
+import {
+  FileNotFoundError,
+  ArgumentInvalidError,
+} from '../utils/errors/client.error';
 import { ServerError, ClientError } from '../utils/errors/application.error';
 import { QuotaService } from '../quota/quota.service';
 import { fileModel } from './file.model';
@@ -10,7 +13,7 @@ export const FolderContentType = 'application/vnd.drive.folder';
 
 type NestedIFileArray = IFile | IFileArray;
 
-interface IFileArray extends Array<NestedIFileArray> { }
+interface IFileArray extends Array<NestedIFileArray> {}
 
 /**
  * This server assumes the following:
@@ -18,7 +21,6 @@ interface IFileArray extends Array<NestedIFileArray> { }
  * olderID is an objectID of an existing file of type folder.
  */
 export class FileService {
-
   /**
    * Creates a file and adds it to the DB.
    * Trusts that the key is unique and that the users exists.
@@ -39,9 +41,9 @@ export class FileService {
     folderID: string = '',
     key: string | null = null,
     size: number = 0,
-    float: boolean = false,
+    float: boolean = false
   ): Promise<IFile> {
-    const isFolder: boolean = (type === FolderContentType);
+    const isFolder: boolean = type === FolderContentType;
     if (!key && !isFolder) {
       throw new ServerError('No key sent');
     }
@@ -80,7 +82,8 @@ export class FileService {
    * @param fileId - the id of the file/folder
    */
   public static async delete(fileId: string): Promise<deleteRes[]> {
-    const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.deleteRecursive(fileId, true);
+    const res: { succeeded: deleteRes[]; allSucceeded: boolean } =
+      await this.deleteRecursive(fileId, true);
     return res.succeeded;
   }
 
@@ -96,17 +99,26 @@ export class FileService {
    * @param fileId - the id of the file/folder.
    * @param allSucceeded - marks if all the descendants of the current folder have been deleted. If false, do not delete the folder.
    */
-  private static async deleteRecursive(fileId: string, allSucceeded: boolean): Promise<{ succeeded: deleteRes[], allSucceeded: boolean }> {
+  private static async deleteRecursive(
+    fileId: string,
+    allSucceeded: boolean
+  ): Promise<{ succeeded: deleteRes[]; allSucceeded: boolean }> {
     const file: IFile = await this.getById(fileId);
-    let deletedFiles: { id: string, key: string, bucket: string }[] = [];
+    let deletedFiles: { id: string; key: string; bucket: string }[] = [];
     let pathSuccess = allSucceeded;
     if (file.type === FolderContentType) {
-      const children: IFile[] = await this.getFilesByFolder(file.id, file.ownerID);
-      await Promise.all(children.map(async (file) => {
-        const res: { succeeded: deleteRes[], allSucceeded: boolean } = await this.deleteRecursive(file.id, pathSuccess);
-        deletedFiles = deletedFiles.concat(res.succeeded);
-        pathSuccess = pathSuccess && res.allSucceeded;
-      }));
+      const children: IFile[] = await this.getFilesByFolder(
+        file.id,
+        file.ownerID
+      );
+      await Promise.all(
+        children.map(async (file) => {
+          const res: { succeeded: deleteRes[]; allSucceeded: boolean } =
+            await this.deleteRecursive(file.id, pathSuccess);
+          deletedFiles = deletedFiles.concat(res.succeeded);
+          pathSuccess = pathSuccess && res.allSucceeded;
+        })
+      );
     }
     if (pathSuccess) {
       const currFile: IFile = await FilesRepository.deleteById(fileId);
@@ -115,7 +127,11 @@ export class FileService {
         pathSuccess = false;
       } else {
         await QuotaService.updateUsed(currFile.ownerID, -currFile.size);
-        deletedFiles.push({ id: currFile.id, key: currFile.key, bucket: currFile.bucket });
+        deletedFiles.push({
+          id: currFile.id,
+          key: currFile.key,
+          bucket: currFile.bucket,
+        });
       }
     }
     return { succeeded: deletedFiles, allSucceeded: pathSuccess };
@@ -126,7 +142,10 @@ export class FileService {
    * @param fileId - the id of the file.
    * @param partialFile - the partial file.
    */
-  public static async updateById(fileId: string, partialFile: Partial<IFile>): Promise<boolean> {
+  public static async updateById(
+    fileId: string,
+    partialFile: Partial<IFile>
+  ): Promise<boolean> {
     if (partialFile['parent']) {
       const parentID: string = partialFile['parent'].toString();
       await this.checkAdoption(fileId, parentID);
@@ -157,13 +176,19 @@ export class FileService {
    * @param fileID - the file to be adopted.
    * @param parentID  - the adopting father.
    */
-  private static async checkAdoption(fileID: string, parentID: string): Promise<void> {
+  private static async checkAdoption(
+    fileID: string,
+    parentID: string
+  ): Promise<void> {
     const parent: IFile = await this.getById(parentID);
-    if (parent && (parent.type !== FolderContentType)) {
+    if (parent && parent.type !== FolderContentType) {
       throw new ArgumentInvalidError(`parent: ${parentID} is not a folder`);
     }
     const file: IFile = await this.getById(fileID);
-    if (file.type === FolderContentType && await this.isFolderAnAncestor(parentID, fileID)) {
+    if (
+      file.type === FolderContentType &&
+      (await this.isFolderAnAncestor(parentID, fileID))
+    ) {
       throw new ClientError('cyclic nesting error');
     }
     return;
@@ -173,9 +198,12 @@ export class FileService {
    * updateMany updates a list of files.
    * @param files - List of files to update with their updated fields and their id.
    */
-  static async updateMany(idList: string[], partialFile: Partial<IFile>): Promise<{ id: string, error: Error }[]> {
+  static async updateMany(
+    idList: string[],
+    partialFile: Partial<IFile>
+  ): Promise<{ id: string; error: Error }[]> {
     const extractedPF: Partial<IFile> = this.extractQuery(partialFile);
-    const failedFiles: { id: string, error: Error }[] = [];
+    const failedFiles: { id: string; error: Error }[] = [];
     for (let i = 0; i < idList.length; i++) {
       try {
         await this.updateById(idList[i], extractedPF);
@@ -196,6 +224,15 @@ export class FileService {
     if (!file) throw new FileNotFoundError();
     return file;
   }
+  /**
+   * get some files by their ids
+   * @param ids
+   */
+  public static async getByIDs(ids: string[]): Promise<IFile[]> {
+    const files: IFile[] = await FilesRepository.getByIds(ids);
+    if (!files) throw new FileNotFoundError();
+    return files;
+  }
 
   /**
    * Get a file by its key.
@@ -213,8 +250,12 @@ export class FileService {
    * @param ownerID - if received root folder (null), get by ownerID.
    * @param queryFile - the partial file containing the conditions.
    * @returns an array of IFile: the children of the given folder, following the condition.
-  */
-  public static async getFilesByFolder(folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<IFile[]> {
+   */
+  public static async getFilesByFolder(
+    folderID: string | null,
+    ownerID: string | null,
+    queryFile?: Partial<IFile>
+  ): Promise<IFile[]> {
     const parent = folderID ? new ObjectID(folderID) : null;
     let query: Partial<IFile> = this.extractQuery(queryFile);
     // Add parent to the query
@@ -239,10 +280,17 @@ export class FileService {
    * @param queryFile - the partial file creating the conditions.
    * @returns a nested IFile array of the descendants.
    */
-  public static async getDescendantsByFolder
-    (folderID: string | null, ownerID: string | null, queryFile?: Partial<IFile>): Promise<ResFile[]> {
+  public static async getDescendantsByFolder(
+    folderID: string | null,
+    ownerID: string | null,
+    queryFile?: Partial<IFile>
+  ): Promise<ResFile[]> {
     const query: Partial<IFile> = this.extractQuery(queryFile);
-    const children: ResFile[] = await this.getPopulatedChildren(folderID, ownerID, query);
+    const children: ResFile[] = await this.getPopulatedChildren(
+      folderID,
+      ownerID,
+      query
+    );
     return children;
   }
 
@@ -251,7 +299,10 @@ export class FileService {
    * @param fileID - the id of the file.
    * @param userID -the id of the user.
    */
-  public static async isOwner(fileID: string, userID: string): Promise<boolean> {
+  public static async isOwner(
+    fileID: string,
+    userID: string
+  ): Promise<boolean> {
     // If the file is the user's root folder (which he is owner of) - return true
     if (!fileID) {
       return true;
@@ -294,13 +345,15 @@ export class FileService {
     return ancestors.reverse();
   }
 
-  public static async getDescendantsByID(fileID: string): Promise<{ file: IFile, parent: IFile }[]> {
+  public static async getDescendantsByID(
+    fileID: string
+  ): Promise<{ file: IFile; parent: IFile }[]> {
     const filesQueue = [fileID];
-    const descendants: { file: IFile, parent: IFile }[] = [];
+    const descendants: { file: IFile; parent: IFile }[] = [];
     while (filesQueue.length > 0) {
       const currentFile = filesQueue.pop();
       const children = await this.getFilesByFolder(currentFile, null);
-      const childrenWithParents: { file: IFile, parent: IFile }[] = [];
+      const childrenWithParents: { file: IFile; parent: IFile }[] = [];
       for (let i = 0; i < children.length; i++) {
         let parent = null;
         if (children[i].parent) {
@@ -310,7 +363,7 @@ export class FileService {
         childrenWithParents.push({ parent, file: children[i] });
       }
 
-      const mappedIds = children.map(f => f.id);
+      const mappedIds = children.map((f) => f.id);
       descendants.push(...childrenWithParents);
       filesQueue.push(...mappedIds);
     }
@@ -323,9 +376,12 @@ export class FileService {
    * @param fileID - the file id
    * @param folderID - the folder id
    */
-  private static async isFolderAnAncestor(fileID: string, folderID: string): Promise<boolean> {
+  private static async isFolderAnAncestor(
+    fileID: string,
+    folderID: string
+  ): Promise<boolean> {
     const ancestors: string[] = await this.getAncestors(fileID);
-    return ancestors.includes(folderID) || (fileID === folderID);
+    return ancestors.includes(folderID) || fileID === folderID;
   }
 
   /**
@@ -333,9 +389,17 @@ export class FileService {
    * @param name - the name of the file.
    * @param folderId - the id of the folder.
    */
-  private static async isFileInFolder(name: string, folderId: string, ownerID: string): Promise<boolean> {
-    const file: IFile = await FilesRepository.getFileInFolderByName(folderId, name, ownerID);
-    return (file != null);
+  private static async isFileInFolder(
+    name: string,
+    folderId: string,
+    ownerID: string
+  ): Promise<boolean> {
+    const file: IFile = await FilesRepository.getFileInFolderByName(
+      folderId,
+      name,
+      ownerID
+    );
+    return file != null;
   }
 
   /**
@@ -366,7 +430,8 @@ export class FileService {
     }
 
     if (queryFile['parent']) {
-      query['parent'] = queryFile['parent'] === 'null' ? null : queryFile['parent'];
+      query['parent'] =
+        queryFile['parent'] === 'null' ? null : queryFile['parent'];
     }
 
     if (queryFile['float'] !== undefined) {
@@ -388,13 +453,25 @@ export class FileService {
    * @param query - the conditions.
    * @param currArray - the array sent in the recursion.
    */
-  private static async getPopulatedChildren(folderID: string, ownerID: string, query: Partial<IFile>): Promise<ResFile[]> {
-    const folderFiles: IFile[] = await this.getFilesByFolder(folderID, ownerID, query);
+  private static async getPopulatedChildren(
+    folderID: string,
+    ownerID: string,
+    query: Partial<IFile>
+  ): Promise<ResFile[]> {
+    const folderFiles: IFile[] = await this.getFilesByFolder(
+      folderID,
+      ownerID,
+      query
+    );
     const childrenArray: ResFile[] = [];
 
     for (let i = 0; i < folderFiles.length; i++) {
       const currChild = new ResFile(folderFiles[i]);
-      const grandChildren = await this.getPopulatedChildren(currChild.id, ownerID, query);
+      const grandChildren = await this.getPopulatedChildren(
+        currChild.id,
+        ownerID,
+        query
+      );
       currChild.children = grandChildren;
       childrenArray.push(currChild);
     }
@@ -403,7 +480,6 @@ export class FileService {
   }
 
   private static isFolder(file: IFile): boolean {
-    return (file.type === FolderContentType);
+    return file.type === FolderContentType;
   }
-
 }
