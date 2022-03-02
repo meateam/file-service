@@ -1,5 +1,5 @@
 import { ObjectID } from 'mongodb';
-import { IFile, IPopulatedShortcut, IShortcut, PrimitiveFile } from './file.interface';
+import { IBaseFile, IFile, IPopulatedShortcut, IShortcut, PrimitiveFile } from './file.interface';
 import { baseFileModel, fileModel, shortcutModel } from './model';
 import { getCurrTraceId, log, Severity } from '../utils/logger';
 import { fileModelName, getFailedMessage, shortcutModelName } from './model/config';
@@ -13,6 +13,8 @@ const sort = {
   sortOrder: '-',
   sortBy: 'createdAt',
 };
+
+const shortcutSize = 0;
 
 /**
  * The repository connects the file-service with the mongo DB.
@@ -35,9 +37,9 @@ export default class FileRepository {
   * @param file - is the shortcut file to be added to the DB
   */
   static async createShortcut(file: any): Promise<IFile> {
-    const populatedShortcut = (await shortcutModel.create(file));
+    file.parent = file.parent ? new ObjectID(file.parent) : null;
+    const populatedShortcut = await shortcutModel.create(file);
     const shortcutAsFile: IFile = await this.baseFileToIFile(populatedShortcut);
-
     return shortcutAsFile;
   }
 
@@ -46,10 +48,10 @@ export default class FileRepository {
    * @param id - the file id.
    * @param partialFile - the partial file containing the attributes to be changed.
    */
-  static async updateById(id: string, partialFile: Partial<IFile>, model: any): Promise<boolean> {
-    const res = await model.findByIdAndUpdate(id, { $set: partialFile }, { runValidators: true }).exec();
-
-    return res.isModified();
+  static async updateById(id: any, partialFile: Partial<IFile>, model: any): Promise<boolean> {
+    const file = await baseFileModel.findById(id);
+    const res = await model.updateOne({ _id: file._id, ownerID: file.ownerID }, { $set: partialFile }, { runValidators: true }).exec();
+    return res.n === 1 && res.nModified === 1 && res.ok === 1;
   }
 
   /**
@@ -57,7 +59,6 @@ export default class FileRepository {
    * @param id - the id of the file to be deleted.
    */
   static async deleteById(id: string, model: any): Promise<IFile | null> {
-
     return model.findByIdAndRemove({ _id: new ObjectID(id) }).exec();
   }
 
@@ -68,8 +69,9 @@ export default class FileRepository {
    */
   static populatedShortcutToFile(file: IPopulatedShortcut): IFile {
     const shortcutAsFile: IFile = { ...file.fileID, ...file };
-    delete shortcutAsFile.fileID;
-
+    const parentID = file.fileID.id
+    delete shortcutAsFile.fileID
+    shortcutAsFile.fileID = parentID;
     return shortcutAsFile;
   }
 
@@ -101,6 +103,7 @@ export default class FileRepository {
     if (factoryFile instanceof IShortcut) {
       const populatedShortcut: IPopulatedShortcut = await (await file.populate('fileID').execPopulate()).toObject();
       responseFile = this.populatedShortcutToFile(populatedShortcut);
+      responseFile.size = shortcutSize;
     }
     return responseFile;
   }
@@ -109,10 +112,9 @@ export default class FileRepository {
    * Get a file by its id.
    * @param id - the id of the file.
    */
-  static async getById(id: string): Promise<IFile> {
+  static async getById(id: string): Promise<IBaseFile> {
     const file = await baseFileModel.findById({ _id: new ObjectID(id) }).exec();
-
-    return await this.baseFileToIFile(file);
+    return file;
   }
 
   /**
@@ -120,9 +122,8 @@ export default class FileRepository {
    * @param key - the key of the file.
    */
   static async getByKey(key: string): Promise<IFile> {
-    const file = await baseFileModel.findOne({ key }).exec();
-
-    return await this.baseFileToIFile(file);
+    const file = await fileModel.findOne({ key }).exec();
+    return file;
   }
 
   /**

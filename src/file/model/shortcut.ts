@@ -18,8 +18,8 @@ const shortcutSchema: Schema = new Schema(
         },
         parent: {
             type: ObjectId,
-            required: true,
             ref: collectionName,
+            default: null,
         },
         fileID: {
             type: String,
@@ -75,8 +75,9 @@ function handleE11000(error: MongoError, _: any, next: NextFunction) {
     }
 }
 
-shortcutSchema.pre('findOneAndUpdate', async function (next: NextFunction) {
+shortcutSchema.pre('updateOne', async function (next: NextFunction) {
     const fileID = this.getQuery().fileID;
+
     const update = this.getUpdate();
 
     const updatedParent = update.$set && update.$set.parent;
@@ -90,7 +91,7 @@ shortcutSchema.pre('findOneAndUpdate', async function (next: NextFunction) {
 
     const existingFile = await shortcutModel.findOne(query);
 
-    if (existingFile && existingFile.id !== this.getQuery()._id.toString()) {
+    if (existingFile && existingFile.id !== this.getQuery()._id.toString() && !existingFile.float) {
         next(new FileExistsWithSameName());
     } else {
         next();
@@ -122,7 +123,7 @@ shortcutSchema.pre('save', async function (next: NextFunction) {
 
 shortcutSchema.post('save', handleE11000);
 shortcutSchema.post('update', handleE11000);
-shortcutSchema.post('findOneAndUpdate', handleE11000);
+shortcutSchema.post('updateOne', handleE11000);
 shortcutSchema.post('insertMany', handleE11000);
 
 shortcutSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {

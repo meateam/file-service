@@ -43,7 +43,6 @@ export class FileMethods {
     const createdFile: IFile = await FileService.createShortcut(
       params.name,
       params.fileID,
-      params.size,
       params.parent
     );
     

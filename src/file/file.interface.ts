@@ -1,5 +1,10 @@
 import { ObjectID } from 'mongodb';
-export class PrimitiveFile {
+
+export interface IBaseFile {
+  [key: string]: any;
+  fileModel: string;
+}
+export class PrimitiveFile implements IBaseFile {
   id?: string;
   key?: string;
   bucket?: string;
@@ -17,6 +22,7 @@ export class PrimitiveFile {
   appID: string;
   float: boolean = false;
   [key: string]: string | number | ObjectID | Date | boolean | PrimitiveFile[];
+  fileModel: string;
 
   constructor(file: Partial<PrimitiveFile>) {
     this.id = file.id;
@@ -32,8 +38,10 @@ export class PrimitiveFile {
     this.parent = file.parent;
     this.float = file.float;
     this.appID = file.appID;
+    this.fileModel = file.fileModel;
   }
 }
+
 export class IShortcut extends PrimitiveFile {
   id?: string;
   name: string;
