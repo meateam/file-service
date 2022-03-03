@@ -164,7 +164,7 @@ export class FileService {
     if (pathSuccess) {
       const baseFile = await baseFileModel.findById(fileId);
       const file = await FilesRepository.baseFileToIFile(baseFile);
-      let model = mongoose.model(file.fileModel);
+      const model = mongoose.model(file.fileModel);
       let currFile;
       currFile = await FilesRepository.deleteById(fileId, model);
       if (currFile.fileModel === shortcutModelName) currFile = await baseFileModel.findById(currFile.fileID);
@@ -193,16 +193,16 @@ export class FileService {
    * @param parentFile - the parent file being updated.
    */
   public static async updateShortcut(file: any, partialFile: Partial<IFile>): Promise<boolean> {
-    let newPartialFile = { ...partialFile };
+    const newPartialFile = { ...partialFile };
     delete newPartialFile.name, delete newPartialFile.parent;
-    let parentFileID = file.fileID;
+    const parentFileID = file.fileID;
 
     await FilesRepository.updateById(parentFileID, newPartialFile, fileModel);
     const duplicate = await baseFileModel.findOne({ name: partialFile.name });
     if (duplicate && duplicate.name === partialFile.name) throw new FileExistsWithSameName();
     const update = await FilesRepository.updateById(file.id, partialFile, shortcutModel);
 
-    return update
+    return update;
   }
 
   /**
@@ -225,7 +225,7 @@ export class FileService {
     if (!baseFile) throw new FileNotFoundError();
 
     const file = await FilesRepository.baseFileToIFile(baseFile);
-    let model = mongoose.model(file.fileModel);
+    const model = mongoose.model(file.fileModel);
 
     if (file.fileModel === shortcutModelName) {
       const update = this.updateShortcut(file, partialFile);

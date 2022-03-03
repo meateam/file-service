@@ -69,8 +69,8 @@ export default class FileRepository {
    */
   static populatedShortcutToFile(file: IPopulatedShortcut): IFile {
     const shortcutAsFile: IFile = { ...file.fileID, ...file };
-    const parentID = file.fileID.id
-    delete shortcutAsFile.fileID
+    const parentID = file.fileID.id;
+    delete shortcutAsFile.fileID;
     shortcutAsFile.fileID = parentID;
     return shortcutAsFile;
   }

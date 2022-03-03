@@ -1,16 +1,16 @@
 import * as mongoose from 'mongoose';
-import BaseFileModel from "./baseFile";
-import { fileModelName, collectionName } from "./config";
-import { Schema, Document } from 'mongoose';
+import BaseFileModel from './baseFile';
+import { fileModelName, collectionName } from './config';
+// import { Schema, Document } from 'mongoose';
 import { ServerError } from '../../utils/errors/application.error';
 import { IFile } from '../file.interface';
 import { UniqueIndexExistsError, FileExistsWithSameName, FileParentAppIDNotEqual } from '../../utils/errors/client.error';
 import { MongoError } from 'mongodb';
 import { NextFunction } from 'connect';
 
-const ObjectId = Schema.Types.ObjectId;
+const ObjectId = mongoose.Schema.Types.ObjectId;
 
-const fileSchema: Schema = new Schema(
+const fileSchema: mongoose.Schema = new mongoose.Schema(
   {
     key: {
       type: String,
@@ -162,6 +162,6 @@ fileSchema.post('save', (error: MongoError, _: any, next: NextFunction) => {
   next(error);
 });
 
-const fileModel: mongoose.Model<Document & IFile> = BaseFileModel.discriminator(fileModelName, fileSchema);
+const fileModel: mongoose.Model<mongoose.Document & IFile> = BaseFileModel.discriminator(fileModelName, fileSchema);
 
 export default fileModel;

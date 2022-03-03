@@ -45,7 +45,6 @@ export class FileMethods {
       params.fileID,
       params.parent
     );
-    
     return new ResFile(createdFile);
   }
 
