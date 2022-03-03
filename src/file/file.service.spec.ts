@@ -1206,7 +1206,17 @@ describe('File Logic', () => {
       expect(quota.used).to.be.equal(0);
       expect(deletedFile).to.have.lengthOf(1);
       expect(deletedFile[0].id).to.be.equal(file.id);
-      // console.log(await FileService.getById(file.id));
+      await FileService.getById(file.id).should.eventually.be.rejectedWith(FileNotFoundError);
+    });
+
+    it('should delete a file 2', async () => {
+      const file: IFile = await FileService.create(
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 320 * MB);
+      expect(file).to.exist;
+      expect(file.id).to.exist;
+
+      await FileService.deleteByID(file.id);
+
       await FileService.getById(file.id).should.eventually.be.rejectedWith(FileNotFoundError);
     });
 
@@ -1228,6 +1238,20 @@ describe('File Logic', () => {
       expect(quota.used).to.be.equal(0);
       expect(deletedFile).to.have.lengthOf(1);
       expect(deletedFile[0].id).to.be.equal(file.id);
+
+      await FileService.getById(shortcut.id).should.eventually.be.rejectedWith(FileNotFoundError);
+    });
+
+    it('should delete a shortcut 2', async () => {
+      const file: IFile = await FileService.create(
+        bucket, 'file.txt', USER.id, 'text', 'drive', null, KEY, 320 * MB);
+      expect(file).to.exist;
+      expect(file.id).to.exist;
+      const shortcut: IFile = await FileService.createShortcut('shortcut.txt', file.id, KEY);
+      expect(shortcut).to.exist;
+      expect(shortcut.id).to.exist;
+
+      await FileService.deleteByID(shortcut.id);
 
       await FileService.getById(shortcut.id).should.eventually.be.rejectedWith(FileNotFoundError);
     });

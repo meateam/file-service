@@ -119,12 +119,13 @@ export class FileService {
 
   public static async deleteByID(fileID: string): Promise<IFile> {
     const baseFile = await baseFileModel.findById(fileID);
-    const model = this.getFileModel(baseFile);
-    const file = await FilesRepository.deleteById(fileID, model);
+    if (!baseFile) throw new FileNotFoundError();
+    const file =  await FilesRepository.baseFileToIFile(baseFile);
+    const model = mongoose.model(file.fileModel);
+    const fileDelete = await FilesRepository.deleteById(fileID, model);
     await QuotaService.updateUsed(file.ownerID, -file.size);
-    const deleteFile = await FilesRepository.deleteById(fileID, model);
 
-    return deleteFile;
+    return fileDelete;
   }
 
   /**
