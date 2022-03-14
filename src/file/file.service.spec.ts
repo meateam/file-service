@@ -1027,6 +1027,30 @@ describe('File Logic', () => {
       files1.should.be.an('array').with.lengthOf(1);
     });
 
+    it('should return all the shortcuts and folders directly under the given folder', async () => {
+      const newKey1 = UploadService.generateKey();
+      const newKey2 = UploadService.generateKey();
+
+      const father = await FileService.create(bucket, 'father', USER.id, FolderContentType, 'drive', KEY);
+
+      const file1 = await FileService.create(
+        bucket, 'file1.txt', USER.id, 'text', 'drive', father.id, KEY2);
+      const file2 = await FileService.create(
+        bucket, 'file2.txt', USER.id, 'text', 'drive', father.id, newKey1);
+      const folder1 = await FileService.create(
+        null, 'folder1', USER.id, FolderContentType, 'drive', father.id, KEY3);
+      const shortcut11: IFile = await FileService.createShortcut('shortcut11.txt', file1.id, folder1.id);
+
+      const files = await FileService.getFilesByFolder(father.id, USER.id);
+      const files1 = await FileService.getFilesByFolder(folder1.id, USER.id);
+
+      expect(files).to.exist;
+      expect(files1).to.exist;
+
+      files.should.be.an('array').with.lengthOf(3);
+      files1.should.be.an('array').with.lengthOf(1);
+    });
+
     describe('Root Folder', () => {
       it('should throw an error if the fileID and the user are null', async () => {
         await FileService.getFilesByFolder(null, null)

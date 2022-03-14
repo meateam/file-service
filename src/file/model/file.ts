@@ -1,7 +1,6 @@
 import * as mongoose from 'mongoose';
 import BaseFileModel from './baseFile';
 import { fileModelName, collectionName } from './config';
-// import { Schema, Document } from 'mongoose';
 import { ServerError } from '../../utils/errors/application.error';
 import { IFile } from '../file.interface';
 import { UniqueIndexExistsError, FileExistsWithSameName, FileParentAppIDNotEqual } from '../../utils/errors/client.error';

@@ -186,30 +186,19 @@ export default class FileRepository {
   /**
    * Retrieves an array of files according to a condition.
    * @param condition - the condition for the search.
-   * @param populate - an option to populate the retrieved file's fields.
-   * @param select - select certain fields of the files.
    */
-  static async find(condition?: Object, populate?: string | Object, select?: string): Promise<IFile[]> {
+  static async find(condition: Partial<IFile>): Promise<IFile[]> {
 
-    let findPromise = fileModel.find(condition);
-    if (populate) {
-      findPromise = findPromise.populate(populate);
-    }
-    if (select) {
-      findPromise = findPromise.select(select);
-    }
-    const fulfilledFiles: IFile[] = [];
-    const rejectedFiles: IFile[] = [];
-    const files = await findPromise.find(condition).exec();
-    const setteledFiles = await Promise.allSettled(files.map(file => this.baseFileToIFile(file)));
-    setteledFiles.forEach((file) => {
-      if (file.status === 'fulfilled' && file.value) fulfilledFiles.push(file.value);
-      else rejectedFiles.push((file as PromiseRejectedResult).reason);
-    });
+    const { parent, ...query } = condition;
+
+    const findRes =  await baseFileModel.find({ parent }).populate('fileID').exec();
+    const mapped = findRes.map((mongoObject => mongoObject.toObject())).map((file) => (file.fileID ? { ...file.fileID, ...file } : file));
+    const filtered = mapped.filter(file => Object.entries(query).every(([key, value]) => file[key] === value));
+
     const traceID: string = getCurrTraceId();
-    log(Severity.WARN, getFailedMessage, 'get files warn', traceID, rejectedFiles);
+    log(Severity.WARN, getFailedMessage, 'get files warn', traceID, filtered);
 
-    return fulfilledFiles;
+    return filtered;
   }
 
   /**
@@ -218,7 +207,7 @@ export default class FileRepository {
    * @param filename - the name of the file (should be unique in the folder).
    * @param ownerID - the id of the owner/user who made the request.
    */
-  static async getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise<IFile | null> {
+  static async getFileInFolderByName(parentId: string | null, filename: string, ownerID: string): Promise < IFile | null > {
     const parent: ObjectID = parentId ? new ObjectID(parentId) : null;
 
     return await fileModel.findOne({ ownerID, parent, name: filename }).exec();
