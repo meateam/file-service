@@ -87,7 +87,7 @@ export class FileService {
   public static async createShortcut(
     name: string,
     fileID: string,
-    parent: string): Promise<IFile> {
+    parent: string | null): Promise<IFile> {
 
     const shortcutFile = {
       name,

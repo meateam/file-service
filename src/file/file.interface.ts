@@ -45,8 +45,8 @@ export class PrimitiveFile implements IBaseFile {
 export class IShortcut extends PrimitiveFile {
   id?: string;
   name: string;
-  fileID: ObjectID | string;
-  parent: ObjectID | string;
+  fileID: string;
+  parent: string | null;
   isShortcut?: boolean;
 
   constructor(file: Partial<IShortcut>) {
