@@ -57,7 +57,8 @@ export class FileService {
       float,
       appID,
       parent: folderID,
-      fileModel: 'File'
+      fileModel: 'File',
+      isShortcut: false,
     };
 
     // Create the file id by reversing key, and add ket and bucket.
@@ -71,8 +72,7 @@ export class FileService {
     if (createdFile) {
       await QuotaService.updateUsed(ownerID, size);
     }
-    if (this.isShortcut(createdFile)) createdFile.isShortcut = true;
-    else createdFile.isShortcut = false;
+    createdFile.isShortcut = await this.isShortcut(createdFile);
 
     return createdFile;
   }
@@ -92,14 +92,13 @@ export class FileService {
     const shortcutFile = {
       name,
       fileID,
-      parent
+      parent,
+      isShortcut: true,
     };
 
     const file: IShortcut = new shortcutModel(shortcutFile);
     const createdShortcut: IFile = await FilesRepository.createShortcut(file);
-
-    if (this.isShortcut(createdShortcut)) createdShortcut.isShortcut = true;
-    else createdShortcut.isShortcut = false;
+    createdShortcut.isShortcut = await this.isShortcut(createdShortcut);
 
     return createdShortcut;
   }
@@ -185,7 +184,7 @@ export class FileService {
    * @param file - the file being checked.
    */
   public static async isShortcut(file: any): Promise<boolean> {
-    return this.getFileModel(file) === shortcutModelName;
+    return this.getFileModel(file) === mongoose.model(shortcutModelName);
   }
 
   /**
@@ -294,6 +293,7 @@ export class FileService {
     const file = await FilesRepository.getById(fileId);
     if (!file) throw new FileNotFoundError();
     const responseFile: IFile = await FilesRepository.baseFileToIFile(file);
+    responseFile.isShortcut = await this.isShortcut(responseFile);
 
     return responseFile;
   }
@@ -305,6 +305,7 @@ export class FileService {
   public static async getByKey(key: string): Promise<IFile> {
     const file = await FilesRepository.getByKey(key);
     if (!file) throw new FileNotFoundError();
+    file.isShortcut = await this.isShortcut(file);
 
     return file;
   }
@@ -330,8 +331,9 @@ export class FileService {
       // Add ownerID to the query
       query = { ...query, ownerID };
     }
-
-    return await FilesRepository.find(query);
+    const files = await FilesRepository.find(query);
+    files.map(async (file) => { file.isShortcut = await this.isShortcut(file); });
+    return files;
   }
 
   /**

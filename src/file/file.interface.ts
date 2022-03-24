@@ -47,7 +47,7 @@ export class IShortcut extends PrimitiveFile {
   name: string;
   fileID: string;
   parent: string | null;
-  isShortcut?: boolean;
+  isShortcut: boolean;
 
   constructor(file: Partial<IShortcut>) {
     super(file);
@@ -55,6 +55,7 @@ export class IShortcut extends PrimitiveFile {
     this.name = file.name;
     this.fileID = file.fileID;
     this.parent = file.parent;
+    this.isShortcut = true;
   }
 }
 
@@ -72,9 +73,11 @@ export class IFile extends PrimitiveFile {
   createdAt?: Date;
   updatedAt?: Date;
   size: number = 0;
+  isShortcut: boolean;
 
   constructor(resFile: ResFile) {
     super(resFile);
+    this.isShortcut = resFile.isShortcut;
     // the '+' translates the string to int
     if (+resFile.createdAt) {
       this.createdAt = new Date(+resFile.createdAt);
@@ -96,11 +99,13 @@ export class ResFile extends PrimitiveFile {
   createdAt: number;
   updatedAt: number;
   children?: ResFile[] = [];
+  isShortcut:  boolean;
 
   constructor(file: IFile) {
     super(file);
     this.createdAt = file.createdAt.getTime();
     this.updatedAt = file.updatedAt.getTime();
+    this.isShortcut = file.isShortcut;
     if (file.children) {
       for (let i = 0; i < file.children.length; i++) {
         new ResFile(file.children[i]);
