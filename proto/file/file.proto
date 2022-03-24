@@ -187,6 +187,7 @@ message File {
   repeated File children = 13; 
   bool float = 14;
   string appID = 15;
+  bool isShortcut = 16;
 }
 
 message UpdateFilesRequest {
